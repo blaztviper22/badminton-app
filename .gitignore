@@ -12,6 +12,14 @@ yarn.lock
 .env.local
 .env.*.local
 
+# Ignore generated assets
+public/*.css
+public/*.js
+public/*.map
+!/public/error.css
+!/public/leaflet.css
+test/
+
 # Logs
 logs/
 *.log

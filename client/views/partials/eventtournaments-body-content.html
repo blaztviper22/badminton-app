@@ -1,0 +1,109 @@
+<body>
+  <div id="navbar" class="navbar"></div>
+  <section class="home-section">
+    <h1>View Schedule</h1>
+    <div id="profileNav" class="profile-nav">
+      <a href="/user/admin/schedule-dashboard?tab=court-reservations">Court Reservations</a>
+      <a href="/user/admin/schedule-dashboard?tab=event-and-tournaments" class="active">Events & Tournaments</a>
+      <a href="/user/admin/schedule-dashboard?tab=training-sessions">Training Sessions</a>
+      <a href="/user/admin/schedule-dashboard?tab=product-pickup">Product Pickup</a>
+    </div>
+    <div class="box">
+      <div class="filter-container">
+        <label for="filter">Sort by:</label>
+        <select id="filter">
+          <option value="day">Day</option>
+          <option value="week">Week</option>
+          <option value="month">Month</option>
+        </select>
+        <button class="filter-button">
+          History
+          <i class="fas fa-history"></i>
+        </button>
+        <button class="filter-button">
+          Print Schedule
+          <i class="fas fa-file-alt"></i>
+        </button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>
+              Type
+              <i class="fas fa-sort sort-icon"></i>
+            </th>
+            <th>
+              Title
+              <i class="fas fa-sort sort-icon"></i>
+            </th>
+            <th>
+              Start Date
+              <i class="fas fa-sort sort-icon"></i>
+            </th>
+            <th>End Date</th>
+            <th>
+              Time
+              <i class="fas fa-sort sort-icon"></i>
+            </th>
+            <th>
+              Location
+              <i class="fas fa-sort sort-icon"></i>
+            </th>
+            <th>
+              Status
+              <i class="fas fa-sort sort-icon"></i>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Event</td>
+            <td>Annual Sports Festival</td>
+            <td>2024-10-05</td>
+            <td>2024-10-05</td>
+            <td>10:00 AM - 12:00 PM</td>
+            <td>Court 1</td>
+            <td>Confirmed</td>
+          </tr>
+          <tr>
+            <td>Tournament</td>
+            <td>Fall Challenge</td>
+            <td>2024-10-08</td>
+            <td>2024-10-10</td>
+            <td>11:00 AM - 02:00 PM</td>
+            <td>Court 2</td>
+            <td>Pending</td>
+          </tr>
+          <tr>
+            <td>Event</td>
+            <td>Community Sports Day</td>
+            <td>2024-11-08</td>
+            <td>2024-11-08</td>
+            <td>01:30 PM - 03:00 PM</td>
+            <td>Court 3</td>
+            <td>Cancelled</td>
+          </tr>
+          <tr>
+            <td>Tournament</td>
+            <td>Winter Championship</td>
+            <td>2024-11-12</td>
+            <td>2024-11-14</td>
+            <td>09:00 AM - 05:00 PM</td>
+            <td>Court 4</td>
+            <td>Confirmed</td>
+          </tr>
+          <tr>
+            <td>Event</td>
+            <td>End of Year Celebration</td>
+            <td>2024-11-20</td>
+            <td>2024-11-20</td>
+            <td>03:00 PM - 05:00 PM</td>
+            <td>Court 5</td>
+            <td>Confirmed</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</body>

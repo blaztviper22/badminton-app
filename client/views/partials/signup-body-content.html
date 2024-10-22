@@ -1,0 +1,326 @@
+<body>
+  <div id="index-ui">
+    <div class="container">
+      <div class="upper-content-container">
+        <div class="logo-container">
+          <a href="/">
+            <img src="/assets/images/logo-white.png" alt="Logo" />
+          </a>
+        </div>
+        <div class="title-container">
+          <h2>Bataan Badminton Portal</h2>
+        </div>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="/assets/images/indexImg.png" alt="Image" />
+    </div>
+  </div>
+
+  <div class="container">
+    <main>
+      <h1>Sign up as</h1>
+      <div class="image-grid">
+        <div class="image-item">
+          <a href="#" id="courtOwnerLink">
+            <img src="/assets/images/1.png" alt="Image 1" />
+            <p>Court Owner</p>
+          </a>
+        </div>
+        <div class="image-item">
+          <a href="#" id="userLink">
+            <img src="/assets/images/4.png" alt="Image 4" />
+            <p>User</p>
+          </a>
+        </div>
+      </div>
+      <div>
+        <h4>
+          Already have an account?
+          <a href="/login">Sign in here.</a>
+        </h4>
+      </div>
+    </main>
+  </div>
+
+  <div class="signup-form" id="courtOwnerFormContainer">
+    <label for="show" class="close-btn fas fa-times" title="close" id="closeCourtOwnerForm"></label>
+    <div class="text">Sign up as Court Owner</div>
+    <form id="ownerSignUpForm" method="POST" action="verifyAccount.html">
+      <div class="form first">
+        <div class="details owner" id="owner-details">
+          <span class="title">Owner Details</span>
+          <div class="fields">
+            <div class="input-field">
+              <label for="first-name-owner">First Name</label>
+              <input
+                type="text"
+                id="first-name-owner"
+                name="first_name_owner"
+                placeholder="Enter your first name"
+                required />
+              <div id="first-name-owner-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="middle-name-owner">Middle Name</label>
+              <input
+                type="text"
+                id="middle-name-owner"
+                name="middle_name_owner"
+                placeholder="Enter your middle name"
+                required />
+              <div id="middle-name-owner-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="last-name-owner">Last Name</label>
+              <input
+                type="text"
+                id="last-name-owner"
+                name="last_name_owner"
+                placeholder="Enter your last name"
+                required />
+              <div id="last-name-owner-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="gender">Gender</label>
+              <select id="gender" name="gender_owner" required>
+                <option disabled selected>Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="date-of-birth-owner">Date of Birth</label>
+              <input
+                type="date"
+                id="date-of-birth-owner"
+                name="date_of_birth_owner"
+                placeholder="Enter birth date"
+                required />
+              <div class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="status">Status</label>
+              <select id="status" name="status_owner" required>
+                <option disabled selected>Select status</option>
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+                <option value="Widowed/er">Widowed/er</option>
+                <option value="Separated">Separated</option>
+                <option value="Cohabitant">Cohabitant</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="contact-number-owner">Contact Number</label>
+              <input
+                type="tel"
+                id="contact-number-owner"
+                name="contact_number_owner"
+                placeholder="Enter your contact number"
+                required />
+              <div id="contact-number-owner-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="email">Email</label>
+              <input type="email" id="email-owner" name="email_owner" placeholder="Enter your email" required />
+              <div id="email-owner-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="municipality">Municipality</label>
+              <select id="municipality" name="municipality_owner" required>
+                <option disabled selected>Select municipality</option>
+                <option value="Abucay">Abucay</option>
+                <option value="Bagac">Bagac</option>
+                <option value="Balanga City">Balanga City</option>
+                <option value="Dinalupihan">Dinalupihan</option>
+                <option value="Hermosa">Hermosa</option>
+                <option value="Limay">Limay</option>
+                <option value="Mariveles">Mariveles</option>
+                <option value="Morong">Morong</option>
+                <option value="Orani">Orani</option>
+                <option value="Orion">Orion</option>
+                <option value="Samal">Samal</option>
+                <option value="Pilar">Pilar</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="details personal" id="owner-account-details">
+          <span class="title">
+            Account Details
+            <h4>(This will serve as your credentials when accessing the admin page.)</h4>
+          </span>
+          <div class="fields">
+            <div class="input-field">
+              <label for="username">Username</label>
+              <input type="text" id="username-owner" name="username_owner" placeholder="Enter your username" required />
+              <div id="username-owner-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="password1-owner">Password</label>
+              <input
+                id="password1-owner"
+                name="password1_owner"
+                type="password"
+                placeholder="Enter your password"
+                required />
+              <div id="password1-owner-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="password2-owner">Confirm Password</label>
+              <input
+                id="password2-owner"
+                name="password2_owner"
+                type="password"
+                placeholder="Confirm your password"
+                required />
+              <div id="password2-owner-error" class="error-message"></div>
+            </div>
+            <button type="submit" id="submitOwner" class="submit" name="register" formType="court_owner">
+              <span class="btnText">Register</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="signup-form" id="userFormContainer">
+    <label for="show" class="close-btn fas fa-times" title="close" id="closeUserForm"></label>
+    <div class="text">Sign up as User</div>
+    <form id="userSignUpForm" method="POST">
+      <div class="form first">
+        <div class="details owner" id="user-details">
+          <span class="title">User Details</span>
+          <div class="fields">
+            <div class="input-field">
+              <label for="first-name-user">First Name</label>
+              <input
+                type="text"
+                id="first-name-user"
+                name="first_name_user"
+                placeholder="Enter your first name"
+                required />
+              <div id="first-name-user-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="middle-name-user">Middle Name</label>
+              <input
+                type="text"
+                id="middle-name-user"
+                name="middle_name_user"
+                placeholder="Enter your middle name"
+                required />
+              <div id="middle-name-user-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="last-name-user">Last Name</label>
+              <input
+                type="text"
+                id="last-name-user"
+                name="last_name_user"
+                placeholder="Enter your last name"
+                required />
+              <div id="last-name-user-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="gender-user">Gender</label>
+              <select id="gender-user" name="gender_user" required>
+                <option disabled selected>Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="date-of-birth-user">Date of Birth</label>
+              <input
+                type="date"
+                id="date-of-birth-user"
+                name="date_of_birth_user"
+                placeholder="Enter birth date"
+                required />
+              <div class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="contact-number-user">Contact Number</label>
+              <input
+                type="tel"
+                id="contact-number-user"
+                name="contact_number_user"
+                placeholder="Enter your contact number"
+                required />
+              <div id="contact-number-user-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="email-user">Email</label>
+              <input type="email" id="email-user" name="email_user" placeholder="Enter your email" required />
+              <div id="email-user-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="municipality-user">Municipality</label>
+              <select id="municipality-user" name="municipality_user" required>
+                <option disabled selected>Select municipality</option>
+                <option>Abucay</option>
+                <option>Bagac</option>
+                <option>Balanga City</option>
+                <option>Dinalupihan</option>
+                <option>Hermosa</option>
+                <option>Limay</option>
+                <option>Mariveles</option>
+                <option>Morong</option>
+                <option>Orani</option>
+                <option>Orion</option>
+                <option>Samal</option>
+                <option>Pilar</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="user-type">User Type</label>
+              <select id="user-type" name="user_type" required>
+                <option disabled selected>Select user type</option>
+                <option value="COACH">Coach</option>
+                <option value="PLAYER">Player</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="details personal" id="user-account-details">
+          <span class="title">Account Details</span>
+          <div class="fields">
+            <div class="input-field">
+              <label for="username-user">Username</label>
+              <input type="text" id="username-user" name="username_user" placeholder="Enter your username" required />
+              <div id="username-user-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="password1-user">Password</label>
+              <input
+                id="password1-user"
+                name="password1_user"
+                type="password"
+                placeholder="Enter your password"
+                required />
+              <div id="password1-user-error" class="error-message"></div>
+            </div>
+            <div class="input-field">
+              <label for="password2-user">Confirm Password</label>
+              <input
+                id="password2-user"
+                name="password2_user"
+                type="password"
+                placeholder="Confirm your password"
+                required />
+              <div id="password2-user-error" class="error-message"></div>
+            </div>
+            <button type="submit" id="submitUser" class="submit" name="register" formType="user">
+              <span class="btnText">Register</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</body>
