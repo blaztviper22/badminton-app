@@ -380,6 +380,14 @@ function updatePaymentUI(totalHours, totalCourts) {
   getAll('.payment-row .payment-value')[0].textContent = formatCurrency(calculatedAmount);
   getAll('.payment-row .payment-value')[1].textContent = formatCurrency(reservationFee);
   getAll('.payment-row .total-payment-value')[0].textContent = formatCurrency(reservationFee);
+  // use the hourly rate as the reservation fee
+  const reservationFee = hourlyRate;
+  const totalPayment = totalHours * totalCourts * reservationFee;
+
+  // update the UI to show the reservation fee and total payment
+  getAll('.payment-row .payment-value')[0].textContent = formatCurrency(reservationFee);
+  getAll('.payment-row .payment-value')[1].textContent = formatCurrency(totalPayment);
+  getAll('.payment-row .total-payment-value')[0].textContent = formatCurrency(totalPayment);
 }
 
 function handleTimeSlotSelection() {
