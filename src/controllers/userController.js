@@ -16,7 +16,14 @@ const Court = require('../models/Court');
 const { geocodeAddress } = require('../utils/addressToCoord');
 const moment = require('moment-timezone');
 const calculateTotalAmount = require('../utils/amountCalculator');
-const { createPayPalPayment } = require('../services/paypalService');
+const {
+  createPayPalPayment,
+  capturePayPalPayment,
+  createPayPalPayout,
+  getPayPalPaymentDetails
+} = require('../services/paypalService');
+const serveFile = require('../utils/fileUtils');
+const path = require('path');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -545,12 +552,10 @@ exports.createReservation = async (req, res, io) => {
       });
     }
 
-    const brandName = court.business_name;
-    const logoImage = court.business_logo.replace('/user', '');
     const payerId = admin.payer_id;
-    const payeeEmail = court.paypal_email;
 
-    const payment = await createPayPalPayment(totalAmount, payeeEmail, brandName, logoImage, payerId);
+    const payment = await createPayPalPayment(hourlyRate, payerId, courtId);
+    const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
 
     log(payment);
 
@@ -562,8 +567,8 @@ exports.createReservation = async (req, res, io) => {
     return res.status(201).json({
       status: 'success',
       code: 201,
-      reservation
-      // approvalUrl: approvalUrl.href
+      reservation,
+      approvalUrl: approvalUrl
     });
   } catch (err) {
     // handle duplicate key error
@@ -582,9 +587,11 @@ exports.createReservation = async (req, res, io) => {
     });
   }
 };
+
 exports.getAvailability = async (req, res) => {
   try {
     const { date, courtId } = req.query;
+    const userId = req.user.id;
 
     // Validate the date parameter
     if (!date) {
@@ -611,6 +618,7 @@ exports.getAvailability = async (req, res) => {
     const response = {
       status: 'success',
       reservedDates: [],
+      userReservedDates: [],
       courts: []
     };
 
@@ -631,15 +639,26 @@ exports.getAvailability = async (req, res) => {
         }
       };
 
-      // Get reservations
-      const reservations = await Reservation.find({ court: court._id });
+      // get only reservations that are confirmed/completed and paid
+      const reservations = await Reservation.find({
+        court: court._id,
+        status: { $in: ['confirmed', 'pending'] },
+        paymentStatus: { $in: ['paid', 'unpaid'] }
+      });
 
-      // Check for reservations and populate reservedDates
       reservations.forEach((reservation) => {
         const reservationDate = moment(reservation.date).tz('Asia/Manila').startOf('day');
         if (reservationDate.isSame(currentDate, 'day') || reservationDate.isAfter(currentDate)) {
-          if (!response.reservedDates.includes(reservationDate.format('YYYY-MM-DD'))) {
-            response.reservedDates.push(reservationDate.format('YYYY-MM-DD'));
+          // check if the reservation is by the current user
+          if (reservation.user.toString() === userId) {
+            if (!response.userReservedDates.includes(reservationDate.format('YYYY-MM-DD'))) {
+              response.userReservedDates.push(reservationDate.format('YYYY-MM-DD'));
+            }
+          } else {
+            // only push to reservedDates if it's from another user
+            if (!response.reservedDates.includes(reservationDate.format('YYYY-MM-DD'))) {
+              response.reservedDates.push(reservationDate.format('YYYY-MM-DD'));
+            }
           }
         }
       });
@@ -735,5 +754,67 @@ exports.getAvailability = async (req, res) => {
       code: 500,
       message: 'Internal Server Error'
     });
+  }
+};
+
+exports.handleCourtReservation = async (req, res, next) => {
+  const { token, id } = req.query;
+
+  try {
+    const court = await Court.findById(id);
+    if (!court) {
+      return res.status(404).json({ status: 'error', message: 'Court not found' });
+    }
+
+    if (token) {
+      const courtOwnerEmail = court.paypal_email;
+      const reservation = await Reservation.findOne({ court: id, user: req.user.id }).sort({ createdAt: -1 });
+
+      if (!reservation) {
+        return res.status(404).json({ status: 'error', message: 'Reservation not found' });
+      }
+
+      const totalAmount = reservation.totalAmount;
+
+      try {
+        const paymentDetails = await getPayPalPaymentDetails(token);
+        const paymentStatus = paymentDetails.status;
+
+        if (paymentStatus === 'CANCELED') {
+          return res.status(200).json({
+            status: 'canceled',
+            message: 'The payment was canceled by the user.'
+          });
+        } else if (paymentStatus === 'COMPLETED' || paymentStatus === 'APPROVED') {
+          const paymentCapture = await capturePayPalPayment(token);
+          console.log('Payment captured:', paymentCapture);
+
+          await createPayPalPayout(courtOwnerEmail, totalAmount);
+          console.log('Payout to court owner initiated');
+
+          // update reservation with 'paid' payment status and 'confirmed' status
+          await Reservation.findByIdAndUpdate(reservation._id, {
+            paymentStatus: 'paid',
+            status: 'confirmed',
+            transactionId: paymentCapture.id,
+            payerEmail: paymentDetails.payer.email_address
+          });
+        } else {
+          return res.status(400).json({ status: 'error', message: `Payment status is: ${paymentStatus}` });
+        }
+      } catch (paymentError) {
+        console.error('Error processing payment:', paymentError);
+        return res.status(500).json({
+          status: 'error',
+          message: 'There was an issue processing the payment.'
+        });
+      }
+    }
+
+    const filePath = path.resolve(__dirname, '../../build/usercourtreservation.html');
+    serveFile(filePath, res, next);
+  } catch (error) {
+    console.error('Error handling reservation:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };

@@ -39,6 +39,7 @@ export function checkSessionValidity() {
     })
     .catch((err) => {
       error('Error during session validation:', err);
+      window.location.href = '/login'; // Redirect to login page
     });
 }
 
@@ -59,6 +60,7 @@ function refreshToken() {
       throw new Error('Refresh token failed');
     } else {
       error('Unexpected error while refreshing token.');
+      window.location.href = '/login'; // Redirect to login page
       throw new Error('Unexpected error');
     }
   });

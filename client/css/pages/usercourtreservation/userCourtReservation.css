@@ -261,6 +261,10 @@ input:focus {
 .reserved {
   background-color: #397cf7;
 }
+.user-reserved {
+  background-color: #0d98ba; /* Change to your preferred color for current user's dates */
+}
+
 .fc-daygrid-day {
   cursor: pointer; /* Changes the cursor to a hand (pointer) */
 }

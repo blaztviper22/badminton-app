@@ -133,5 +133,23 @@ const createPayPalPayout = async (recipientEmail, payoutAmount) => {
   const payoutData = await payoutResponse.json();
   return payoutData;
 };
+const getPayPalPaymentDetails = async (orderId) => {
+  const accessToken = await getAccessToken();
 
-module.exports = { createPayPalPayment, capturePayPalPayment, createPayPalPayout };
+  const orderDetailsResponse = await fetch(`${config.get('paypal').apiBaseUrl}/v2/checkout/orders/${orderId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!orderDetailsResponse.ok) {
+    throw new Error(`Error fetching PayPal order details: ${orderDetailsResponse.statusText}`);
+  }
+
+  const orderDetails = await orderDetailsResponse.json();
+  return orderDetails;
+};
+
+module.exports = { createPayPalPayment, capturePayPalPayment, createPayPalPayout, getPayPalPaymentDetails };
