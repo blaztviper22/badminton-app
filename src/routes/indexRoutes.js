@@ -19,8 +19,17 @@ let routes = (app) => {
     serveFile(filePath, res, next);
   });
 
-  router.post('/test-redirect', (req, res, next) => {
-    return res.redirect('/ping');
+  app.post('/paypal/webhook', (req, res) => {
+    const notification = req.body;
+
+    // Process the notification
+    console.log('Received webhook notification:', notification);
+
+    // Implement your logic based on the notification type and status
+    // For example, update reservation status in your database based on payment outcome
+
+    // Send a response back to Adyen
+    res.sendStatus(200);
   });
 
   router.get('/ping', verifyToken, (req, res) => {

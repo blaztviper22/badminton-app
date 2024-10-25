@@ -41,13 +41,13 @@ const reservationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'completed', 'cancelled'],
+      enum: ['pending', 'confirmed', 'completed'],
       default: 'pending'
     },
     paymentStatus: {
       type: String,
       enum: ['cancelled', 'paid', 'unpaid', 'pending'],
-      default: 'pending'
+      default: 'unpaid'
     },
     totalAmount: {
       type: Number,

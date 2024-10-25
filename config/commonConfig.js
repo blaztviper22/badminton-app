@@ -21,7 +21,7 @@ module.exports = {
     maxAge: 15 * 60 * 1000, // 15 minutes in milliseconds
     httpOnly: true,
     secure: process.env.DISABLE_SECURITY === 'false',
-    sameSite: 'Strict'
+    sameSite: 'lax'
   },
   r2: {
     authKey: process.env.R2_AUTH_KEY, // Store your custom auth key

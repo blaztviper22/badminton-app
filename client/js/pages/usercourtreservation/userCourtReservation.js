@@ -8,6 +8,7 @@ import { setupLogoutListener } from '../../global/logout.js';
 let selectedCourts = [];
 let selectedDate = null;
 let reservedDates = [];
+let userReservedDates = [];
 let hourlyRate = 0;
 let calendar;
 
@@ -26,7 +27,7 @@ socket.on('reservationCreated', (data) => {
     populateCourtImagesAndLocation(courtData);
     generateTimeSlots(availabilityData);
     reservedDates = reservedDates;
-    highlightReservedDates(reservedDates);
+    highlightReservedDates(reservedDates, userReservedDates);
     calendar.render();
   });
 });
@@ -140,7 +141,7 @@ doc.addEventListener('DOMContentLoaded', async function () {
     },
     datesSet: async function (dateInfo) {
       // Highlight reserved dates every time the view changes
-      highlightReservedDates(reservedDates);
+      highlightReservedDates(reservedDates, userReservedDates);
     }
   });
   calendar.render();
@@ -155,7 +156,8 @@ doc.addEventListener('DOMContentLoaded', async function () {
     const {
       courtData,
       availabilityData,
-      reservedDates: fetchedReservedDates
+      reservedDates: fetchedReservedDates,
+      userReservedDates: fetchUserReservedDates
     } = await fetchCourtData(courtId, currentDate);
     if (courtData) {
       populateCourtImagesAndLocation(courtData);
@@ -163,7 +165,10 @@ doc.addEventListener('DOMContentLoaded', async function () {
 
       // Store reserved dates globally
       reservedDates = fetchedReservedDates;
-      highlightReservedDates(reservedDates); // Highlight reserved dates
+      userReservedDates = fetchUserReservedDates;
+      log(reservedDates);
+      log(userReservedDates);
+      highlightReservedDates(reservedDates, userReservedDates); // Highlight reserved dates
     }
   }
 });
@@ -259,26 +264,42 @@ async function fetchCourtData(courtId, selectedDate) {
     const availabilityData = await availabilityResponse.json();
 
     // Return both court data and availability data, including reserved dates
-    return { courtData, availabilityData, reservedDates: availabilityData.reservedDates };
+    return {
+      courtData,
+      availabilityData,
+      reservedDates: availabilityData.reservedDates,
+      userReservedDates: availabilityData.userReservedDates
+    };
   } catch (err) {
     error(err);
     return null;
   }
 }
 
-// Function to highlight reserved dates
-function highlightReservedDates(reservedDates) {
+function highlightReservedDates(reservedDates, userReservedDates) {
   const calendarDays = getAll('.fc-daygrid-day');
+  log(userReservedDates);
+  log(reservedDates);
 
   calendarDays.forEach((day) => {
-    const date = day.getAttribute('data-date'); // Get the date attribute
+    const date = day.getAttribute('data-date');
+
+    // check if the date is in userReservedDates
+    if (userReservedDates.includes(date)) {
+      day.classList.add('user-reserved'); // Add user-reserved class (red)
+    }
+    // check if the date is in reservedDates
     if (reservedDates.includes(date)) {
-      day.classList.add('reserved'); // Add reserved class if the date is reserved
-    } else {
-      day.classList.remove('reserved'); // Remove reserved class if the date is not reserved
+      day.classList.add('reserved'); // Add reserved class (blue)
+    }
+    // if the date is not in either array, remove both classes
+    if (!userReservedDates.includes(date) && !reservedDates.includes(date)) {
+      day.classList.remove('reserved');
+      day.classList.remove('user-reserved');
     }
   });
 }
+
 // function to calculate the duration in hours based on the grouped time slots
 function calculateDuration(groupedTimeSlot) {
   if (!groupedTimeSlot) {
@@ -293,10 +314,6 @@ function calculateDuration(groupedTimeSlot) {
 
 // function to submit reservation to the backend
 async function submitReservation(timeSlot) {
-  log(timeSlot);
-  log(selectedCourts);
-  log(selectedDate);
-
   const queryParams = new URLSearchParams(window.location.search);
   const courtId = queryParams.get('id');
 
@@ -324,25 +341,35 @@ async function submitReservation(timeSlot) {
       body: JSON.stringify(reservationData)
     });
 
-    if (!response.status === 201) {
+    if (!response.ok) {
       const errorData = await response.json();
       const errorMessage = errorData.message || 'Failed to reserve time slot. Please try again.';
-      resetPaymentUI();
+      // resetPaymentUI();
       throw new Error(errorMessage);
     }
 
-    alert('Reservation successful!');
-    resetPaymentUI();
+    const responseData = await response.json();
+    log(responseData);
+
+    // extract the PayPal approval URL
+    const approvalUrl = responseData.approvalUrl;
+
+    // redirect the user to the PayPal approval page
+    // window.open(approvalUrl, '_blank');
+    window.location.href = approvalUrl;
+
+    // alert('Reservation successful!');
+    // resetPaymentUI();
 
     doc.querySelectorAll('.fc-daygrid-day').forEach((day) => day.classList.remove('selected-date'));
 
     // fetch data again to refresh  reserved dates
-    const { reservedDates: fetchedReservedDates } = await fetchCourtData(courtId, finalDate);
+    // const { reservedDates: fetchedReservedDates } = await fetchCourtData(courtId, finalDate);
 
-    if (fetchedReservedDates) {
-      reservedDates = fetchedReservedDates;
-      highlightReservedDates(reservedDates);
-    }
+    // if (fetchedReservedDates) {
+    //   reservedDates = fetchedReservedDates;
+    //   highlightReservedDates(reservedDates);
+    // }
   } catch (err) {
     error(err);
     alert(`An error occurred: ${err.message}`);
@@ -373,13 +400,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function updatePaymentUI(totalHours, totalCourts) {
-  const calculatedAmount = totalHours * hourlyRate * totalCourts;
-  const reservationFee = (calculatedAmount * 0.1).toFixed(2);
-  const totalPayment = (calculatedAmount - reservationFee).toFixed(2);
+  // use the hourly rate as the reservation fee
+  const reservationFee = hourlyRate;
+  const totalPayment = totalHours * totalCourts * reservationFee;
 
-  getAll('.payment-row .payment-value')[0].textContent = formatCurrency(calculatedAmount);
+  // update the UI to show the reservation fee and total payment
+  getAll('.payment-row .payment-value')[0].textContent = formatCurrency(totalPayment);
   getAll('.payment-row .payment-value')[1].textContent = formatCurrency(reservationFee);
-  getAll('.payment-row .total-payment-value')[0].textContent = formatCurrency(totalPayment);
+  getAll('.payment-row .total-payment-value')[0].textContent = formatCurrency(reservationFee);
 }
 
 function handleTimeSlotSelection() {
@@ -423,20 +451,4 @@ function generateTimeSlots(availabilityData) {
 
     timeSlotsContainer.appendChild(timeSlot);
   });
-}
-async function fetchClientKey() {
-  try {
-    const response = await fetch('/user/client-key', {
-      method: 'GET',
-      credentials: 'include'
-    });
-    if (!response.ok) {
-      throw new Error(`Error fetching client key: ${response.status}`);
-    }
-    const data = await response.json();
-    return data.clientKey;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Failed to fetch client key');
-  }
 }

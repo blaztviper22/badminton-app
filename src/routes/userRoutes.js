@@ -12,13 +12,15 @@ const {
   getAllCourts,
   getCourtById,
   createReservation,
-  getAvailability
+  getAvailability,
+  handleCourtReservation
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const { validateUserId, validateUserInfo } = require('../middleware/validator');
 const validateUpdateFields = require('../middleware/validateUpdateField');
 const { createRateLimiter } = require('../middleware/rateLimiter');
 const { checkFilePermissions } = require('../middleware/checkFilePermission');
+const checkCourtId = require('../middleware/checkCourtId');
 
 const limiter = createRateLimiter(15 * 60 * 1000, 100);
 
@@ -48,10 +50,7 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-  router.get('/court-reservation', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
-    const filePath = path.resolve(__dirname, '../../build/usercourtreservation.html');
-    serveFile(filePath, res, next);
-  });
+  router.get('/court-reservation', verifyToken, checkCourtId, roleChecker(['player', 'coach']), handleCourtReservation);
 
   router.get('/admin/schedule-dashboard', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const tab = req.query.tab; // get the page from the query parameter

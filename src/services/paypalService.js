@@ -1,35 +1,13 @@
 const config = require('config');
 const { v4: uuidv4 } = require('uuid');
+const { base64UrlEncode } = require('../utils/paypalUtils');
+const { createUnsignedJWT } = require('../utils/paypalUtils');
 
-const base64UrlEncode = (str) => {
-  return Buffer.from(str).toString('base64url');
-};
-
-const createUnsignedJWT = (issuer, payerId) => {
-  const header = {
-    alg: 'none',
-    typ: 'JWT'
-  };
-
-  const payload = {
-    iss: issuer,
-    payer_id: payerId,
-    exp: Math.floor(Date.now() / 1000) + 60 * 60 // optional: set expiration to 1 hour
-  };
-
-  const encodedHeader = base64UrlEncode(JSON.stringify(header));
-  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
-
-  // construct unsigned JWT
-  return `${encodedHeader}.${encodedPayload}.`;
-};
-
-async function createPayPalPayment(totalAmount, payeeEmail, brandName, logoImage, payerId) {
+const getAccessToken = async () => {
   const clientId = config.get('paypal').clientId;
   const clientSecret = config.get('paypal').secretKey;
   const base64Credentials = base64UrlEncode(`${clientId}:${clientSecret}`);
 
-  // get an access token
   const tokenResponse = await fetch(`${config.get('paypal').apiBaseUrl}/v1/oauth2/token`, {
     method: 'POST',
     headers: {
@@ -44,11 +22,33 @@ async function createPayPalPayment(totalAmount, payeeEmail, brandName, logoImage
   }
 
   const tokenData = await tokenResponse.json();
-  const accessToken = tokenData.access_token;
+  return tokenData.access_token;
+};
+
+const capturePayPalPayment = async (orderId) => {
+  const accessToken = await getAccessToken();
+
+  const captureResponse = await fetch(`${config.get('paypal').apiBaseUrl}/v2/checkout/orders/${orderId}/capture`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!captureResponse.ok) {
+    throw new Error(`Error capturing PayPal payment: ${captureResponse.statusText}`);
+  }
+
+  const captureData = await captureResponse.json();
+  return captureData;
+};
+
+async function createPayPalPayment(totalAmount, payerId, courtId) {
+  const accessToken = await getAccessToken();
   const unsignedToken = createUnsignedJWT('badminton-app', payerId);
 
-  // use the access token to create a payment
-  const paymentResponse = await fetch(`${config.get('paypal').apiBaseUrl}/v1/payments/payment`, {
+  const orderResponse = await fetch(`${config.get('paypal').apiBaseUrl}/v2/checkout/orders`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -57,41 +57,99 @@ async function createPayPalPayment(totalAmount, payeeEmail, brandName, logoImage
       // 'PayPal-Auth-Assertion': unsignedToken
     },
     body: JSON.stringify({
-      intent: 'sale',
-      payer: {
-        payment_method: 'paypal'
-      },
-      transactions: [
+      intent: 'CAPTURE',
+      purchase_units: [
         {
           amount: {
-            total: totalAmount,
-            currency: 'PHP'
-          },
-          payee: {
-            email: payeeEmail
-          },
-          description: 'Payment for court reservation',
-          note_to_payer: 'Contact us for any questions on your order.'
+            currency_code: 'PHP',
+            value: totalAmount,
+            breakdown: {
+              item_total: {
+                currency_code: 'PHP',
+                value: totalAmount
+              }
+            }
+          }
         }
       ],
-      redirect_urls: {
-        return_url: `${config.get('frontendUrl')}/user/court-reservation`,
-        cancel_url: `${config.get('frontendUrl')}/user/court-reservation`
-      },
-      application_context: {
-        // brand_name: brandName || 'badminton-app',
-        brand_name: brandName,
-        locale: 'en-US',
-        shipping_preference: 'NO_SHIPPING'
-        // user_action: 'PAY_NOW'
-        // logo_image: 'https://r2-api.mayor.workers.dev/logo.png'
-        // logo_image: `${config.get('frontendUrl')}${logoImage}`
+      payment_source: {
+        paypal: {
+          experience_context: {
+            payment_method_preference: 'IMMEDIATE_PAYMENT_REQUIRED',
+            brand_name: 'BATAAN BADMINTON',
+            locale: 'en-US',
+            shipping_preference: 'NO_SHIPPING',
+            user_action: 'PAY_NOW',
+            return_url: `${config.get('frontendUrl')}/user/court-reservation?id=${courtId}`,
+            cancel_url: `${config.get('frontendUrl')}/user/court-reservation?id=${courtId}`
+          }
+        }
       }
     })
   });
 
-  const paymentData = await paymentResponse.json();
-  return paymentData;
+  if (!orderResponse.ok) {
+    throw new Error(`Error creating PayPal order: ${orderResponse.statusText}`);
+  }
+
+  return orderResponse.json();
 }
 
-module.exports = { createPayPalPayment };
+const createPayPalPayout = async (recipientEmail, payoutAmount) => {
+  const accessToken = await getAccessToken();
+
+  const payoutResponse = await fetch(`${config.get('paypal').apiBaseUrl}/v1/payments/payouts`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'PayPal-Request-Id': uuidv4()
+    },
+    body: JSON.stringify({
+      sender_batch_header: {
+        sender_batch_id: uuidv4(), // unique ID for each payout batch
+        email_subject: 'You have a payment from BATAAN BADMINTON',
+        email_message: 'You have a payment from BATAAN BADMINTON'
+      },
+      items: [
+        {
+          recipient_type: 'EMAIL',
+          amount: {
+            value: payoutAmount,
+            currency: 'PHP'
+          },
+          receiver: recipientEmail, // court owner's PayPal email
+          note: 'Payment for court reservation',
+          sender_item_id: uuidv4()
+        }
+      ]
+    })
+  });
+
+  if (!payoutResponse.ok) {
+    throw new Error(`Error creating PayPal payout: ${payoutResponse.statusText}`);
+  }
+
+  const payoutData = await payoutResponse.json();
+  return payoutData;
+};
+const getPayPalPaymentDetails = async (orderId) => {
+  const accessToken = await getAccessToken();
+
+  const orderDetailsResponse = await fetch(`${config.get('paypal').apiBaseUrl}/v2/checkout/orders/${orderId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!orderDetailsResponse.ok) {
+    throw new Error(`Error fetching PayPal order details: ${orderDetailsResponse.statusText}`);
+  }
+
+  const orderDetails = await orderDetailsResponse.json();
+  return orderDetails;
+};
+
+module.exports = { createPayPalPayment, capturePayPalPayment, createPayPalPayout, getPayPalPaymentDetails };
