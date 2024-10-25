@@ -16,7 +16,7 @@ module.exports = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
   port: process.env.PORT || 3000,
   frontendUrl: process.env.FRONTEND_URL,
-  disableSecurity: process.env.DISABLE_SECURITY,
+  disableSecurity: process.env.DISABLE_SECURITY === 'true',
   cookieOptions: {
     maxAge: 15 * 60 * 1000, // 15 minutes in milliseconds
     httpOnly: true,
