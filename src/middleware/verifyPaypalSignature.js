@@ -1,38 +1,40 @@
-const crypto = require('crypto');
 const config = require('config');
+const { verifyWebhookSignature } = require('../services/paypalService');
+const { error, log } = console;
 
-// middleware to verify PayPal webhook signature
-function verifyPayPalSignature(req, res, next) {
-  console.log('Received headers:', req.headers);
-
+// Middleware to verify PayPal webhook signature
+async function verifyPayPalSignature(req, res, next) {
   const signature = req.headers['paypal-transmission-sig'];
   const transmissionId = req.headers['paypal-transmission-id'];
   const timestamp = req.headers['paypal-transmission-time'];
-  const webhookId = config.get('paypal').paypalWebhookId;
   const authAlgo = req.headers['paypal-auth-algo'];
   const certUrl = req.headers['paypal-cert-url'];
+  const webhookEvent = req.body;
 
-  // validate required headers
-  if (!signature || !transmissionId || !timestamp || !webhookId || !authAlgo || !certUrl) {
+  if (!signature || !transmissionId || !timestamp || !authAlgo || !certUrl) {
     return res.status(400).send('Missing or invalid headers');
   }
 
-  // create a verification object
-  const verifier = crypto.createVerify(authAlgo);
+  const headers = {
+    'paypal-transmission-sig': signature,
+    'paypal-transmission-id': transmissionId,
+    'paypal-transmission-time': timestamp,
+    'paypal-auth-algo': authAlgo,
+    'paypal-cert-url': certUrl
+  };
 
-  // prepare the data for verification
-  const data = `${webhookId}${transmissionId}${timestamp}`;
-  verifier.update(data);
+  try {
+    const isValid = await verifyWebhookSignature(webhookEvent, headers);
 
-  // verify the signature using the PayPal certificate URL
-  const isValid = verifier.verify(certUrl, signature, 'base64');
+    if (!isValid) {
+      return res.status(400).send('Invalid PayPal signature');
+    }
 
-  if (!isValid) {
-    return res.status(400).send('Invalid PayPal signature');
+    next();
+  } catch (err) {
+    error('Error verifying PayPal signature:', err);
+    return res.status(500).send('Internal server error');
   }
-
-  // proceed to the next middleware or route handler if valid
-  next();
 }
 
 module.exports = verifyPayPalSignature;
