@@ -422,6 +422,12 @@ exports.createReservation = async (req, res, io) => {
     const currentDateStartOfDay = moment().startOf('day');
     const selectedDateStartOfDay = selectedDate.startOf('day');
 
+    console.log('Now:', now.format());
+    console.log('Current Date:', currentDate.format());
+    console.log('Selected Date:', selectedDate.format());
+    console.log('Current Date Start of Day:', currentDateStartOfDay.format());
+    console.log('Selected Date Start of Day:', selectedDateStartOfDay.format());
+
     // Check if the selected date is in the past
     if (selectedDateStartOfDay.isBefore(currentDateStartOfDay)) {
       return res.status(400).json({
