@@ -9,6 +9,8 @@ const jwt = require('jsonwebtoken');
 const { Buffer } = require('buffer');
 const { sendOTP, sendForgotPasswordEmail } = require('../services/emailService');
 const { deleteUserFilesAndProfilePhoto } = require('../utils/fileCleanup');
+const Reservation = require('../models/Reservation');
+const { getUserSocket } = require('../utils/userSocketManager');
 
 exports.loginUser = async (req, res, next) => {
   try {
@@ -1003,10 +1005,39 @@ exports.registerCourt = async (req, res) => {
   }
 };
 
-exports.paypalWebhookHandler = (req, res) => {
-  // You can access the webhook event data here via req.body
-  console.log('Received PayPal webhook event:', req.body);
+exports.paypalWebhookHandler = async (req, res) => {
+  const webhookEvent = req.body;
 
-  // respond with a 200 status indicating that the event was received
+  console.log('Received PayPal webhook event:', webhookEvent);
+
+  if (webhookEvent.event_type === 'CHECKOUT.ORDER.APPROVED') {
+    const payerId = webhookEvent.resource.payer.payer_id;
+
+    try {
+      // find the reservation using the payerId
+      const reservation = await Reservation.findOne({ payerId });
+
+      if (reservation) {
+        // get the user ID from the reservation
+        const userId = reservation.user;
+
+        // get the user socket for the current user
+        const userSocket = getUserSocket(userId.toString());
+
+        // notify the frontend
+        if (userSocket) {
+          userSocket.emit('paymentSuccess', {
+            message: 'Payment was successful! Your reservation is confirmed.'
+          });
+        }
+      } else {
+        console.log(`No reservation found for payerId: ${payerId}`);
+      }
+    } catch (error) {
+      console.error('Error fetching reservation:', error);
+      return res.status(500).send('Internal Server Error');
+    }
+  }
+
   res.status(200).send('OK');
 };

@@ -44,7 +44,7 @@ const capturePayPalPayment = async (orderId) => {
   return captureData;
 };
 
-async function createPayPalPayment(totalAmount, payerId, courtId) {
+async function createPayPalPayment(totalAmount, payerId, courtId, userId) {
   const accessToken = await getAccessToken();
   const unsignedToken = createUnsignedJWT('badminton-app', payerId);
 
@@ -68,7 +68,8 @@ async function createPayPalPayment(totalAmount, payerId, courtId) {
                 currency_code: 'PHP',
                 value: totalAmount
               }
-            }
+            },
+            user_id: userId
           }
         }
       ],

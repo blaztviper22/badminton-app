@@ -555,7 +555,7 @@ exports.createReservation = async (req, res, io) => {
 
     const payerId = admin.payer_id;
 
-    const payment = await createPayPalPayment(hourlyRate, payerId, courtId);
+    const payment = await createPayPalPayment(hourlyRate, payerId, courtId, userId);
     const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
 
     log(payment);
@@ -803,7 +803,8 @@ exports.handleCourtReservation = async (req, res, next, io) => {
             paymentStatus: 'paid',
             status: 'confirmed',
             transactionId: paymentCapture.id,
-            payerEmail: paymentDetails.payer.email_address
+            payerEmail: paymentDetails.payer.email_address,
+            payerId: paymentDetails.payer.payer_id
           });
         }
       } catch (paymentError) {

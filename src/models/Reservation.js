@@ -69,6 +69,10 @@ const reservationSchema = new mongoose.Schema(
     payerEmail: {
       type: String,
       default: ''
+    },
+    payerId: {
+      type: String,
+      default: ''
     }
   },
   {
