@@ -2,12 +2,7 @@ import { io } from 'socket.io-client';
 import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
 import '../../../css/pages/usercourtreservation/userCourtReservation.css';
-import {
-  hidePreloader,
-  showPreloader,
-  startSessionChecks,
-  validateSessionAndNavigate
-} from '../../../utils/sessionUtils.js';
+import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
 import { setupLogoutListener } from '../../global/logout.js';
 
 let selectedCourts = [];
@@ -30,7 +25,7 @@ getCurrentUserId().then((userId) => {
 
     socket.on('reservationCreated', (data) => {
       // refresh the court data and UI based on the received data
-      fetchCourtData(data.courtId, selectedDate, false)
+      fetchCourtData(data.courtId, data.date, false)
         .then(({ courtData, availabilityData }) => {
           populateCourtImagesAndLocation(courtData, false);
           generateTimeSlots(availabilityData);
@@ -53,10 +48,8 @@ getCurrentUserId().then((userId) => {
     });
 
     socket.on('paymentSuccess', (data) => {
-      hidePreloader();
       alert(data.message);
     });
-    showPreloader();
   } else {
     error('User ID could not be retrieved.');
   }
