@@ -66,12 +66,6 @@ if (disableSecurity) {
           'https://cdn.jsdelivr.net',
           'https://stackpath.bootstrapcdn.com'
         ],
-        scriptSrcElem: [
-          "'self'",
-          'https://code.jquery.com', // allow script elements from jQuery
-          'https://cdn.jsdelivr.net', // allow Popper.js from jsDelivr
-          'https://stackpath.bootstrapcdn.com' // allow Bootstrap JS from StackPath
-        ],
         scriptSrcAttr: ["'none'"],
         styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
         upgradeInsecureRequests: []
