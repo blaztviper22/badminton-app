@@ -47,6 +47,21 @@ getCurrentUserId().then((userId) => {
         });
     });
 
+    socket.on('reservationStatusUpdated', (data) => {
+      log(data.message);
+      const queryParams = new URLSearchParams(window.location.search);
+      const courtId = queryParams.get('id');
+      // refresh the court data and UI based on the received data
+      fetchCourtData(courtId, selectedDate, false)
+        .then(({ courtData, availabilityData }) => {
+          populateCourtImagesAndLocation(courtData, false);
+          generateTimeSlots(availabilityData);
+        })
+        .catch((err) => {
+          console.error('Error fetching court data:', err);
+        });
+    });
+
     socket.on('paymentSuccess', (data) => {
       alert(data.message);
     });
