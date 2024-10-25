@@ -21,6 +21,7 @@ const MAX_FILE_SIZE = config.get('maxFileSize');
 // database connection
 const connectDB = require('./config/db');
 const { startReservationCleanupCronJob } = require('./src/utils/reservationCleanup.js');
+const userSocketManager = require('./src/utils/userSocketManager.js');
 connectDB(config);
 
 const app = express();
@@ -107,18 +108,29 @@ app.use(
   })
 );
 
-// Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('New client connected');
+  const userId = socket.handshake.query.userId;
 
-  // You can listen for events from the client
+  if (userId) {
+    userSocketManager.addUserSocket(userId, socket);
+    console.log(`User ${userId} connected. Current users: ${userSocketManager.getUserList()}`);
+
+    socket.on('clientReady', () => {
+      console.log(`User ${userId} is ready.`);
+      socket.emit('welcome', { message: 'You are now connected and ready to receive notifications!' });
+    });
+
+    socket.on('disconnect', () => {
+      userSocketManager.removeUserSocket(userId);
+      console.log(`User ${userId} disconnected.`);
+    });
+  } else {
+    console.error('User ID not provided during socket connection.');
+  }
+
   socket.on('message', (message) => {
     console.log('Received message:', message);
-  });
-
-  // Notify clients about a reservation update
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
   });
 });
 

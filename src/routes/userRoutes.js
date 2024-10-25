@@ -50,7 +50,9 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-  router.get('/court-reservation', verifyToken, checkCourtId, roleChecker(['player', 'coach']), handleCourtReservation);
+  router.get('/court-reservation', verifyToken, checkCourtId, roleChecker(['player', 'coach']), (req, res, next) => {
+    handleCourtReservation(req, res, next, io);
+  });
 
   router.get('/admin/schedule-dashboard', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const tab = req.query.tab; // get the page from the query parameter

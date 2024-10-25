@@ -30,6 +30,7 @@ module.exports = {
   maxFileSize: new Function(`return ${process.env.MAX_FILE_SIZE}`)(),
   paypal: {
     clientId: process.env.PAYPAL_CLIENT_ID,
-    secretKey: process.env.PAYPAL_SECRET_KEY
+    secretKey: process.env.PAYPAL_SECRET_KEY,
+    paypalWebhookId: process.env.PAYPAL_WEBHOOK_ID
   }
 };

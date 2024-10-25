@@ -10,6 +10,8 @@ const verifyToken = require('../middleware/authJwt');
 const { serveData } = require('../controllers/userController');
 const { createRateLimiter } = require('../middleware/rateLimiter');
 const { checkFilePermissions } = require('../middleware/checkFilePermission');
+const verifyPayPalSignature = require('../middleware/verifyPaypalSignature');
+const { paypalWebhookHandler } = require('../controllers/authController');
 
 const limiter = createRateLimiter(15 * 60 * 1000, 100);
 
@@ -19,18 +21,7 @@ let routes = (app) => {
     serveFile(filePath, res, next);
   });
 
-  app.post('/paypal/webhook', (req, res) => {
-    const notification = req.body;
-
-    // Process the notification
-    console.log('Received webhook notification:', notification);
-
-    // Implement your logic based on the notification type and status
-    // For example, update reservation status in your database based on payment outcome
-
-    // Send a response back to Adyen
-    res.sendStatus(200);
-  });
+  app.post('/paypal-webhook', verifyPayPalSignature, paypalWebhookHandler);
 
   router.get('/ping', verifyToken, (req, res) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate');

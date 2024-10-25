@@ -1,4 +1,6 @@
 let sessionCheckIntervalId = null;
+let redirecting = false;
+let isRefreshing = false;
 
 const doc = document;
 const { log, error } = console;
@@ -43,8 +45,8 @@ export function checkSessionValidity() {
     });
 }
 
-// Function to refresh the token
 function refreshToken() {
+  if (redirecting) return Promise.reject(new Error('Already redirecting'));
   return fetch('/auth/refresh', {
     method: 'POST',
     credentials: 'include',
@@ -55,38 +57,56 @@ function refreshToken() {
       return;
     } else if (refreshResponse.status === 401 || refreshResponse.status === 403) {
       error('Failed to refresh token. Redirecting to login...');
-      // Redirect to login or handle logout
-      window.location.href = '/login'; // Redirect to login page
+      redirecting = true;
+      window.location.href = '/login'; // redirect to login page
       throw new Error('Refresh token failed');
     } else {
       error('Unexpected error while refreshing token.');
-      window.location.href = '/login'; // Redirect to login page
+      window.location.href = '/login'; // redirect to login page
       throw new Error('Unexpected error');
     }
   });
 }
-
-// Create a Proxy for fetch to retry on 401 error
 const originalFetch = window.fetch;
 window.fetch = new Proxy(originalFetch, {
   apply(fetch, that, args) {
     const options = args[1] || {};
     const withPreloader = options.withPreloader !== false;
     if (withPreloader) showPreloader();
+
     return fetch(...args)
       .then((response) => {
+        // Check if the response indicates an expired token
         if (response.status === 401) {
+          if (isRefreshing) {
+            // If we are already refreshing, just wait for the original request to be retried
+            return new Promise((resolve, reject) => {
+              const retry = () => {
+                fetch(...args)
+                  .then(resolve)
+                  .catch(reject);
+              };
+              // Wait a moment before retrying
+              setTimeout(retry, 1000); // Retry after 1 second
+            });
+          }
+
+          isRefreshing = true; // Set the flag to indicate we're refreshing
           log('Token expired or invalid, attempting to refresh...');
-          return refreshToken().then(() => {
-            log('Retrying original request...');
-            return fetch(...args).finally(() => {
+
+          return refreshToken()
+            .then(() => {
+              log('Retrying original request...');
+              return fetch(...args); // Retry the original request after refreshing
+            })
+            .finally(() => {
+              isRefreshing = false; // Reset the flag after the refresh attempt
               if (withPreloader) hidePreloader();
             });
-          });
         }
 
         if (withPreloader) hidePreloader();
-        return response;
+        return response; // Return the original response if no issues
       })
       .catch((err) => {
         error('Fetch error:', err);
@@ -94,6 +114,35 @@ window.fetch = new Proxy(originalFetch, {
       });
   }
 });
+
+// Create a Proxy for fetch to retry on 401 error
+// const originalFetch = window.fetch;
+// window.fetch = new Proxy(originalFetch, {
+//   apply(fetch, that, args) {
+//     const options = args[1] || {};
+//     const withPreloader = options.withPreloader !== false;
+//     if (withPreloader) showPreloader();
+//     return fetch(...args)
+//       .then((response) => {
+//         if (response.status === 401) {
+//           log('Token expired or invalid, attempting to refresh...');
+//           return refreshToken().then(() => {
+//             log('Retrying original request...');
+//             return fetch(...args).finally(() => {
+//               if (withPreloader) hidePreloader();
+//             });
+//           });
+//         }
+
+//         if (withPreloader) hidePreloader();
+//         return response;
+//       })
+//       .catch((err) => {
+//         error('Fetch error:', err);
+//         if (withPreloader) hidePreloader();
+//       });
+//   }
+// });
 
 // function to validate session and navigate to a URL
 export function validateSessionAndNavigate(url) {

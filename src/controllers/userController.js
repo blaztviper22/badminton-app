@@ -16,6 +16,7 @@ const Court = require('../models/Court');
 const { geocodeAddress } = require('../utils/addressToCoord');
 const moment = require('moment-timezone');
 const calculateTotalAmount = require('../utils/amountCalculator');
+const createError = require('http-errors');
 const {
   createPayPalPayment,
   capturePayPalPayment,
@@ -761,13 +762,13 @@ exports.getAvailability = async (req, res) => {
   }
 };
 
-exports.handleCourtReservation = async (req, res, next) => {
+exports.handleCourtReservation = async (req, res, next, io) => {
   const { token, id } = req.query;
-
   try {
     const court = await Court.findById(id);
     if (!court) {
-      return res.status(404).json({ status: 'error', message: 'Court not found' });
+      // use createError for court not found
+      return next(createError(404, 'Court not found'));
     }
 
     if (token) {
@@ -775,7 +776,8 @@ exports.handleCourtReservation = async (req, res, next) => {
       const reservation = await Reservation.findOne({ court: id, user: req.user.id }).sort({ createdAt: -1 });
 
       if (!reservation) {
-        return res.status(404).json({ status: 'error', message: 'Reservation not found' });
+        // use createError for reservation not found
+        return next(createError(404, 'Reservation not found'));
       }
 
       const totalAmount = reservation.totalAmount;
@@ -784,17 +786,21 @@ exports.handleCourtReservation = async (req, res, next) => {
         const paymentDetails = await getPayPalPaymentDetails(token);
         const paymentStatus = paymentDetails.status;
 
-        if (paymentStatus === 'CANCELED') {
-          return res.status(200).json({
-            status: 'canceled',
-            message: 'The payment was canceled by the user.'
+        if (paymentStatus === 'PAYER_ACTION_REQUIRED') {
+          // Log cancellation and delete reservation
+          log(`Payment canceled for reservation ID: ${reservation._id}. Removing reservation.`);
+          await Reservation.findByIdAndDelete(reservation._id);
+          io.emit('reservationCanceled', {
+            reservationId: reservation._id,
+            courtId: id,
+            date: moment().tz('Asia/Manila').format('YYYY-MM-DD')
           });
         } else if (paymentStatus === 'COMPLETED' || paymentStatus === 'APPROVED') {
           const paymentCapture = await capturePayPalPayment(token);
-          console.log('Payment captured:', paymentCapture);
+          log('Payment captured:', paymentCapture);
 
           await createPayPalPayout(courtOwnerEmail, totalAmount);
-          console.log('Payout to court owner initiated');
+          log('Payout to court owner initiated');
 
           // update reservation with 'paid' payment status and 'confirmed' status
           await Reservation.findByIdAndUpdate(reservation._id, {
@@ -803,22 +809,17 @@ exports.handleCourtReservation = async (req, res, next) => {
             transactionId: paymentCapture.id,
             payerEmail: paymentDetails.payer.email_address
           });
-        } else {
-          return res.status(400).json({ status: 'error', message: `Payment status is: ${paymentStatus}` });
         }
       } catch (paymentError) {
-        console.error('Error processing payment:', paymentError);
-        return res.status(500).json({
-          status: 'error',
-          message: 'There was an issue processing the payment.'
-        });
+        error('Error processing payment:', paymentError);
+        return next(createError(500, 'There was an issue processing the payment.'));
       }
     }
 
     const filePath = path.resolve(__dirname, '../../build/usercourtreservation.html');
     serveFile(filePath, res, next);
-  } catch (error) {
-    console.error('Error handling reservation:', error);
-    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  } catch (err) {
+    error('Error handling reservation:', err);
+    return next(createError(500, 'Internal Server Error'));
   }
 };
