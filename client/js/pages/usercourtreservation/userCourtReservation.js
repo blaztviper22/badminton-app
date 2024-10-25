@@ -2,7 +2,12 @@ import { io } from 'socket.io-client';
 import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
 import '../../../css/pages/usercourtreservation/userCourtReservation.css';
-import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
+import {
+  hidePreloader,
+  showPreloader,
+  startSessionChecks,
+  validateSessionAndNavigate
+} from '../../../utils/sessionUtils.js';
 import { setupLogoutListener } from '../../global/logout.js';
 
 let selectedCourts = [];
@@ -48,8 +53,10 @@ getCurrentUserId().then((userId) => {
     });
 
     socket.on('paymentSuccess', (data) => {
+      hidePreloader();
       alert(data.message);
     });
+    showPreloader();
   } else {
     error('User ID could not be retrieved.');
   }
