@@ -411,19 +411,17 @@ exports.createReservation = async (req, res, io) => {
       });
     }
 
-    // Get the current date and time in the Philippines timezone
     const now = moment.tz('Asia/Manila');
 
-    // Convert date to a Date object
+    // Convert date to a Date object in Philippine timezone
     const selectedDate = moment.tz(date, 'Asia/Manila');
     const currentDate = moment.tz(new Date(), 'Asia/Manila');
 
-    // Normalize to the start of the day for comparison
-    const currentDateStartOfDay = moment().startOf('day');
-    const selectedDateStartOfDay = selectedDate.startOf('day');
+    // Normalize to the start of the day for comparison in Philippine timezone
+    const currentDateStartOfDay = now.clone().startOf('day');
+    const selectedDateStartOfDay = selectedDate.clone().startOf('day');
 
     console.log('Now:', now.format());
-    console.log('Current Date:', currentDate.format());
     console.log('Selected Date:', selectedDate.format());
     console.log('Current Date Start of Day:', currentDateStartOfDay.format());
     console.log('Selected Date Start of Day:', selectedDateStartOfDay.format());
