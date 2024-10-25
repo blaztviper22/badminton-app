@@ -152,4 +152,41 @@ const getPayPalPaymentDetails = async (orderId) => {
   return orderDetails;
 };
 
-module.exports = { createPayPalPayment, capturePayPalPayment, createPayPalPayout, getPayPalPaymentDetails };
+const verifyWebhookSignature = async (webhookEvent, headers) => {
+  const accessToken = await getAccessToken();
+
+  const verificationResponse = await fetch(
+    `${config.get('paypal').apiBaseUrl}/v1/notifications/verify-webhook-signature`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        auth_algo: headers['paypal-auth-algo'],
+        cert_url: headers['paypal-cert-url'],
+        transmission_id: headers['paypal-transmission-id'],
+        transmission_sig: headers['paypal-transmission-sig'],
+        transmission_time: headers['paypal-transmission-time'],
+        webhook_id: config.get('paypal').paypalWebhookId,
+        webhook_event: webhookEvent
+      })
+    }
+  );
+
+  if (!verificationResponse.ok) {
+    throw new Error(`Error verifying PayPal webhook: ${verificationResponse.statusText}`);
+  }
+
+  const verificationData = await verificationResponse.json();
+  return verificationData.verification_status === 'SUCCESS';
+};
+
+module.exports = {
+  createPayPalPayment,
+  capturePayPalPayment,
+  createPayPalPayout,
+  getPayPalPaymentDetails,
+  verifyWebhookSignature
+};
