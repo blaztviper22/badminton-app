@@ -48,7 +48,7 @@ getCurrentUserId().then((userId) => {
     });
 
     socket.on('paymentSuccess', (data) => {
-      log(data.message);
+      alert(data.message);
     });
   } else {
     error('User ID could not be retrieved.');
