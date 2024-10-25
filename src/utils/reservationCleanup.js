@@ -51,6 +51,23 @@ const clearPastReservations = async () => {
   }
 };
 
+const deleteCancelledAndPendingReservations = async (io) => {
+  try {
+    // delete reservations with status 'cancelled' or 'pending'
+    const deletedReservations = await Reservation.deleteMany({
+      status: { $in: ['cancelled', 'pending'] }
+    });
+
+    log(`Deleted ${deletedReservations.deletedCount} cancelled or pending reservations.`);
+    io.emit('reservationStatusUpdated', {
+      message: `${deletedReservations.deletedCount} cancelled or pending reservations have been deleted.`,
+      timestamp: moment().tz('Asia/Manila').format()
+    });
+  } catch (err) {
+    error('Error deleting cancelled or pending reservations:', err);
+  }
+};
+
 // cron job to run every minute (for testing)
 const startReservationCleanupCronJob = () => {
   cron.schedule(
@@ -67,6 +84,22 @@ const startReservationCleanupCronJob = () => {
   log('Cron job scheduled to clean past reservations every minute.');
 };
 
+const startCancelledPendingCleanupCronJob = (io) => {
+  cron.schedule(
+    '*/3 * * * *', // Run every 3 minutes
+    async () => {
+      log('Running scheduled job to delete cancelled and pending reservations...');
+      await deleteCancelledAndPendingReservations(io);
+    },
+    {
+      timezone: 'Asia/Manila'
+    }
+  );
+
+  log('Cron job scheduled to delete cancelled and pending reservations every 5 minutes.');
+};
+
 module.exports = {
-  startReservationCleanupCronJob
+  startReservationCleanupCronJob,
+  startCancelledPendingCleanupCronJob
 };
