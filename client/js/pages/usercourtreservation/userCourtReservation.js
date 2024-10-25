@@ -7,10 +7,9 @@ import { setupLogoutListener } from '../../global/logout.js';
 
 let selectedCourts = [];
 let selectedDate = null;
-let reservedDates = [];
-let userReservedDates = [];
+let reservedDates = new Set();
+let userReservedDates = new Set();
 let hourlyRate = 0;
-let calendar;
 
 function calculateTotalAmount() {
   const selectedSlots = Array.from(getAll('.time-slot.selected'));
@@ -20,16 +19,40 @@ function calculateTotalAmount() {
   return calculatedAmount * 100;
 }
 
-const socket = io();
-socket.on('reservationCreated', (data) => {
-  // refresh the court data and UI based on the received data
-  fetchCourtData(data.courtId, data.date).then(({ courtData, availabilityData, reservedDates }) => {
-    populateCourtImagesAndLocation(courtData);
-    generateTimeSlots(availabilityData);
-    reservedDates = reservedDates;
-    highlightReservedDates(reservedDates, userReservedDates);
-    calendar.render();
-  });
+getCurrentUserId().then((userId) => {
+  if (userId) {
+    const socket = io({ query: { userId } });
+
+    socket.on('reservationCreated', (data) => {
+      // refresh the court data and UI based on the received data
+      fetchCourtData(data.courtId, selectedDate, false)
+        .then(({ courtData, availabilityData }) => {
+          populateCourtImagesAndLocation(courtData, false);
+          generateTimeSlots(availabilityData);
+        })
+        .catch((err) => {
+          console.error('Error fetching court data:', err);
+        });
+    });
+
+    socket.on('reservationCanceled', (data) => {
+      // refresh the court data and UI based on the received data
+      fetchCourtData(data.courtId, selectedDate, false)
+        .then(({ courtData, availabilityData }) => {
+          populateCourtImagesAndLocation(courtData, false);
+          generateTimeSlots(availabilityData);
+        })
+        .catch((err) => {
+          console.error('Error fetching court data:', err);
+        });
+    });
+
+    socket.on('paymentSuccess', (data) => {
+      log(data.message);
+    });
+  } else {
+    error('User ID could not be retrieved.');
+  }
 });
 
 const doc = document;
@@ -45,7 +68,7 @@ setupLogoutListener();
 startSessionChecks();
 
 // Get address from coordinates
-export async function getAddressFromCoordinates(coordinates) {
+export async function getAddressFromCoordinates(coordinates, withPreloader = true) {
   const [lon, lat] = coordinates;
 
   if (typeof lat !== 'number' || typeof lon !== 'number') {
@@ -56,14 +79,16 @@ export async function getAddressFromCoordinates(coordinates) {
   const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      withPreloader
+    });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
     return data.display_name || 'Address not found';
   } catch (err) {
-    error('Error fetching address:', err);
+    console.error('Error fetching address:', err);
     return 'Address not available';
   }
 }
@@ -77,13 +102,13 @@ function parseTime(timeStr) {
   return hours;
 }
 
-function populateCourtImagesAndLocation(courtData) {
+function populateCourtImagesAndLocation(courtData, withPreloader = true) {
   const courtImagesContainer = getById('courtImages');
   courtImagesContainer.innerHTML = '';
 
   const locationField = get('.location-field input');
   const coordinates = courtData.location.coordinates;
-  getAddressFromCoordinates(coordinates).then((address) => {
+  getAddressFromCoordinates(coordinates, withPreloader).then((address) => {
     locationField.value = address;
   });
 
@@ -120,7 +145,11 @@ doc.addEventListener('DOMContentLoaded', async function () {
   const formatter = new Intl.DateTimeFormat('en-CA', options); // Use 'en-CA' to get YYYY-MM-DD format
   const currentDate = formatter.format(new Date()).replace(/\//g, '-');
 
-  calendar = new FullCalendar.Calendar(calendarEl, {
+  if (!currentDate) {
+    selectedDate = currentDate;
+  }
+
+  let calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
     validRange: {
       start: currentDate
@@ -248,27 +277,43 @@ getById('reserveButton').addEventListener('click', function () {
   // updateCourtSelectionDisplay();
 });
 
-async function fetchCourtData(courtId, selectedDate) {
+async function fetchCourtData(courtId, selectedDate, withPreloader = true) {
   try {
-    const response = await fetch(`/user/court/${courtId}`);
+    reservedDates = [];
+    userReservedDates = [];
+
+    // Fetch court data
+    const response = await fetch(`/user/court/${courtId}`, {
+      credentials: 'include',
+      withPreloader
+    });
     if (!response.ok) {
       throw new Error(`Error fetching court data: ${response.status}`);
     }
     const courtData = await response.json();
 
-    // Fetch availability for the selected date
-    const availabilityResponse = await fetch(`/user/availability?date=${selectedDate}&courtId=${courtId}`);
+    // fetch availability for the selected date
+    const availabilityResponse = await fetch(`/user/availability?date=${selectedDate}&courtId=${courtId}`, {
+      credentials: 'include',
+      withPreloader
+    });
     if (!availabilityResponse.ok) {
       throw new Error(`Error fetching availability: ${availabilityResponse.status}`);
     }
     const availabilityData = await availabilityResponse.json();
 
+    // Highlight reserved dates on the calendar
+    reservedDates = new Set([...reservedDates, ...availabilityData.reservedDates]);
+    userReservedDates = new Set([...userReservedDates, ...availabilityData.userReservedDates]);
+
+    highlightReservedDates([...reservedDates], [...userReservedDates]);
+
     // Return both court data and availability data, including reserved dates
     return {
       courtData,
       availabilityData,
-      reservedDates: availabilityData.reservedDates,
-      userReservedDates: availabilityData.userReservedDates
+      reservedDates: [...reservedDates],
+      userReservedDates: [...userReservedDates]
     };
   } catch (err) {
     error(err);
@@ -278,22 +323,20 @@ async function fetchCourtData(courtId, selectedDate) {
 
 function highlightReservedDates(reservedDates, userReservedDates) {
   const calendarDays = getAll('.fc-daygrid-day');
-  log(userReservedDates);
-  log(reservedDates);
+
+  const reservedDatesSet = new Set(reservedDates);
+  const userReservedDatesSet = new Set(userReservedDates);
 
   calendarDays.forEach((day) => {
     const date = day.getAttribute('data-date');
 
-    // check if the date is in userReservedDates
-    if (userReservedDates.includes(date)) {
-      day.classList.add('user-reserved'); // Add user-reserved class (red)
+    if (userReservedDatesSet.has(date)) {
+      day.classList.add('user-reserved');
     }
-    // check if the date is in reservedDates
-    if (reservedDates.includes(date)) {
-      day.classList.add('reserved'); // Add reserved class (blue)
+    if (reservedDatesSet.has(date)) {
+      day.classList.add('reserved');
     }
-    // if the date is not in either array, remove both classes
-    if (!userReservedDates.includes(date) && !reservedDates.includes(date)) {
+    if (!userReservedDatesSet.has(date) && !reservedDatesSet.has(date)) {
       day.classList.remove('reserved');
       day.classList.remove('user-reserved');
     }
@@ -377,6 +420,14 @@ async function submitReservation(timeSlot) {
   }
 }
 
+// clean URL parameters on page load
+window.addEventListener('load', () => {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('token');
+  url.searchParams.delete('PayerID');
+  history.replaceState({}, document.title, url);
+});
+
 function formatCurrency(amount) {
   // parse the amount as a float and format it to two decimal places
   return `₱${parseFloat(amount)
@@ -451,4 +502,23 @@ function generateTimeSlots(availabilityData) {
 
     timeSlotsContainer.appendChild(timeSlot);
   });
+}
+
+async function getCurrentUserId() {
+  try {
+    const response = await fetch('/user/me', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user info');
+    }
+
+    const userData = await response.json();
+    return userData.id;
+  } catch (err) {
+    error('Error fetching user ID:', err);
+    return null;
+  }
 }

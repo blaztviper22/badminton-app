@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
-const config = require('config'); // Assuming you're using config for your JWT secret
+const config = require('config');
 const { isTokenBlacklisted } = require('../utils/blackListUtils');
 
 const checkAuth = async (req, res, next) => {
-  const token = req.cookies.accessToken; // Assuming your JWT is stored in cookies
+  const token = req.cookies.accessToken;
 
   if (!token) {
     return next(); // If no token, proceed to the next middleware (public route)

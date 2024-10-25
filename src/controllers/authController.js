@@ -578,6 +578,8 @@ exports.refreshToken = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    console.log('Incoming refresh token:', incomingRefreshToken);
+    console.log('User refresh token from DB:', user.refreshToken);
 
     // If refresh token in DB does not match the incoming refresh token
     if (user.refreshToken !== incomingRefreshToken) {
@@ -999,4 +1001,12 @@ exports.registerCourt = async (req, res) => {
       message: 'Internal Server Error'
     });
   }
+};
+
+exports.paypalWebhookHandler = (req, res) => {
+  // You can access the webhook event data here via req.body
+  console.log('Received PayPal webhook event:', req.body);
+
+  // respond with a 200 status indicating that the event was received
+  res.status(200).send('OK');
 };
