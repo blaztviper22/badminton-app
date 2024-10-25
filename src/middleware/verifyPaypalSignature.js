@@ -3,6 +3,8 @@ const config = require('config');
 
 // middleware to verify PayPal webhook signature
 function verifyPayPalSignature(req, res, next) {
+  console.log('Received headers:', req.headers);
+
   const signature = req.headers['paypal-transmission-sig'];
   const transmissionId = req.headers['paypal-transmission-id'];
   const timestamp = req.headers['paypal-transmission-time'];
