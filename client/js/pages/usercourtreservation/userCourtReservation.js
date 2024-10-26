@@ -67,6 +67,9 @@ getCurrentUserId().then((userId) => {
 
     socket.on('paymentSuccess', (data) => {
       alert(data.message);
+      setTimeout(() => {
+        window.location.href = '/user/events-and-tournaments?tab=schedule-reservation';
+      }, 2000);
     });
   } else {
     error('User ID could not be retrieved.');
