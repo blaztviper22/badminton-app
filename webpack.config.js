@@ -25,7 +25,9 @@ const pageTitles = {
   viewuserpayment: 'User Payment',
   usercourtlist: 'Reserve Court',
   usercourtreservation: 'Create Reservation',
-  usercourtviewing: 'View Available Courts'
+  usercourtviewing: 'View Available Courts',
+  userviewannouncement: 'View Announcement',
+  userschedulereservation: 'Reservation Schedule'
 };
 
 // Page-specific stylesheets and scripts
@@ -142,6 +144,18 @@ const pageAssets = {
     scripts: ['https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'],
     hasNavbar: true,
     hasSidebar: false
+  },
+  userviewannouncement: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
+  },
+  userschedulereservation: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
   }
 };
 
@@ -198,7 +212,9 @@ module.exports = () => {
       viewuserpayment: './client/js/pages/viewuserpayment/viewUserPayment.js',
       usercourtlist: './client/js/pages/usercourtlist/userCourtList.js',
       usercourtviewing: './client/js/pages/usercourtviewing/userCourtViewing.js',
-      usercourtreservation: './client/js/pages/usercourtreservation/userCourtReservation.js'
+      usercourtreservation: './client/js/pages/usercourtreservation/userCourtReservation.js',
+      userviewannouncement: './client/js/pages/userviewannouncement/userViewAnnouncement.js',
+      userschedulereservation: './client/js/pages/userschedulereservation/userScheduleReservation.js'
     },
     output: {
       filename: '[name].[contenthash].js',

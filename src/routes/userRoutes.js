@@ -54,6 +54,25 @@ let routes = (app, io) => {
     handleCourtReservation(req, res, next, io);
   });
 
+  router.get('/events-and-tournaments', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const tab = req.query.tab;
+    let filePath;
+
+    switch (tab) {
+      case 'schedule-reservation':
+        filePath = path.resolve(__dirname, '../../build/userschedulereservation.html');
+        break;
+      case 'view-tournaments':
+        filePath = path.resolve(__dirname, '../../build/userviewtournaments.html');
+        break;
+      default:
+        filePath = path.resolve(__dirname, '../../build/userviewannouncement.html');
+        break;
+    }
+
+    serveFile(filePath, res, next);
+  });
+
   router.get('/admin/schedule-dashboard', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const tab = req.query.tab; // get the page from the query parameter
     let filePath;
