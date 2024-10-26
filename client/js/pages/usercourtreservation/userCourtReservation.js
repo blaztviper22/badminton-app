@@ -36,8 +36,9 @@ getCurrentUserId().then((userId) => {
     });
 
     socket.on('reservationCanceled', (data) => {
-      // refresh the court data and UI based on the received data
-      fetchCourtData(data.courtId, selectedDate, false)
+      const currentDate = getCurrentDateInPhilippines();
+      const dateToUse = selectedDate || currentDate;
+      fetchCourtData(data.courtId, dateToUse, false)
         .then(({ courtData, availabilityData }) => {
           populateCourtImagesAndLocation(courtData, false);
           generateTimeSlots(availabilityData);
@@ -52,7 +53,9 @@ getCurrentUserId().then((userId) => {
       const queryParams = new URLSearchParams(window.location.search);
       const courtId = queryParams.get('id');
       // refresh the court data and UI based on the received data
-      fetchCourtData(courtId, selectedDate, false)
+      const currentDate = getCurrentDateInPhilippines();
+      const dateToUse = selectedDate || currentDate;
+      fetchCourtData(courtId, dateToUse, false)
         .then(({ courtData, availabilityData }) => {
           populateCourtImagesAndLocation(courtData, false);
           generateTimeSlots(availabilityData);
@@ -151,14 +154,17 @@ function populateCourtImagesAndLocation(courtData, withPreloader = true) {
     courtImagesContainer.appendChild(imgContainer);
   });
 }
+function getCurrentDateInPhilippines() {
+  const options = { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' };
+  const formatter = new Intl.DateTimeFormat('en-CA', options); // Use 'en-CA' to get YYYY-MM-DD format
+  return formatter.format(new Date()).replace(/\//g, '-');
+}
 
 doc.addEventListener('DOMContentLoaded', async function () {
   var calendarEl = getById('calendar');
 
   // Get the current date in the Philippines timezone
-  const options = { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' };
-  const formatter = new Intl.DateTimeFormat('en-CA', options); // Use 'en-CA' to get YYYY-MM-DD format
-  const currentDate = formatter.format(new Date()).replace(/\//g, '-');
+  const currentDate = getCurrentDateInPhilippines();
 
   if (!currentDate) {
     selectedDate = currentDate;
