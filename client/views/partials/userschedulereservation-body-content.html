@@ -20,15 +20,15 @@
         <div class="filter-section">
           <div class="filter-header">Date</div>
           <label>
-            <input type="checkbox" value="today" />
+            <input type="radio" name="dateFilter" value="Today" />
             Today
           </label>
           <label>
-            <input type="checkbox" value="this-week" />
+            <input type="radio" name="dateFilter" value="This Week" />
             This Week
           </label>
           <label>
-            <input type="checkbox" value="this-month" />
+            <input type="radio" name="dateFilter" value="This Month" />
             This Month
           </label>
         </div>
@@ -36,15 +36,19 @@
         <div class="filter-section">
           <div class="filter-header">Status</div>
           <label>
-            <input type="checkbox" value="pending" />
+            <input type="radio" name="statusFilter" value="Pending" />
             Pending
           </label>
           <label>
-            <input type="checkbox" value="ongoing" />
+            <input type="radio" name="statusFilter" value="Ongoing" />
             Ongoing
           </label>
           <label>
-            <input type="checkbox" value="cancelled" />
+            <input type="radio" name="statusFilter" value="Confirmed" />
+            Confirmed
+          </label>
+          <label>
+            <input type="radio" name="statusFilter" value="Cancelled" />
             Cancelled
           </label>
         </div>
@@ -52,120 +56,18 @@
         <div class="filter-section">
           <div class="filter-header">Sort By</div>
           <label>
-            <input type="checkbox" id="sort-ascending" />
+            <input type="radio" name="sortOrder" value="ascending" />
             Ascending
           </label>
           <label>
-            <input type="checkbox" id="sort-descending" />
+            <input type="radio" name="sortOrder" value="descending" />
             Descending
           </label>
         </div>
       </div>
 
-      <div class="box2">
-        <div class="card">
-          <div class="details">
-            <h2>Court Name</h2>
-            <div class="icon-text">
-              <i class="fas fa-map-marker-alt"></i>
-              <p>2/F Computer Graphics Building, 23-25 Gilmore Avenue Corner Aurora Boulevard</p>
-            </div>
-            <div class="icon-text">
-              <i class="fas fa-calendar-alt"></i>
-              <p>10/23/2024</p>
-            </div>
-            <div class="icon-text">
-              <i class="fas fa-clock"></i>
-              <p>10:00 - 12:00</p>
-            </div>
-          </div>
-          <div class="footer-actions">
-            <div class="status-group">
-              <span class="status pending">Pending</span>
-              <span class="status ongoing">On-going</span>
-              <span class="status cancelled">Cancelled</span>
-            </div>
-            <button class="cancel-button">Cancel Reservation</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="details">
-            <h2>Court Name</h2>
-            <div class="icon-text">
-              <i class="fas fa-map-marker-alt"></i>
-              <p>2/F Computer Graphics Building, 23-25 Gilmore Avenue Corner Aurora Boulevard</p>
-            </div>
-            <div class="icon-text">
-              <i class="fas fa-calendar-alt"></i>
-              <p>10/23/2024</p>
-            </div>
-            <div class="icon-text">
-              <i class="fas fa-clock"></i>
-              <p>10:00 - 12:00</p>
-            </div>
-          </div>
-          <div class="footer-actions">
-            <div class="status-group">
-              <span class="status pending">Pending</span>
-              <span class="status ongoing">On-going</span>
-              <span class="status cancelled">Cancelled</span>
-            </div>
-            <button class="cancel-button">Cancel Reservation</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="details">
-            <h2>Court Name</h2>
-            <div class="icon-text">
-              <i class="fas fa-map-marker-alt"></i>
-              <p>2/F Computer Graphics Building, 23-25 Gilmore Avenue Corner Aurora Boulevard</p>
-            </div>
-            <div class="icon-text">
-              <i class="fas fa-calendar-alt"></i>
-              <p>10/23/2024</p>
-            </div>
-            <div class="icon-text">
-              <i class="fas fa-clock"></i>
-              <p>10:00 - 12:00</p>
-            </div>
-          </div>
-          <div class="footer-actions">
-            <div class="status-group">
-              <span class="status pending">Pending</span>
-              <span class="status ongoing">On-going</span>
-              <span class="status cancelled">Cancelled</span>
-            </div>
-            <button class="cancel-button">Cancel Reservation</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="details">
-            <h2>Court Name</h2>
-            <div class="icon-text">
-              <i class="fas fa-map-marker-alt"></i>
-              <p>2/F Computer Graphics Building, 23-25 Gilmore Avenue Corner Aurora Boulevard</p>
-            </div>
-            <div class="icon-text">
-              <i class="fas fa-calendar-alt"></i>
-              <p>10/23/2024</p>
-            </div>
-            <div class="icon-text">
-              <i class="fas fa-clock"></i>
-              <p>10:00 - 12:00</p>
-            </div>
-          </div>
-          <div class="footer-actions">
-            <div class="status-group">
-              <span class="status pending">Pending</span>
-              <span class="status ongoing">On-going</span>
-              <span class="status cancelled">Cancelled</span>
-            </div>
-            <button class="cancel-button">Cancel Reservation</button>
-          </div>
-        </div>
+      <div class="box2" id="reservations-container">
+        <!-- Reservations will be dynamically populated here -->
       </div>
     </div>
   </div>

@@ -251,6 +251,11 @@ label {
   border: 2px solid #2ecc71;
   color: #2ecc71;
 }
+.status.confirmed {
+  background-color: white;
+  border: 2px solid #2ecc71;
+  color: #2ecc71;
+}
 
 .status.cancelled {
   background-color: white;
@@ -277,4 +282,13 @@ label {
   justify-content: space-between;
   align-items: center;
   margin-top: 15px;
+}
+
+.no-reservations {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-top: 150px;
 }

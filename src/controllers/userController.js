@@ -871,9 +871,15 @@ exports.getReservations = async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Invalid status filter.' });
     }
 
+    // If the statusFilter is "ongoing", we don't need to set it in the query,
+    // as we will handle this in the mapping process
+    if (statusFilter && statusFilter.toLowerCase() !== 'ongoing') {
+      query.status = statusFilter.toLowerCase();
+    }
+
     // Fetch reservations from the database
     const reservations = await Reservation.find(query)
-      .populate('court', 'businessName location.coordinates')
+      .populate('court', 'business_name location.coordinates')
       .sort({ date: sortOrder === 'descending' ? -1 : 1 });
 
     // If no reservations found
@@ -901,6 +907,7 @@ exports.getReservations = async (req, res) => {
           minute: parseInt(timeTo24.split(':')[1], 10)
         });
 
+        // Determine if the reservation is ongoing
         const isOngoing = now.isBetween(reservationStart, reservationEnd, null, '[]');
 
         // Get the address from coordinates
@@ -909,7 +916,7 @@ exports.getReservations = async (req, res) => {
         return {
           reservationId: reservation._id,
           courtId: reservation.court._id,
-          businessName: reservation.court.businessName,
+          businessName: reservation.court.business_name,
           date: reservationDate.format('YYYY-MM-DD'),
           timeSlot: {
             from: moment.tz(reservation.timeSlot.from, 'h:mm A', 'Asia/Manila').format('h:mm A'),
@@ -922,9 +929,9 @@ exports.getReservations = async (req, res) => {
       })
     );
 
-    // Filter out reservations if statusFilter is "ongoing" and check the ongoing status
+    // Filter for ongoing reservations if statusFilter is set to "ongoing"
     const filteredReservations =
-      statusFilter === 'ongoing'
+      statusFilter && statusFilter.toLowerCase() === 'ongoing'
         ? reservationData.filter((reservation) => reservation.status === 'ongoing')
         : reservationData;
 
@@ -934,6 +941,62 @@ exports.getReservations = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching reservations:', error);
+    return res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.cancelReservation = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { reservationId } = req.body;
+
+    if (!reservationId) {
+      return res.status(400).json({ status: 'error', message: 'Reservation ID is required.' });
+    }
+
+    // find the reservation by ID and ensure it belongs to the authenticated user
+    const reservation = await Reservation.findOne({
+      _id: reservationId,
+      user: userId
+    });
+
+    console.log('Fetched reservation:', reservation);
+
+    // if the reservation does not exist, respond with an error
+    if (!reservation) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Reservation not found or does not belong to the user.'
+      });
+    }
+
+    // update the status of the reservation to 'cancelled' using findByIdAndUpdate
+    const updatedReservation = await Reservation.findByIdAndUpdate(
+      reservationId,
+      { status: 'cancelled' },
+      { new: true }
+    );
+
+    // log the updated reservation for debugging
+    console.log('Updated reservation:', updatedReservation);
+
+    // if the update fails, respond with an error
+    if (!updatedReservation) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Failed to update reservation status.'
+      });
+    }
+
+    // respond with success message
+    return res.status(200).json({ status: 'success', message: 'Reservation cancelled successfully.' });
+  } catch (error) {
+    // log the error for debugging
+    console.error('Error cancelling reservation:', error);
     return res.status(500).json({
       status: 'error',
       code: 500,
