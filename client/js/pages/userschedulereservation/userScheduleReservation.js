@@ -14,15 +14,15 @@ const get = (selector) => doc.querySelector(selector);
 setupLogoutListener();
 startSessionChecks();
 
-// Fetch reservations based on filters
 const fetchReservations = async () => {
-  const dateFilter = get('input[name="dateFilter"]:checked')?.value || '';
-  const statusFilter = get('input[name="statusFilter"]:checked')?.value.toLowerCase() || '';
+  const dateFilters = Array.from(getAll('input[name="dateFilter"]:checked')).map((input) => input.value) || [];
+  const statusFilters =
+    Array.from(getAll('input[name="statusFilter"]:checked')).map((input) => input.value.toLowerCase()) || '';
   const sortOrder = get('input[name="sortOrder"]:checked')?.value.toLowerCase() || '';
 
   const queryParams = new URLSearchParams();
-  if (dateFilter) queryParams.append('dateFilter', dateFilter);
-  if (statusFilter) queryParams.append('statusFilter', statusFilter);
+  if (dateFilters.length) queryParams.append('dateFilter', dateFilters[0]);
+  if (statusFilters.length) queryParams.append('statusFilter', statusFilters[0]);
   if (sortOrder) queryParams.append('sortOrder', sortOrder);
 
   const response = await fetch(`/user/reservations?${queryParams.toString()}`);
@@ -49,7 +49,7 @@ const renderReservations = (reservations) => {
       <p>Please check back later or make a new reservation.</p>
     `;
     reservationsContainer.appendChild(noReservationsMessage);
-    return; // Exit the function
+    return;
   }
 
   reservations.forEach((reservation) => {
@@ -121,8 +121,18 @@ const cancelReservation = async (reservationId) => {
   return data;
 };
 
-getAll('input[type="radio"]').forEach((radio) => {
-  radio.addEventListener('change', fetchReservations);
+const handleCheckboxChange = (event) => {
+  const checkboxes = getAll(`input[name="${event.target.name}"]`);
+  checkboxes.forEach((checkbox) => {
+    if (checkbox !== event.target) {
+      checkbox.checked = false;
+    }
+  });
+  fetchReservations();
+};
+
+getAll('input[type="checkbox"]').forEach((checkbox) => {
+  checkbox.addEventListener('change', handleCheckboxChange);
 });
 
 fetchReservations();
