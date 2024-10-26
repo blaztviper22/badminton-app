@@ -6,7 +6,6 @@ module.exports = {
   host: process.env.HOST_PROD || '0.0.0.0',
   paypal: {
     ...commonConfig.paypal,
-    // apiBaseUrl: 'https://api-m.paypal.com'
     apiBaseUrl: 'https://api-m.sandbox.paypal.com'
   }
 };

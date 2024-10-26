@@ -132,6 +132,7 @@ const createPayPalPayout = async (recipientEmail, payoutAmount) => {
   }
 
   const payoutData = await payoutResponse.json();
+  console.log(payoutData);
   return payoutData;
 };
 const getPayPalPaymentDetails = async (orderId) => {
