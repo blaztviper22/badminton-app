@@ -50,21 +50,37 @@ const clearPastReservations = async () => {
     error('Error clearing past reservations:', err);
   }
 };
-
-const deleteCancelledAndPendingReservations = async (io) => {
+const deleteCancelledReservations = async (io) => {
   try {
-    // delete reservations with status 'cancelled' or 'pending'
+    // delete reservations with status 'cancelled'
     const deletedReservations = await Reservation.deleteMany({
-      status: { $in: ['cancelled', 'pending'] }
+      status: 'cancelled'
     });
 
-    log(`Deleted ${deletedReservations.deletedCount} cancelled or pending reservations.`);
+    log(`Deleted ${deletedReservations.deletedCount} cancelled reservations.`);
     io.emit('reservationStatusUpdated', {
-      message: `${deletedReservations.deletedCount} cancelled or pending reservations have been deleted.`,
+      message: `${deletedReservations.deletedCount} cancelled reservations have been deleted.`,
       timestamp: moment().tz('Asia/Manila').format()
     });
   } catch (err) {
-    error('Error deleting cancelled or pending reservations:', err);
+    error('Error deleting cancelled reservations:', err);
+  }
+};
+
+const deletePendingReservations = async (io) => {
+  try {
+    // delete reservations with status 'pending'
+    const deletedReservations = await Reservation.deleteMany({
+      status: 'pending'
+    });
+
+    log(`Deleted ${deletedReservations.deletedCount} pending reservations.`);
+    io.emit('reservationStatusUpdated', {
+      message: `${deletedReservations.deletedCount} pending reservations have been deleted.`,
+      timestamp: moment().tz('Asia/Manila').format()
+    });
+  } catch (err) {
+    error('Error deleting pending reservations:', err);
   }
 };
 
@@ -103,7 +119,7 @@ const startCancelledCleanupCronJob = (io) => {
 // cron job to delete pending reservations every 5 minutes
 const startPendingCleanupCronJob = (io) => {
   cron.schedule(
-    '*/5 * * * *', // Run every 5 minutes for pending reservations
+    '*/1 * * * *', // Run every 5 minutes for pending reservations
     async () => {
       log('Running scheduled job to delete pending reservations...');
       await deletePendingReservations(io);
