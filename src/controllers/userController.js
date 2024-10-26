@@ -824,3 +824,120 @@ exports.handleCourtReservation = async (req, res, next, io) => {
     return next(createError(500, 'Internal Server Error'));
   }
 };
+
+exports.getReservations = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { dateFilter, statusFilter, sortOrder } = req.query;
+
+    const query = { user: userId };
+
+    moment.updateLocale('en', {
+      week: {
+        dow: 1 // Start the week on a different day
+      }
+    });
+
+    const now = moment.tz('Asia/Manila');
+
+    // Date Filter Logic
+    if (dateFilter) {
+      const today = moment.tz('Asia/Manila').startOf('day');
+      let startDate;
+      let endDate;
+
+      switch (dateFilter) {
+        case 'Today':
+          startDate = today;
+          endDate = today.clone().endOf('day');
+          break;
+        case 'This Week':
+          startDate = today.clone().startOf('week');
+          endDate = today.clone().endOf('week');
+          break;
+        case 'This Month':
+          startDate = today.clone().startOf('month');
+          endDate = today.clone().endOf('month');
+          break;
+        default:
+          return res.status(400).json({ status: 'error', message: 'Invalid date filter.' });
+      }
+      query.date = { $gte: startDate.toDate(), $lte: endDate.toDate() };
+    }
+
+    // Status Filter Logic
+    const validStatuses = ['pending', 'confirmed', 'cancelled', 'ongoing'];
+    if (statusFilter && !validStatuses.includes(statusFilter.toLowerCase())) {
+      return res.status(400).json({ status: 'error', message: 'Invalid status filter.' });
+    }
+
+    // Fetch reservations from the database
+    const reservations = await Reservation.find(query)
+      .populate('court', 'businessName location.coordinates')
+      .sort({ date: sortOrder === 'descending' ? -1 : 1 });
+
+    // If no reservations found
+    if (reservations.length === 0) {
+      return res.status(404).json({ status: 'success', message: 'No reservations found.' });
+    }
+
+    // Prepare the response structure
+    const reservationData = await Promise.all(
+      reservations.map(async (reservation) => {
+        const reservationDate = moment.tz(reservation.date, 'Asia/Manila');
+
+        // Convert stored 24-hour format times to 12-hour format
+        const timeFrom24 = convertTo24Hour(reservation.timeSlot.from);
+        const timeTo24 = convertTo24Hour(reservation.timeSlot.to);
+
+        // Set reservationStart and reservationEnd based on 24-hour times
+        const reservationStart = reservationDate.clone().set({
+          hour: parseInt(timeFrom24.split(':')[0], 10),
+          minute: parseInt(timeFrom24.split(':')[1], 10)
+        });
+
+        const reservationEnd = reservationDate.clone().set({
+          hour: parseInt(timeTo24.split(':')[0], 10),
+          minute: parseInt(timeTo24.split(':')[1], 10)
+        });
+
+        const isOngoing = now.isBetween(reservationStart, reservationEnd, null, '[]');
+
+        // Get the address from coordinates
+        const address = await getAddressFromCoordinates(reservation.court.location.coordinates);
+
+        return {
+          reservationId: reservation._id,
+          courtId: reservation.court._id,
+          businessName: reservation.court.businessName,
+          date: reservationDate.format('YYYY-MM-DD'),
+          timeSlot: {
+            from: moment.tz(reservation.timeSlot.from, 'h:mm A', 'Asia/Manila').format('h:mm A'),
+            to: moment.tz(reservation.timeSlot.to, 'h:mm A', 'Asia/Manila').format('h:mm A')
+          },
+          status: isOngoing ? 'ongoing' : reservation.status,
+          paymentStatus: reservation.paymentStatus,
+          location: address
+        };
+      })
+    );
+
+    // Filter out reservations if statusFilter is "ongoing" and check the ongoing status
+    const filteredReservations =
+      statusFilter === 'ongoing'
+        ? reservationData.filter((reservation) => reservation.status === 'ongoing')
+        : reservationData;
+
+    return res.status(200).json({
+      status: 'success',
+      reservations: filteredReservations
+    });
+  } catch (error) {
+    console.error('Error fetching reservations:', error);
+    return res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Internal Server Error'
+    });
+  }
+};
