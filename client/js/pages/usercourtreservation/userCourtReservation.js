@@ -25,9 +25,9 @@ getCurrentUserId().then((userId) => {
 
     socket.on('reservationCreated', (data) => {
       // refresh the court data and UI based on the received data
-      fetchCourtData(data.courtId, data.date, false)
+      fetchCourtData(data.courtId, data.date, true)
         .then(({ courtData, availabilityData }) => {
-          populateCourtImagesAndLocation(courtData, false);
+          populateCourtImagesAndLocation(courtData, true);
           generateTimeSlots(availabilityData);
         })
         .catch((err) => {
@@ -208,7 +208,7 @@ doc.addEventListener('DOMContentLoaded', async function () {
       availabilityData,
       reservedDates: fetchedReservedDates,
       userReservedDates: fetchUserReservedDates
-    } = await fetchCourtData(courtId, currentDate);
+    } = await fetchCourtData(courtId, currentDate, true);
     if (courtData) {
       populateCourtImagesAndLocation(courtData);
       generateTimeSlots(availabilityData); // Generate time slots
@@ -408,34 +408,17 @@ async function submitReservation(timeSlot) {
     if (!response.ok) {
       const errorData = await response.json();
       const errorMessage = errorData.message || 'Failed to reserve time slot. Please try again.';
-      // resetPaymentUI();
       throw new Error(errorMessage);
     }
 
     const responseData = await response.json();
-    log(responseData);
-
-    // extract the PayPal approval URL
     const approvalUrl = responseData.approvalUrl;
 
-    // redirect the user to the PayPal approval page
-    // window.open(approvalUrl, '_blank');
     window.location.href = approvalUrl;
 
-    // alert('Reservation successful!');
-    // resetPaymentUI();
-
-    doc.querySelectorAll('.fc-daygrid-day').forEach((day) => day.classList.remove('selected-date'));
-
-    // fetch data again to refresh  reserved dates
-    // const { reservedDates: fetchedReservedDates } = await fetchCourtData(courtId, finalDate);
-
-    // if (fetchedReservedDates) {
-    //   reservedDates = fetchedReservedDates;
-    //   highlightReservedDates(reservedDates);
-    // }
+    history.pushState(null, null, window.location.href);
   } catch (err) {
-    error(err);
+    console.error('Error occurred during reservation:', err);
     alert(`An error occurred: ${err.message}`);
     resetPaymentUI();
   }

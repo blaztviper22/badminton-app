@@ -84,22 +84,40 @@ const startReservationCleanupCronJob = () => {
   log('Cron job scheduled to clean past reservations every minute.');
 };
 
-const startCancelledPendingCleanupCronJob = (io) => {
+// cron job to delete cancelled reservations every minute
+const startCancelledCleanupCronJob = (io) => {
   cron.schedule(
-    '*/3 * * * *', // Run every 3 minutes
+    '*/1 * * * *', // run every minute for cancelled reservations
     async () => {
-      log('Running scheduled job to delete cancelled and pending reservations...');
-      await deleteCancelledAndPendingReservations(io);
+      log('Running scheduled job to delete cancelled reservations...');
+      await deleteCancelledReservations(io);
     },
     {
       timezone: 'Asia/Manila'
     }
   );
 
-  log('Cron job scheduled to delete cancelled and pending reservations every 5 minutes.');
+  log('Cron job scheduled to delete cancelled reservations every minute.');
+};
+
+// cron job to delete pending reservations every 5 minutes
+const startPendingCleanupCronJob = (io) => {
+  cron.schedule(
+    '*/5 * * * *', // Run every 5 minutes for pending reservations
+    async () => {
+      log('Running scheduled job to delete pending reservations...');
+      await deletePendingReservations(io);
+    },
+    {
+      timezone: 'Asia/Manila'
+    }
+  );
+
+  log('Cron job scheduled to delete pending reservations every 5 minutes.');
 };
 
 module.exports = {
   startReservationCleanupCronJob,
-  startCancelledPendingCleanupCronJob
+  startPendingCleanupCronJob,
+  startCancelledCleanupCronJob
 };

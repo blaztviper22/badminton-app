@@ -13,7 +13,6 @@ const pipelineAsync = promisify(pipeline);
 const mime = require('mime-types');
 const fileType = require('file-type-cjs');
 const Court = require('../models/Court');
-const { geocodeAddress } = require('../utils/addressToCoord');
 const moment = require('moment-timezone');
 const calculateTotalAmount = require('../utils/amountCalculator');
 const createError = require('http-errors');
@@ -25,6 +24,7 @@ const {
 } = require('../services/paypalService');
 const serveFile = require('../utils/fileUtils');
 const path = require('path');
+const { geocodeAddress, getAddressFromCoordinates } = require('../utils/addressUtils');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -822,5 +822,185 @@ exports.handleCourtReservation = async (req, res, next, io) => {
   } catch (err) {
     error('Error handling reservation:', err);
     return next(createError(500, 'Internal Server Error'));
+  }
+};
+
+exports.getReservations = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { dateFilter, statusFilter, sortOrder } = req.query;
+
+    const query = { user: userId };
+
+    moment.updateLocale('en', {
+      week: {
+        dow: 1 // Start the week on a different day
+      }
+    });
+
+    const now = moment.tz('Asia/Manila');
+
+    // Date Filter Logic
+    if (dateFilter) {
+      const today = moment.tz('Asia/Manila').startOf('day');
+      let startDate;
+      let endDate;
+
+      switch (dateFilter) {
+        case 'Today':
+          startDate = today;
+          endDate = today.clone().endOf('day');
+          break;
+        case 'This Week':
+          startDate = today.clone().startOf('week');
+          endDate = today.clone().endOf('week');
+          break;
+        case 'This Month':
+          startDate = today.clone().startOf('month');
+          endDate = today.clone().endOf('month');
+          break;
+        default:
+          return res.status(400).json({ status: 'error', message: 'Invalid date filter.' });
+      }
+      query.date = { $gte: startDate.toDate(), $lte: endDate.toDate() };
+    }
+
+    // Status Filter Logic
+    const validStatuses = ['pending', 'confirmed', 'cancelled', 'ongoing'];
+    if (statusFilter && !validStatuses.includes(statusFilter.toLowerCase())) {
+      return res.status(400).json({ status: 'error', message: 'Invalid status filter.' });
+    }
+
+    // If the statusFilter is "ongoing", we don't need to set it in the query,
+    // as we will handle this in the mapping process
+    if (statusFilter && statusFilter.toLowerCase() !== 'ongoing') {
+      query.status = statusFilter.toLowerCase();
+    }
+
+    // Fetch reservations from the database
+    const reservations = await Reservation.find(query)
+      .populate('court', 'business_name location.coordinates')
+      .sort({ date: sortOrder === 'descending' ? -1 : 1 });
+
+    // If no reservations found
+    if (reservations.length === 0) {
+      return res.status(404).json({ status: 'success', message: 'No reservations found.' });
+    }
+
+    // Prepare the response structure
+    const reservationData = await Promise.all(
+      reservations.map(async (reservation) => {
+        const reservationDate = moment.tz(reservation.date, 'Asia/Manila');
+
+        // Convert stored 24-hour format times to 12-hour format
+        const timeFrom24 = convertTo24Hour(reservation.timeSlot.from);
+        const timeTo24 = convertTo24Hour(reservation.timeSlot.to);
+
+        // Set reservationStart and reservationEnd based on 24-hour times
+        const reservationStart = reservationDate.clone().set({
+          hour: parseInt(timeFrom24.split(':')[0], 10),
+          minute: parseInt(timeFrom24.split(':')[1], 10)
+        });
+
+        const reservationEnd = reservationDate.clone().set({
+          hour: parseInt(timeTo24.split(':')[0], 10),
+          minute: parseInt(timeTo24.split(':')[1], 10)
+        });
+
+        // Determine if the reservation is ongoing
+        const isOngoing = now.isBetween(reservationStart, reservationEnd, null, '[]');
+
+        // Get the address from coordinates
+        const address = await getAddressFromCoordinates(reservation.court.location.coordinates);
+
+        return {
+          reservationId: reservation._id,
+          courtId: reservation.court._id,
+          businessName: reservation.court.business_name,
+          date: reservationDate.format('YYYY-MM-DD'),
+          timeSlot: {
+            from: moment.tz(reservation.timeSlot.from, 'h:mm A', 'Asia/Manila').format('h:mm A'),
+            to: moment.tz(reservation.timeSlot.to, 'h:mm A', 'Asia/Manila').format('h:mm A')
+          },
+          status: isOngoing ? 'ongoing' : reservation.status,
+          paymentStatus: reservation.paymentStatus,
+          location: address
+        };
+      })
+    );
+
+    // Filter for ongoing reservations if statusFilter is set to "ongoing"
+    const filteredReservations =
+      statusFilter && statusFilter.toLowerCase() === 'ongoing'
+        ? reservationData.filter((reservation) => reservation.status === 'ongoing')
+        : reservationData;
+
+    return res.status(200).json({
+      status: 'success',
+      reservations: filteredReservations
+    });
+  } catch (error) {
+    console.error('Error fetching reservations:', error);
+    return res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.cancelReservation = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { reservationId } = req.body;
+
+    if (!reservationId) {
+      return res.status(400).json({ status: 'error', message: 'Reservation ID is required.' });
+    }
+
+    // find the reservation by ID and ensure it belongs to the authenticated user
+    const reservation = await Reservation.findOne({
+      _id: reservationId,
+      user: userId
+    });
+
+    console.log('Fetched reservation:', reservation);
+
+    // if the reservation does not exist, respond with an error
+    if (!reservation) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Reservation not found or does not belong to the user.'
+      });
+    }
+
+    // update the status of the reservation to 'cancelled' using findByIdAndUpdate
+    const updatedReservation = await Reservation.findByIdAndUpdate(
+      reservationId,
+      { status: 'cancelled' },
+      { new: true }
+    );
+
+    // log the updated reservation for debugging
+    console.log('Updated reservation:', updatedReservation);
+
+    // if the update fails, respond with an error
+    if (!updatedReservation) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Failed to update reservation status.'
+      });
+    }
+
+    // respond with success message
+    return res.status(200).json({ status: 'success', message: 'Reservation cancelled successfully.' });
+  } catch (error) {
+    // log the error for debugging
+    console.error('Error cancelling reservation:', error);
+    return res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Internal Server Error'
+    });
   }
 };

@@ -22,7 +22,8 @@ const MAX_FILE_SIZE = config.get('maxFileSize');
 const connectDB = require('./config/db');
 const {
   startReservationCleanupCronJob,
-  startCancelledPendingCleanupCronJob
+  startCancelledCleanupCronJob,
+  startPendingCleanupCronJob
 } = require('./src/utils/reservationCleanup.js');
 const userSocketManager = require('./src/utils/userSocketManager.js');
 connectDB(config);
@@ -180,7 +181,8 @@ const server = httpServer.listen(config.get('port'), config.get('host'), () => {
   // start the reservation cleanup cron job
   startReservationCleanupCronJob();
 
-  startCancelledPendingCleanupCronJob(io);
+  startCancelledCleanupCronJob(io);
+  startPendingCleanupCronJob(io);
 });
 
 // handle graceful shutdown

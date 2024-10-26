@@ -13,7 +13,9 @@ const {
   getCourtById,
   createReservation,
   getAvailability,
-  handleCourtReservation
+  handleCourtReservation,
+  getReservations,
+  cancelReservation
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const { validateUserId, validateUserInfo } = require('../middleware/validator');
@@ -52,6 +54,25 @@ let routes = (app, io) => {
 
   router.get('/court-reservation', verifyToken, checkCourtId, roleChecker(['player', 'coach']), (req, res, next) => {
     handleCourtReservation(req, res, next, io);
+  });
+
+  router.get('/events-and-tournaments', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const tab = req.query.tab;
+    let filePath;
+
+    switch (tab) {
+      case 'schedule-reservation':
+        filePath = path.resolve(__dirname, '../../build/userschedulereservation.html');
+        break;
+      case 'view-tournaments':
+        filePath = path.resolve(__dirname, '../../build/userviewtournaments.html');
+        break;
+      default:
+        filePath = path.resolve(__dirname, '../../build/userviewannouncement.html');
+        break;
+    }
+
+    serveFile(filePath, res, next);
   });
 
   router.get('/admin/schedule-dashboard', verifyToken, roleChecker(['admin']), (req, res, next) => {
@@ -98,6 +119,10 @@ let routes = (app, io) => {
   router.post('/reserve', verifyToken, roleChecker(['player', 'coach']), (req, res) => {
     createReservation(req, res, io);
   });
+
+  router.get('/reservations', verifyToken, roleChecker(['player', 'coach']), getReservations);
+
+  router.post('/reservations/cancel', verifyToken, roleChecker(['player', 'coach']), cancelReservation);
 
   router.get('/availability', verifyToken, roleChecker(['player', 'coach']), getAvailability);
 

@@ -41,7 +41,6 @@ export function checkSessionValidity() {
     })
     .catch((err) => {
       error('Error during session validation:', err);
-      window.location.href = '/login'; // Redirect to login page
     });
 }
 
@@ -56,17 +55,20 @@ function refreshToken() {
       log('Token refreshed successfully.');
       return;
     } else if (refreshResponse.status === 401 || refreshResponse.status === 403) {
+      alert('Your session has expired. You will be redirected to the login page.'); // Alert user
       error('Failed to refresh token. Redirecting to login...');
       redirecting = true;
       window.location.href = '/login'; // redirect to login page
       throw new Error('Refresh token failed');
     } else {
       error('Unexpected error while refreshing token.');
+      alert('An unexpected error occurred. Redirecting to login page.'); // Alert user
       window.location.href = '/login'; // redirect to login page
       throw new Error('Unexpected error');
     }
   });
 }
+
 const originalFetch = window.fetch;
 window.fetch = new Proxy(originalFetch, {
   apply(fetch, that, args) {
@@ -115,36 +117,7 @@ window.fetch = new Proxy(originalFetch, {
   }
 });
 
-// Create a Proxy for fetch to retry on 401 error
-// const originalFetch = window.fetch;
-// window.fetch = new Proxy(originalFetch, {
-//   apply(fetch, that, args) {
-//     const options = args[1] || {};
-//     const withPreloader = options.withPreloader !== false;
-//     if (withPreloader) showPreloader();
-//     return fetch(...args)
-//       .then((response) => {
-//         if (response.status === 401) {
-//           log('Token expired or invalid, attempting to refresh...');
-//           return refreshToken().then(() => {
-//             log('Retrying original request...');
-//             return fetch(...args).finally(() => {
-//               if (withPreloader) hidePreloader();
-//             });
-//           });
-//         }
-
-//         if (withPreloader) hidePreloader();
-//         return response;
-//       })
-//       .catch((err) => {
-//         error('Fetch error:', err);
-//         if (withPreloader) hidePreloader();
-//       });
-//   }
-// });
-
-// function to validate session and navigate to a URL
+// Function to validate session and navigate to a URL
 export function validateSessionAndNavigate(url) {
   fetch('/ping', {
     method: 'GET',
@@ -162,6 +135,7 @@ export function validateSessionAndNavigate(url) {
             log('Token refreshed, proceeding to page...');
             window.location.href = url; // navigate to the intended page
           } else {
+            alert('Your session has expired. You will be redirected to the login page.'); // Alert user
             error('Failed to refresh token. Redirecting to login...');
             window.location.href = '/login';
           }
@@ -172,12 +146,14 @@ export function validateSessionAndNavigate(url) {
         window.location.href = url;
       } else {
         error('Error validating session:', response.status);
+        alert('Your session has expired. You will be redirected to the login page.'); // Alert user
         window.location.href = '/login';
       }
       hidePreloader();
     })
     .catch((err) => {
       error('Error during session validation:', err);
+      alert('Your session has expired. You will be redirected to the login page.'); // Alert user
       window.location.href = '/login';
       hidePreloader();
     });
