@@ -13,7 +13,6 @@ const pipelineAsync = promisify(pipeline);
 const mime = require('mime-types');
 const fileType = require('file-type-cjs');
 const Court = require('../models/Court');
-const { geocodeAddress } = require('../utils/addressToCoord');
 const moment = require('moment-timezone');
 const calculateTotalAmount = require('../utils/amountCalculator');
 const createError = require('http-errors');
@@ -25,6 +24,7 @@ const {
 } = require('../services/paypalService');
 const serveFile = require('../utils/fileUtils');
 const path = require('path');
+const { geocodeAddress, getAddressFromCoordinates } = require('../utils/addressUtils');
 
 exports.getCurrentUser = async (req, res) => {
   try {
