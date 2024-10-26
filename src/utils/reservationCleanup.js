@@ -86,7 +86,7 @@ const startReservationCleanupCronJob = () => {
 
 const startCancelledPendingCleanupCronJob = (io) => {
   cron.schedule(
-    '*/3 * * * *', // Run every 3 minutes
+    '*/5 * * * *', // Run every 5 minutes
     async () => {
       log('Running scheduled job to delete cancelled and pending reservations...');
       await deleteCancelledAndPendingReservations(io);

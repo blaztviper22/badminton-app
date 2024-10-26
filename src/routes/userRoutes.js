@@ -13,7 +13,8 @@ const {
   getCourtById,
   createReservation,
   getAvailability,
-  handleCourtReservation
+  handleCourtReservation,
+  getReservations
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const { validateUserId, validateUserInfo } = require('../middleware/validator');
@@ -117,6 +118,8 @@ let routes = (app, io) => {
   router.post('/reserve', verifyToken, roleChecker(['player', 'coach']), (req, res) => {
     createReservation(req, res, io);
   });
+
+  router.get('/reservations', verifyToken, roleChecker(['player', 'coach']), getReservations);
 
   router.get('/availability', verifyToken, roleChecker(['player', 'coach']), getAvailability);
 

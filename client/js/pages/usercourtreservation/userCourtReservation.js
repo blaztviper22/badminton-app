@@ -25,9 +25,9 @@ getCurrentUserId().then((userId) => {
 
     socket.on('reservationCreated', (data) => {
       // refresh the court data and UI based on the received data
-      fetchCourtData(data.courtId, data.date, false)
+      fetchCourtData(data.courtId, data.date, true)
         .then(({ courtData, availabilityData }) => {
-          populateCourtImagesAndLocation(courtData, false);
+          populateCourtImagesAndLocation(courtData, true);
           generateTimeSlots(availabilityData);
         })
         .catch((err) => {
