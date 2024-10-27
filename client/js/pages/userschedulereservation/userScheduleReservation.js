@@ -75,7 +75,11 @@ const renderReservations = (reservations) => {
         <div class="status-group">
           <span class="status ${reservation.status.toLowerCase()}">${reservation.status}</span>
         </div>
-        <button class="cancel-button" data-reservation-id="${reservation.reservationId}">Cancel Reservation</button>
+        ${
+          reservation.status.toLowerCase() !== 'cancelled'
+            ? `<button class="cancel-button" data-reservation-id="${reservation.reservationId}">Cancel Reservation</button>`
+            : `<button class="cancel-button" disabled>Cancelled</button>`
+        }
       </div>
     `;
     reservationsContainer.appendChild(card);
@@ -95,7 +99,7 @@ const addCancelListeners = () => {
         const response = await cancelReservation(reservationId);
         if (response.status === 'success') {
           log(`Reservation ${reservationId} cancelled successfully.`);
-          fetchReservations(); // Refresh reservations after cancellation
+          fetchReservations();
         } else {
           error(`Failed to cancel reservation: ${response.message}`);
         }
