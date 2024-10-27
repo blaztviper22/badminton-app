@@ -24,7 +24,8 @@ const pageTitles = {
   usercourtreservation: 'Create Reservation',
   usercourtviewing: 'View Available Courts',
   userviewannouncement: 'View Announcement',
-  userschedulereservation: 'Reservation Schedule'
+  userschedulereservation: 'Reservation Schedule',
+  adminschedulereservation: 'Schedule'
 };
 
 // Page-specific stylesheets and scripts
@@ -93,6 +94,13 @@ const pageAssets = {
     hasNavbar: false,
     hasSidebar: true
   },
+  adminschedulereservation: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+
   usercourtlist: {
     styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
     scripts: [],
@@ -176,6 +184,7 @@ module.exports = () => {
       userprofile: './client/js/pages/userprofile/userprofile.js',
       courtregistration: './client/js/pages/courtregistration/courtRegistration.js',
       admindash: './client/js/pages/admindash/admindash.js',
+      adminschedulereservation: './client/js/pages/adminschedulereservation/adminScheduleReservation.js',
       usercourtlist: './client/js/pages/usercourtlist/userCourtList.js',
       usercourtviewing: './client/js/pages/usercourtviewing/userCourtViewing.js',
       usercourtreservation: './client/js/pages/usercourtreservation/userCourtReservation.js',

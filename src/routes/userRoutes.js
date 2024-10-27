@@ -94,7 +94,7 @@ let routes = (app, io) => {
         break;
       default:
         // default to court reservations
-        filePath = path.resolve(__dirname, '../../build/viewscheduleadmin.html');
+        filePath = path.resolve(__dirname, '../../build/adminschedulereservation.html');
         break;
     }
 
