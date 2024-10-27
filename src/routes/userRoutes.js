@@ -75,7 +75,7 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-  router.get('/admin/schedule-dashboard', verifyToken, roleChecker(['admin']), (req, res, next) => {
+  router.get('/admin/schedule', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const tab = req.query.tab; // get the page from the query parameter
     let filePath;
 
@@ -94,7 +94,7 @@ let routes = (app, io) => {
         break;
       default:
         // default to court reservations
-        filePath = path.resolve(__dirname, '../../build/courtreservations.html');
+        filePath = path.resolve(__dirname, '../../build/viewscheduleadmin.html');
         break;
     }
 
