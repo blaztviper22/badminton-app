@@ -1031,7 +1031,7 @@ exports.getAdminReservations = async (req, res) => {
       const reservations = await Reservation.find({ court: query.court }).select('date').sort({ date: 1 });
 
       const uniqueDates = [
-        ...new Set(reservations.map((reservation) => moment(reservation.date).format('YYYY-MM-DD')))
+        ...new Set(reservations.map((reservation) => moment.tz(reservation.date, 'Asia/Manila').format('YYYY-MM-DD')))
       ];
 
       return res.status(200).json({ status: 'success', dates: uniqueDates });
@@ -1046,7 +1046,7 @@ exports.getAdminReservations = async (req, res) => {
       }
 
       // set query date to find reservations for the specified date
-      query.date = moment(date).startOf('day').toDate();
+      query.date = moment.tz(date, 'Asia/Manila').startOf('day').toDate();
     }
 
     // add username filter if provided
@@ -1102,7 +1102,7 @@ exports.getAdminReservations = async (req, res) => {
           transactionId: reservation.transactionId,
           reservationFee: reservation.court.hourly_rate,
           totalAmount: reservation.totalAmount,
-          datePaid: reservation.createdAt ? moment(reservation.createdAt).format('YYYY-MM-DD') : null
+          datePaid: reservation.createdAt ? moment(reservation.createdAt).tz('Asia/Manila').format('YYYY-MM-DD') : null
         }
       });
     });
