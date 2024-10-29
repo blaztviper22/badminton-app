@@ -45,7 +45,13 @@ async function fetchReservations(reservationDate) {
     if (data.status === 'success' && data.reservationDates) {
       console.log('Fetched reservationDates:', data.reservationDates);
       displayDate();
+      generateTableHeader();
       populateTable(data.reservationDates);
+    } else if (data.status === 'error' && data.message === 'No reservations found.') {
+      removeTableHeader();
+      const tbody = get('tbody');
+      tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">No reservations found</td></tr>';
+      log('No reservations found for the date:', reservationDate);
     } else {
       error('Unexpected response structure:', data);
     }
