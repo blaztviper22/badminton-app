@@ -97,15 +97,31 @@ getAll('#paymentTable thead th').forEach((header, index) => {
 
 async function fetchReservationData() {
   try {
-    const response = await fetch('/user/admin/reservations');
+    const response = await fetch('/user/admin/reservations?');
     const data = await response.json();
-    if (data.status === 'success') {
+
+    if (data.status === 'success' && data.reservationDates) {
+      console.log('Fetched reservationDates:', data.reservationDates);
+      removeTableHeader();
+      generateTableHeader();
       populateTable(data.reservationDates);
+    } else if (data.status === 'error' && data.message === 'No reservations found.') {
+      removeTableHeader();
+      const tbody = get('tbody');
+      tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">No reservations found</td></tr>';
+      log('No reservations found for the date:', reservationDate);
     } else {
-      log('Failed to fetch reservations:', data);
+      error('Unexpected response structure:', data);
+      removeTableHeader();
+      tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">Error fetching reservations</td></tr>';
+      log('No reservations found for the date:', reservationDate);
     }
-  } catch (err) {
-    error('Error fetching reservation data:', err);
+  } catch (error) {
+    error('Error fetching reservations:', error);
+    removeTableHeader();
+    const tbody = get('tbody');
+    tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">Error fetching reservations</td></tr>';
+    log('No reservations found for the date:', reservationDate);
   }
 }
 

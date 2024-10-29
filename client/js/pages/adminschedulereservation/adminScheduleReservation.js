@@ -26,15 +26,28 @@ async function fetchReservationDates() {
       log(reservationDates);
       if (reservationDates.length > 0) {
         fetchReservations(reservationDates[currentIndex]);
+      } else {
+        // No reservation dates available
+        log('No reservation dates found');
+        displayNoReservationMessage();
       }
     } else {
       log('No dates found');
       reservationDates = [];
+      displayNoReservationMessage();
     }
   } catch (err) {
     error('Error fetching dates:', err);
     reservationDates = [];
+    displayNoReservationMessage();
   }
+}
+
+function displayNoReservationMessage() {
+  const tbody = get('tbody');
+  tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">No available reservation.</td></tr>';
+  const dateDisplay = get('.date');
+  dateDisplay.textContent = 'No Reservation dates';
 }
 
 async function fetchReservations(reservationDate) {
@@ -45,6 +58,7 @@ async function fetchReservations(reservationDate) {
     if (data.status === 'success' && data.reservationDates) {
       console.log('Fetched reservationDates:', data.reservationDates);
       displayDate();
+      removeTableHeader();
       generateTableHeader();
       populateTable(data.reservationDates);
     } else if (data.status === 'error' && data.message === 'No reservations found.') {
@@ -54,9 +68,17 @@ async function fetchReservations(reservationDate) {
       log('No reservations found for the date:', reservationDate);
     } else {
       error('Unexpected response structure:', data);
+      removeTableHeader();
+      const tbody = get('tbody');
+      tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">Error fetching reservations</td></tr>';
+      log('No reservations found for the date:', reservationDate);
     }
   } catch (error) {
     error('Error fetching reservations:', error);
+    removeTableHeader();
+    const tbody = get('tbody');
+    tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">Error fetching reservations</td></tr>';
+    log('No reservations found for the date:', reservationDate);
   }
 }
 
