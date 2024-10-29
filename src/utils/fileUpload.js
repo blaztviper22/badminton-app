@@ -1,11 +1,12 @@
 const fileType = require('file-type-cjs'); // Assuming you are using file-type to get MIME types
 const { uploadToR2 } = require('../services/r2Service');
-const { assignFileToAdmin } = require('./adminUtils');
 const File = require('../models/File');
+const { assignFileToAdmin } = require('./userFileAccess');
+const User = require('../models/User');
 
 const MAX_SIZE = 80 * 1024 * 1024; // 20MB file size limit
 
-async function handleFileUpload(file, adminId, category) {
+async function handleFileUpload(file, userId, category) {
   if (file.size > MAX_SIZE) {
     throw new Error('File size exceeds the limit of 20MB.');
   }
@@ -43,10 +44,21 @@ async function handleFileUpload(file, adminId, category) {
   // Save the file document
   await fileDocument.save();
 
-  // Assign the file to the admin
-  await assignFileToAdmin(fileDocument, adminId, category); // Pass the file object, not the URL
+  // retrieve user to determine if they are an admin
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error('User not found.');
+  }
 
-  return fileUrl; // Return the file URL
+  if (user.isAdmin) {
+    // if user is admin, assign to admin
+    await assignFileToAdmin(fileDocument, userId, category);
+  } else {
+    // otherwise, assign to regular user
+    await assignFileToUser(fileDocument, userId, category);
+  }
+
+  return fileUrl;
 }
 
 async function handleMultipleFileUploads(files, adminId, category) {
