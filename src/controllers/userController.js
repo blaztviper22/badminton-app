@@ -1067,7 +1067,7 @@ exports.getAdminReservations = async (req, res) => {
 
     // if no reservations found
     if (reservations.length === 0) {
-      return res.status(404).json({ status: 'success', message: 'No reservations found.' });
+      return res.status(404).json({ status: 'error', message: 'No reservations found.' });
     }
 
     const reservationDates = {};
