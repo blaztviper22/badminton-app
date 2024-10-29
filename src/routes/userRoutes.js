@@ -15,7 +15,8 @@ const {
   getAvailability,
   handleCourtReservation,
   getReservations,
-  cancelReservation
+  cancelReservation,
+  getAdminReservations
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const { validateUserId, validateUserInfo } = require('../middleware/validator');
@@ -75,11 +76,35 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-  router.get('/admin/schedule-dashboard', verifyToken, roleChecker(['admin']), (req, res, next) => {
+  router.get('/admin/user-payments', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const tab = req.query.tab; // get the page from the query parameter
     let filePath;
 
-    // determine which HTML file to serve based on the query parameter
+    switch (tab) {
+      case 'event-and-tournaments':
+        filePath = path.resolve(__dirname, '../../build/eventtournaments.html');
+        break;
+      case 'training-sessions':
+        // specify the file path for training sessions here
+        filePath = path.resolve(__dirname, '../../build/trainingsessions.html');
+        break;
+      case 'product-reservation':
+        // specify the file path for product reservation here
+        filePath = path.resolve(__dirname, '../../build/productpickup.html');
+        break;
+      default:
+        // default to court reservations
+        filePath = path.resolve(__dirname, '../../build/adminviewuserpayment.html');
+        break;
+    }
+
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/admin/schedule', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const tab = req.query.tab; // get the page from the query parameter
+    let filePath;
+
     switch (tab) {
       case 'event-and-tournaments':
         filePath = path.resolve(__dirname, '../../build/eventtournaments.html');
@@ -94,7 +119,7 @@ let routes = (app, io) => {
         break;
       default:
         // default to court reservations
-        filePath = path.resolve(__dirname, '../../build/courtreservations.html');
+        filePath = path.resolve(__dirname, '../../build/adminschedulereservation.html');
         break;
     }
 
@@ -121,6 +146,8 @@ let routes = (app, io) => {
   });
 
   router.get('/reservations', verifyToken, roleChecker(['player', 'coach']), getReservations);
+
+  router.get('/admin/reservations', verifyToken, roleChecker(['admin']), getAdminReservations);
 
   router.post('/reservations/cancel', verifyToken, roleChecker(['player', 'coach']), cancelReservation);
 

@@ -53,6 +53,10 @@ const reservationSchema = new mongoose.Schema(
       type: Number,
       required: true
     },
+    selectedCourt: {
+      type: Array,
+      required: true
+    },
     paymentMethod: {
       type: String,
       enum: ['gcash', 'paypal'],

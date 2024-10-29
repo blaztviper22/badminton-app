@@ -1004,3 +1004,112 @@ exports.cancelReservation = async (req, res) => {
     });
   }
 };
+
+exports.getAdminReservations = async (req, res) => {
+  try {
+    const adminId = req.user.id;
+    const { date, username, dateOnly } = req.query;
+
+    const query = {};
+
+    // fetch the admin user to check their registered courts
+    const adminUser = await User.findById(adminId).populate('court');
+    if (!adminUser) {
+      return res.status(404).json({ status: 'error', message: 'Admin user not found.' });
+    }
+
+    // check if the admin has any registered courts
+    if (!adminUser.court) {
+      return res.status(404).json({ status: 'error', message: 'No courts registered for this admin.' });
+    }
+
+    // include court ID in the query
+    query.court = adminUser.court._id;
+
+    // if dateOnly is provided, fetch unique reservation dates
+    if (dateOnly) {
+      const reservations = await Reservation.find({ court: query.court }).select('date').sort({ date: 1 });
+
+      const uniqueDates = [
+        ...new Set(reservations.map((reservation) => moment(reservation.date).format('YYYY-MM-DD')))
+      ];
+
+      return res.status(200).json({ status: 'success', dates: uniqueDates });
+    }
+
+    // check if a date is provided
+    if (date) {
+      // validate date format (YYYY-MM-DD)
+      const isValidDate = moment(date, 'YYYY-MM-DD', true).isValid();
+      if (!isValidDate) {
+        return res.status(400).json({ status: 'error', message: 'Invalid date format. Use YYYY-MM-DD.' });
+      }
+
+      // set query date to find reservations for the specified date
+      query.date = moment(date).startOf('day').toDate();
+    }
+
+    // add username filter if provided
+    if (username) {
+      const user = await User.findOne({ username: new RegExp(username, 'i') });
+      if (user) {
+        query.user = user._id;
+      } else {
+        return res.status(404).json({ status: 'error', message: 'User not found.' });
+      }
+    }
+
+    // fetch all reservations based on the constructed query
+    const reservations = await Reservation.find(query)
+      .populate('court')
+      .populate('user', 'first_name last_name')
+      .sort({ date: 1 });
+
+    // if no reservations found
+    if (reservations.length === 0) {
+      return res.status(404).json({ status: 'success', message: 'No reservations found.' });
+    }
+
+    const reservationDates = {};
+
+    reservations.forEach((reservation) => {
+      const reservationDate = moment.tz(reservation.date, 'Asia/Manila').format('YYYY-MM-DD');
+
+      if (!reservationDates[reservationDate]) {
+        reservationDates[reservationDate] = [];
+      }
+
+      reservationDates[reservationDate].push({
+        reservationId: reservation._id,
+        courtId: reservation.court._id,
+        selectedCourts: reservation.selectedCourt,
+        totalCourts: reservation.court.totalCourts,
+        operatingHours: reservation.court.operating_hours,
+        user: {
+          userId: reservation.user._id,
+          firstName: reservation.user.first_name,
+          lastName: reservation.user.last_name
+        },
+        timeSlot: {
+          from: moment.tz(reservation.timeSlot.from, 'h:mm A', 'Asia/Manila').format('h:mm A'),
+          to: moment.tz(reservation.timeSlot.to, 'h:mm A', 'Asia/Manila').format('h:mm A')
+        },
+        status: reservation.status,
+        paymentStatus: reservation.paymentStatus,
+        userPayment: {
+          payerEmail: reservation.payerEmail,
+          paymentMethod: reservation.paymentMethod,
+          transactionId: reservation.transactionId,
+          reservationFee: reservation.court.hourly_rate,
+          totalAmount: reservation.totalAmount,
+          datePaid: reservation.createdAt ? moment(reservation.createdAt).format('YYYY-MM-DD') : null
+        }
+      });
+    });
+
+    return res.status(200).json({ status: 'success', reservationDates });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};

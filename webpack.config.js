@@ -20,14 +20,13 @@ const pageTitles = {
   userprofile: 'Edit Profile',
   courtregistration: 'Court Registration',
   admindash: 'Welcome',
-  courtreservations: 'Court Schedule',
-  eventtournaments: 'Event & Tournaments',
-  viewuserpayment: 'User Payment',
   usercourtlist: 'Reserve Court',
   usercourtreservation: 'Create Reservation',
   usercourtviewing: 'View Available Courts',
   userviewannouncement: 'View Announcement',
-  userschedulereservation: 'Reservation Schedule'
+  userschedulereservation: 'Reservation Schedule',
+  adminschedulereservation: 'Schedule',
+  adminviewuserpayment: 'User Payments'
 };
 
 // Page-specific stylesheets and scripts
@@ -96,7 +95,16 @@ const pageAssets = {
     hasNavbar: false,
     hasSidebar: true
   },
-  courtreservations: {
+  adminschedulereservation: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+  adminviewuserpayment: {
     styles: [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
       'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
@@ -106,24 +114,6 @@ const pageAssets = {
     hasSidebar: true
   },
 
-  eventtournaments: {
-    styles: [
-      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
-      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
-    ],
-    scripts: [],
-    hasNavbar: false,
-    hasSidebar: true
-  },
-  viewuserpayment: {
-    styles: [
-      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
-      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
-    ],
-    scripts: [],
-    hasNavbar: false,
-    hasSidebar: true
-  },
   usercourtlist: {
     styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
     scripts: [],
@@ -207,9 +197,8 @@ module.exports = () => {
       userprofile: './client/js/pages/userprofile/userprofile.js',
       courtregistration: './client/js/pages/courtregistration/courtRegistration.js',
       admindash: './client/js/pages/admindash/admindash.js',
-      courtreservations: './client/js/pages/courtreservations/courtReservations.js',
-      eventtournaments: './client/js/pages/event&tournaments/event&Tournaments.js',
-      viewuserpayment: './client/js/pages/viewuserpayment/viewUserPayment.js',
+      adminschedulereservation: './client/js/pages/adminschedulereservation/adminScheduleReservation.js',
+      adminviewuserpayment: './client/js/pages/adminviewuserpayment/adminViewUserPayment.js',
       usercourtlist: './client/js/pages/usercourtlist/userCourtList.js',
       usercourtviewing: './client/js/pages/usercourtviewing/userCourtViewing.js',
       usercourtreservation: './client/js/pages/usercourtreservation/userCourtReservation.js',
