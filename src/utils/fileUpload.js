@@ -55,7 +55,7 @@ async function handleFileUpload(file, userId, category) {
     await assignFileToAdmin(fileDocument, userId, category);
   } else {
     // otherwise, assign to regular user
-    await assignFileToUser(fileDocument, userId, category);
+    await assignFileToUser(fileDocument, userId);
   }
 
   return fileUrl;
