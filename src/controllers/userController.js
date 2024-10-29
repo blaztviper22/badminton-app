@@ -1082,6 +1082,9 @@ exports.getAdminReservations = async (req, res) => {
       reservationDates[reservationDate].push({
         reservationId: reservation._id,
         courtId: reservation.court._id,
+        selectedCourts: reservation.selectedCourt,
+        totalCourts: reservation.court.totalCourts,
+        operatingHours: reservation.court.operating_hours,
         user: {
           userId: reservation.user._id,
           firstName: reservation.user.first_name,
@@ -1092,7 +1095,15 @@ exports.getAdminReservations = async (req, res) => {
           to: moment.tz(reservation.timeSlot.to, 'h:mm A', 'Asia/Manila').format('h:mm A')
         },
         status: reservation.status,
-        paymentStatus: reservation.paymentStatus
+        paymentStatus: reservation.paymentStatus,
+        userPayment: {
+          payerEmail: reservation.payerEmail,
+          paymentMethod: reservation.paymentMethod,
+          transactionId: reservation.transactionId,
+          reservationFee: reservation.court.hourly_rate,
+          totalAmount: reservation.totalAmount,
+          datePaid: reservation.createdAt ? moment(reservation.createdAt).format('YYYY-MM-DD') : null
+        }
       });
     });
 

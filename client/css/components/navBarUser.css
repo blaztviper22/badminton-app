@@ -58,3 +58,8 @@ body {
 .header-button.logout-button:hover {
   background-color: #397cf7;
 }
+
+.logo-container a {
+  cursor: pointer;
+  display: inline-block;
+}

@@ -103,7 +103,7 @@ const startReservationCleanupCronJob = () => {
 // cron job to delete cancelled reservations every minute
 const startCancelledCleanupCronJob = (io) => {
   cron.schedule(
-    '*/1 * * * *', // run every minute for cancelled reservations
+    '*/5 * * * *', // run every minute for cancelled reservations
     async () => {
       log('Running scheduled job to delete cancelled reservations...');
       await deleteCancelledReservations(io);
@@ -119,7 +119,7 @@ const startCancelledCleanupCronJob = (io) => {
 // cron job to delete pending reservations every 5 minutes
 const startPendingCleanupCronJob = (io) => {
   cron.schedule(
-    '*/1 * * * *', // Run every 5 minutes for pending reservations
+    '*/5 * * * *', // Run every 5 minutes for pending reservations
     async () => {
       log('Running scheduled job to delete pending reservations...');
       await deletePendingReservations(io);

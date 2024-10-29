@@ -25,7 +25,8 @@ const pageTitles = {
   usercourtviewing: 'View Available Courts',
   userviewannouncement: 'View Announcement',
   userschedulereservation: 'Reservation Schedule',
-  adminschedulereservation: 'Schedule'
+  adminschedulereservation: 'Schedule',
+  adminviewuserpayment: 'User Payments'
 };
 
 // Page-specific stylesheets and scripts
@@ -95,7 +96,19 @@ const pageAssets = {
     hasSidebar: true
   },
   adminschedulereservation: {
-    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+  adminviewuserpayment: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
     scripts: [],
     hasNavbar: false,
     hasSidebar: true
@@ -185,6 +198,7 @@ module.exports = () => {
       courtregistration: './client/js/pages/courtregistration/courtRegistration.js',
       admindash: './client/js/pages/admindash/admindash.js',
       adminschedulereservation: './client/js/pages/adminschedulereservation/adminScheduleReservation.js',
+      adminviewuserpayment: './client/js/pages/adminviewuserpayment/adminViewUserPayment.js',
       usercourtlist: './client/js/pages/usercourtlist/userCourtList.js',
       usercourtviewing: './client/js/pages/usercourtviewing/userCourtViewing.js',
       usercourtreservation: './client/js/pages/usercourtreservation/userCourtReservation.js',
