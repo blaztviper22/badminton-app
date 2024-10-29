@@ -70,14 +70,14 @@ async function fetchReservations(reservationDate) {
       error('Unexpected response structure:', data);
       removeTableHeader();
       const tbody = get('tbody');
-      tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">No reservations found</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">Error fetching reservations</td></tr>';
       log('No reservations found for the date:', reservationDate);
     }
   } catch (error) {
     error('Error fetching reservations:', error);
     removeTableHeader();
     const tbody = get('tbody');
-    tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">No reservations found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="100%" class="no-reservation">Error fetching reservations</td></tr>';
     log('No reservations found for the date:', reservationDate);
   }
 }
