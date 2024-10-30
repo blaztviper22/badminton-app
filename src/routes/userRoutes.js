@@ -61,7 +61,9 @@ let routes = (app, io) => {
     handleCourtReservation(req, res, next, io);
   });
 
-  router.delete('/admin/announcement/:announcementId', verifyToken, roleChecker(['admin']), removeAnnouncement);
+  router.delete('/admin/announcement/:announcementId', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    removeAnnouncement(req, res, io);
+  });
 
   router.post(
     '/admin/announcement',

@@ -1182,7 +1182,7 @@ exports.getAllAnnouncements = async (req, res) => {
   }
 };
 
-exports.getAdminAnnouncements = async (req, res) => {
+exports.getAdminAnnouncements = async (req, res, io) => {
   try {
     const user = req.user;
 
@@ -1229,6 +1229,10 @@ exports.removeAnnouncement = async (req, res) => {
 
     // proceed with deletion if checks pass
     await Announcement.findByIdAndDelete(announcementId);
+
+    io.emit('deleteAnnouncement', {
+      status: 'success'
+    });
 
     return res.status(200).json({ status: 'success', message: 'Announcement deleted successfully.' });
   } catch (err) {

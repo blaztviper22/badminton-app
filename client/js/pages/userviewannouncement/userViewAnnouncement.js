@@ -27,6 +27,12 @@ getCurrentUserId().then((userId) => {
         fetchAnnouncements(false);
       }
     });
+    socket.on('deleteAnnouncement', (data) => {
+      if (data.status === 'success') {
+        log('websocket:', data);
+        fetchAnnouncements(false);
+      }
+    });
   } else {
     error('User ID could not be retrieved.');
   }
