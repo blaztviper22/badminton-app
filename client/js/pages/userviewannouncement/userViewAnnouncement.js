@@ -1,3 +1,4 @@
+import { io } from 'socket.io-client';
 import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
 import '../../../css/pages/userviewannouncement/userViewAnnouncement.css';
@@ -13,68 +14,140 @@ const get = (selector) => doc.querySelector(selector);
 
 setupLogoutListener();
 
-// Start session checks on page load
+// start session checks on page load
 startSessionChecks();
 
-document.querySelectorAll('.filter-button').forEach((button) => {
-  button.addEventListener('click', function () {
-    document.querySelector('.filter-button.active')?.classList.remove('active');
-    this.classList.add('active');
-  });
-});
+getCurrentUserId().then((userId) => {
+  if (userId) {
+    const socket = io({ query: { userId } });
 
-function toggleFilter(checkbox) {
-  const selectedFiltersContainer = document.getElementById('selected-filters');
-  const filterValue = checkbox.value;
-
-  if (checkbox.checked) {
-    // Create a filter badge
-    const filterBadge = document.createElement('div');
-    filterBadge.className = 'selected-filter';
-    filterBadge.setAttribute('data-filter', filterValue);
-    filterBadge.innerHTML = `${filterValue} <span class="remove-filter" onclick="removeFilter('${filterValue}')">&times;</span>`;
-    selectedFiltersContainer.appendChild(filterBadge);
+    socket.on('newAnnouncement', (data) => {
+      if (data.status === 'success') {
+        log('websocket:', data);
+        fetchAnnouncements(false);
+      }
+    });
   } else {
-    // Uncheck the filter and remove badge
-    removeFilter(filterValue);
+    error('User ID could not be retrieved.');
   }
-}
-
-function removeFilter(filterValue) {
-  const filterBadge = document.querySelector(`.selected-filter[data-filter="${filterValue}"]`);
-  if (filterBadge) {
-    filterBadge.remove();
-  }
-
-  // Uncheck the corresponding checkbox
-  const filterCheckbox = document.querySelector(`input[value="${filterValue}"]`);
-  if (filterCheckbox) {
-    filterCheckbox.checked = false;
-  }
-}
-
-// Get modal and close button elements
-const modal = document.getElementById('joinModal');
-const closeModal = document.getElementsByClassName('close')[0];
-
-// Get all Join buttons
-const joinButtons = document.querySelectorAll('.view-more button');
-
-// Add click event listener to each Join button
-joinButtons.forEach((button) => {
-  button.addEventListener('click', function () {
-    modal.style.display = 'block';
-  });
 });
 
-// Close the modal when the close button is clicked
-closeModal.onclick = function () {
-  modal.style.display = 'none';
-};
+async function fetchAnnouncements(withPreloader = true) {
+  try {
+    const response = await fetch('/user/announcements/all', {
+      withPreloader
+    });
 
-// Close the modal when clicking anywhere outside of the modal
-window.onclick = function (event) {
-  if (event.target == modal) {
-    modal.style.display = 'none';
+    if (!response.ok) {
+      throw new Error('Failed to fetch announcements');
+    }
+    const announcements = await response.json();
+    log(announcements);
+    displayAnnouncements(announcements);
+  } catch (err) {
+    error('Error fetching announcements:', err);
+    alert('Failed to load announcements. Please try again later.');
   }
-};
+}
+
+function displayAnnouncements(response) {
+  if (response.status === 'success' && Array.isArray(response.data)) {
+    const announcements = response.data;
+    const box = get('.box');
+    box.innerHTML = '';
+
+    if (announcements.length === 0) {
+      const noPostsMessage = document.createElement('div');
+      noPostsMessage.classList.add('no-posts-message');
+      noPostsMessage.textContent = 'No posts yet';
+      noPostsMessage.style.textAlign = 'center';
+      box.appendChild(noPostsMessage);
+      return;
+    }
+
+    // loop through each announcement
+    Object.keys(announcements).forEach((key) => {
+      const announcement = announcements[key];
+
+      const postCard = document.createElement('div');
+      postCard.classList.add('post-card');
+      postCard.setAttribute('data-announcement-id', announcement._id);
+
+      // convert the createdAt date to Philippine time
+      const createdAt = new Date(announcement.createdAt);
+      const options = {
+        timeZone: 'Asia/Manila',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      };
+      const formattedDate = createdAt.toLocaleString('en-PH', options).replace(',', '');
+      log(formattedDate);
+
+      // constructing the images HTML
+      const imagesHtml = (announcement.images || []).map((image) => `<img src="${image}" alt="Post Image" />`).join('');
+
+      postCard.innerHTML = `
+        <i class="fas fa-ellipsis-v three-dots" id="three-dots"></i>
+        <div class="popup-menu" id="popup-menu" style="display: none"></div>
+        <div class="user-info">
+          <img src="${
+            announcement.court?.business_logo || '/assets/images/placeholder_50x50.png'
+          }" alt="Business Logo" class="profile-pic" />
+          <div class="name-and-time">
+            <span class="name">${announcement.postedBy.first_name} ${announcement.postedBy.last_name}</span>
+            <span class="time">${formattedDate}</span> <!-- Displaying the formatted date -->
+          </div>
+        </div>
+        <hr />
+        <h2>${announcement.heading}</h2>
+        <p class="body-text">${announcement.details}</p>
+        <div class="post-images">
+          ${imagesHtml} <!-- Dynamically adding images -->
+        </div>
+        <hr />
+        <div class="view-more">
+          <button>View More</button>
+        </div>
+      `;
+
+      box.appendChild(postCard);
+      postCard.querySelector('.three-dots').addEventListener('click', (event) => {
+        event.stopPropagation();
+        // closeAllPopupMenus();
+        // showPopupMenu(event, postCard);
+      });
+    });
+  } else {
+    error('Failed to load announcements or invalid response format.');
+    const noPostsMessage = document.createElement('div');
+    noPostsMessage.classList.add('no-posts-message');
+    noPostsMessage.textContent = 'No posts yet';
+    noPostsMessage.style.textAlign = 'center';
+    box.appendChild(noPostsMessage);
+  }
+}
+
+fetchAnnouncements();
+
+async function getCurrentUserId() {
+  try {
+    const response = await fetch('/user/me', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user info');
+    }
+
+    const userData = await response.json();
+    return userData.id;
+  } catch (err) {
+    error('Error fetching user ID:', err);
+    return null;
+  }
+}

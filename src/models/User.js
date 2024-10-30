@@ -4,7 +4,6 @@ const config = require('config');
 const jwt = require('jsonwebtoken');
 const Court = require('./Court');
 const File = require('./File');
-const { v4: uuidv4 } = require('uuid');
 
 const userSchema = new mongoose.Schema(
   {
@@ -87,14 +86,6 @@ const userSchema = new mongoose.Schema(
         message: 'Role must be either Admin, Player, or Coach.'
       }
     },
-    payer_id: {
-      type: String,
-      default: function () {
-        // only generate payer_id for users with the 'admin' role
-        return this.role === 'admin' ? uuidv4() : undefined;
-      },
-      immutable: true // payer_id should not change once set
-    },
     verificationNonce: {
       type: String,
       default: null
@@ -157,8 +148,7 @@ const userSchema = new mongoose.Schema(
     },
     isAdmin: {
       type: Boolean,
-      default: false,
-      select: false // Ensure it's hidden in queries
+      default: false
     }
   },
 

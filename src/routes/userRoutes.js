@@ -16,10 +16,14 @@ const {
   handleCourtReservation,
   getReservations,
   cancelReservation,
-  getAdminReservations
+  getAdminReservations,
+  postAdminAnnouncement,
+  getAllAnnouncements,
+  removeAnnouncement,
+  getAdminAnnouncements
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
-const { validateUserId, validateUserInfo } = require('../middleware/validator');
+const { validateUserId, validateUserInfo, validateAnnouncementPost } = require('../middleware/validator');
 const validateUpdateFields = require('../middleware/validateUpdateField');
 const { createRateLimiter } = require('../middleware/rateLimiter');
 const { checkFilePermissions } = require('../middleware/checkFilePermission');
@@ -57,6 +61,22 @@ let routes = (app, io) => {
     handleCourtReservation(req, res, next, io);
   });
 
+  router.delete('/admin/announcement/:announcementId', verifyToken, roleChecker(['admin']), removeAnnouncement);
+
+  router.post(
+    '/admin/announcement',
+    verifyToken,
+    validateAnnouncementPost,
+    roleChecker(['admin']),
+    (req, res, next) => {
+      postAdminAnnouncement(req, res, io);
+    }
+  );
+
+  router.get('/announcements/all', verifyToken, roleChecker(['player', 'coach']), getAllAnnouncements);
+
+  router.get('/announcements/admin', verifyToken, roleChecker(['admin']), getAdminAnnouncements);
+
   router.get('/events-and-tournaments', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const tab = req.query.tab;
     let filePath;
@@ -70,6 +90,25 @@ let routes = (app, io) => {
         break;
       default:
         filePath = path.resolve(__dirname, '../../build/userviewannouncement.html');
+        break;
+    }
+
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/admin/view-post', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const tab = req.query.tab;
+    let filePath;
+
+    switch (tab) {
+      case 'announcements':
+        break;
+      case 'events':
+        break;
+      case 'tournaments':
+        break;
+      default:
+        filePath = path.resolve(__dirname, '../../build/viewadminpost.html');
         break;
     }
 

@@ -6,6 +6,7 @@ const { forgotPasswordSchema } = require('../validation/forgotPassValidatorSchem
 const { userIdSchema } = require('../validation/userIdValidatorSchema');
 const { updateSchema } = require('../validation/userUpdateValidatorSchema');
 const { courtRegistrationSchema } = require('../validation/courtRegValidatorSchema');
+const { validateAnnouncement } = require('../validation/createAnnouncementValidatorSchema');
 
 /**
  * Middleware to validate user verification input.
@@ -128,7 +129,24 @@ const validateUserInfo = (req, res, next) => {
  * Middleware to validate court registration input.
  */
 const validateCourtRegistration = (req, res, next) => {
-  const { error } = courtRegistrationSchema.validate(req.body, { abortEarly: false }); // Validate court registration from request body
+  const { error } = courtRegistrationSchema.validate(req.body, { abortEarly: false });
+
+  if (error) {
+    return res.status(400).json({
+      errors: error.details.map((err) => ({
+        message: err.message,
+        path: err.path[0]
+      }))
+    });
+  }
+  next();
+};
+
+/**
+ * Middleware to validate announcement input.
+ */
+const validateAnnouncementPost = (req, res, next) => {
+  const { error } = validateAnnouncement.validate(req.body, { abortEarly: false });
 
   if (error) {
     return res.status(400).json({
@@ -150,5 +168,6 @@ module.exports = {
   validateResetPassword,
   validateUserId,
   validateUserInfo,
-  validateCourtRegistration
+  validateCourtRegistration,
+  validateAnnouncementPost
 };
