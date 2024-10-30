@@ -6,22 +6,22 @@ const User = require('../models/User');
 
 const MAX_SIZE = 80 * 1024 * 1024; // 20MB file size limit
 
-async function handleFileUpload(file, userId, category) {
+async function handleFileUpload(
+  file,
+  userId,
+  category,
+  allowedImageTypes = [],
+  allowedDocumentTypes = [],
+  allowedOtherTypes = []
+) {
   if (file.size > MAX_SIZE) {
     throw new Error('File size exceeds the limit of 20MB.');
   }
   const fileBuffer = file.data;
   const fileTypeInfo = await fileType.fromBuffer(fileBuffer);
 
-  const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
-  const allowedDocumentTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  ];
-
   // Combine allowed types
-  const allowedTypes = [...allowedImageTypes, ...allowedDocumentTypes];
+  const allowedTypes = [...allowedImageTypes, ...allowedDocumentTypes, ...allowedOtherTypes];
 
   console.log(`File name: ${file.name}, MIME type: ${file.mimetype}`);
 
@@ -38,7 +38,7 @@ async function handleFileUpload(file, userId, category) {
   // Create a new file document in your database
   const fileDocument = new File({
     fileName: uploadResult.fileName,
-    owner: adminId // The ID of the admin who owns this file
+    owner: userId // The ID of the user who owns this file
   });
 
   // Save the file document
@@ -61,12 +61,26 @@ async function handleFileUpload(file, userId, category) {
   return fileUrl;
 }
 
-async function handleMultipleFileUploads(files, adminId, category) {
+async function handleMultipleFileUploads(
+  files,
+  adminId,
+  category,
+  allowedImageTypes = [],
+  allowedDocumentTypes = [],
+  allowedOtherTypes = []
+) {
   let fileUrls = [];
   const filesArray = Array.isArray(files) ? files : [files]; // Handle single or multiple files
 
   for (const file of filesArray) {
-    const fileUrl = await handleFileUpload(file, adminId, category);
+    const fileUrl = await handleFileUpload(
+      file,
+      adminId,
+      category,
+      allowedImageTypes,
+      allowedDocumentTypes,
+      allowedOtherTypes
+    );
     fileUrls.push(fileUrl);
   }
 
