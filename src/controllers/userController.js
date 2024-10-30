@@ -1182,7 +1182,7 @@ exports.getAllAnnouncements = async (req, res) => {
   }
 };
 
-exports.getAdminAnnouncements = async (req, res, io) => {
+exports.getAdminAnnouncements = async (req, res) => {
   try {
     const user = req.user;
 
@@ -1202,7 +1202,7 @@ exports.getAdminAnnouncements = async (req, res, io) => {
   }
 };
 
-exports.removeAnnouncement = async (req, res) => {
+exports.removeAnnouncement = async (req, res, io) => {
   try {
     const user = req.user;
 

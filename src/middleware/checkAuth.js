@@ -26,7 +26,7 @@ const checkAuth = async (req, res, next) => {
     } else if (decoded.role === 'coach') {
       return res.redirect('/user/dashboard');
     } else if (decoded.role === 'admin') {
-      return res.redirect('/user/admin/dashboard');
+      return res.redirect('/user/admin/view-post');
     }
   } catch (err) {
     // If token is invalid, proceed to next middleware (public route)
