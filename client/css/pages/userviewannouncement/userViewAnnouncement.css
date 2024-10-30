@@ -125,7 +125,6 @@ label {
 .box1 {
   width: 20%;
   box-sizing: border-box;
-  flex-shrink: 0;
 }
 .box2 {
   flex-grow: 1;
