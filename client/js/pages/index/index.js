@@ -6,32 +6,22 @@ const { log, error } = console;
 const getById = (id) => doc.getElementById(id);
 const getAll = (selector) => doc.querySelectorAll(selector);
 const get = (selector) => doc.querySelector(selector);
+const getByClassName = (selector) => doc.getElementsByClassName(selector);
 
-// handle redirection to sign up page
-const handleSignUpRedirect = () => {
-  window.location.href = '/register';
-};
+var acc = getByClassName('accordion');
+var i;
 
-// handle redirection to sign in page
-const handleSignInRedirect = () => {
-  window.location.href = '/login';
-};
+for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener('click', function () {
+    this.classList.toggle('active');
+    this.parentElement.classList.toggle('active');
 
-doc.addEventListener('DOMContentLoaded', () => {
-  const signUpButton = get('.button-container button:first-of-type');
-  const signInButton = get('.button-container button:last-of-type');
+    var pannel = this.nextElementSibling;
 
-  if (signUpButton) {
-    signUpButton.addEventListener('click', (e) => {
-      e.preventDefault(); // prevent default button behavior
-      handleSignUpRedirect(); // redirect to sign up page
-    });
-  }
-
-  if (signInButton) {
-    signInButton.addEventListener('click', (e) => {
-      e.preventDefault(); // prevent default button behavior
-      handleSignInRedirect(); // redirect to sign-in page
-    });
-  }
-});
+    if (pannel.style.display === 'block') {
+      pannel.style.display = 'none';
+    } else {
+      pannel.style.display = 'block';
+    }
+  });
+}

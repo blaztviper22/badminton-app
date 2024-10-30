@@ -239,6 +239,9 @@ form button i {
   color: red;
   visibility: visible;
 }
+.logo-container {
+  z-index: 1000;
+}
 
 .container {
   width: 60%;
@@ -246,6 +249,7 @@ form button i {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
+  z-index: 10;
   flex-direction: column;
   position: fixed;
 }
