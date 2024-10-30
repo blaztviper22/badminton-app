@@ -198,6 +198,12 @@ let routes = (app, io) => {
     const filePath = path.resolve(__dirname, '../../build/userdash.html');
     serveFile(filePath, res, next);
   });
+
+  router.get('/view-schedule', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/viewusercourtreservationsched.html');
+    serveFile(filePath, res, next);
+  });
+
   router.get('/edit-profile', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/userprofile.html');
     serveFile(filePath, res, next);

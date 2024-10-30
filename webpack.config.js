@@ -25,6 +25,7 @@ const pageTitles = {
   usercourtviewing: 'View Available Courts',
   userviewannouncement: 'View Announcement',
   userschedulereservation: 'Reservation Schedule',
+  viewusercourtreservationsched: 'Reservation Schedule',
   adminschedulereservation: 'Schedule',
   adminviewuserpayment: 'User Payments',
   viewadminpost: 'View Posts'
@@ -156,6 +157,12 @@ const pageAssets = {
     scripts: [],
     hasNavbar: true,
     hasSidebar: false
+  },
+  viewusercourtreservationsched: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
   }
 };
 
@@ -214,7 +221,8 @@ module.exports = () => {
       usercourtviewing: './client/js/pages/usercourtviewing/userCourtViewing.js',
       usercourtreservation: './client/js/pages/usercourtreservation/userCourtReservation.js',
       userviewannouncement: './client/js/pages/userviewannouncement/userViewAnnouncement.js',
-      userschedulereservation: './client/js/pages/userschedulereservation/userScheduleReservation.js'
+      userschedulereservation: './client/js/pages/userschedulereservation/userScheduleReservation.js',
+      viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js'
     },
     output: {
       filename: '[name].[contenthash].js',
