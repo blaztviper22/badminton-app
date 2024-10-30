@@ -167,7 +167,7 @@ exports.loginUser = async (req, res, next) => {
     // Determine redirect URL based on user role
     let redirectUrl;
     if (user.role === 'admin') {
-      redirectUrl = '/user/admin/dashboard';
+      redirectUrl = '/user/admin/view-post';
     } else if (user.role === 'player' || user.role === 'coach') {
       redirectUrl = '/user/dashboard';
     }
