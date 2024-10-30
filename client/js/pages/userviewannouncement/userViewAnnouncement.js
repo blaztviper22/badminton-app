@@ -1,3 +1,4 @@
+import { io } from 'socket.io-client';
 import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
 import '../../../css/pages/userviewannouncement/userViewAnnouncement.css';
@@ -16,15 +17,33 @@ setupLogoutListener();
 // start session checks on page load
 startSessionChecks();
 
-async function fetchAnnouncements() {
+getCurrentUserId().then((userId) => {
+  if (userId) {
+    const socket = io({ query: { userId } });
+
+    socket.on('newAnnouncement', (data) => {
+      if (data.status === 'success') {
+        log('websocket:', data);
+        fetchAnnouncements(false);
+      }
+    });
+  } else {
+    error('User ID could not be retrieved.');
+  }
+});
+
+async function fetchAnnouncements(withPreloader = true) {
   try {
-    const response = await fetch('/user/announcements/all');
+    const response = await fetch('/user/announcements/all', {
+      withPreloader
+    });
+
     if (!response.ok) {
       throw new Error('Failed to fetch announcements');
     }
     const announcements = await response.json();
     log(announcements);
-    // displayAnnouncements(announcements);
+    displayAnnouncements(announcements);
   } catch (err) {
     error('Error fetching announcements:', err);
     alert('Failed to load announcements. Please try again later.');
@@ -113,3 +132,22 @@ function displayAnnouncements(response) {
 }
 
 fetchAnnouncements();
+
+async function getCurrentUserId() {
+  try {
+    const response = await fetch('/user/me', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user info');
+    }
+
+    const userData = await response.json();
+    return userData.id;
+  } catch (err) {
+    error('Error fetching user ID:', err);
+    return null;
+  }
+}

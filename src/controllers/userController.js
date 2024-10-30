@@ -1117,7 +1117,7 @@ exports.getAdminReservations = async (req, res) => {
   }
 };
 
-exports.postAdminAnnouncement = async (req, res) => {
+exports.postAdminAnnouncement = async (req, res, io) => {
   try {
     const user = req.user;
     const adminId = user.id;
@@ -1158,6 +1158,11 @@ exports.postAdminAnnouncement = async (req, res) => {
     });
 
     await announcement.save();
+
+    io.emit('newAnnouncement', {
+      status: 'success',
+      data: announcement
+    });
 
     return res.status(201).json({ status: 'success', data: announcement });
   } catch (err) {
