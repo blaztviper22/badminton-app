@@ -123,7 +123,8 @@ label {
   gap: 20px;
 }
 .box1 {
-  width: 80%;
+  width: 30%;
+  max-width: 200px;
   box-sizing: border-box;
 }
 .box2 {
