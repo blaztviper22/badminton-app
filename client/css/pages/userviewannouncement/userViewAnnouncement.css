@@ -348,3 +348,13 @@ label {
 .privacy-policy .small-checkbox {
   font-size: 10px;
 }
+
+.no-posts-message {
+  font-size: 1.5rem;
+  color: #888;
+  margin-top: 200px;
+}
+
+.no-scroll {
+  overflow: hidden;
+}
