@@ -36,7 +36,7 @@ const announcementSchema = new mongoose.Schema(
 
 // populate the court and postedBy fields automatically on find
 announcementSchema.pre(/^find/, function (next) {
-  this.populate('court', 'business_name location contact number business_email description').populate(
+  this.populate('court', 'business_logo business_name location contact number business_email description').populate(
     'postedBy',
     'first_name last_name role'
   );

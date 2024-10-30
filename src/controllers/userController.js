@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const File = require('../models/File');
 const Reservation = require('../models/Reservation');
+const Announcement = require('../models/Announcement');
 const { assignFileAccess } = require('../utils/assignFileAccess');
 const { isCourtAvailable } = require('../utils/courtAvailability');
 const { convertTo24Hour } = require('../utils/timeConvertion');
@@ -25,6 +26,7 @@ const {
 const serveFile = require('../utils/fileUtils');
 const path = require('path');
 const { geocodeAddress, getAddressFromCoordinates } = require('../utils/addressUtils');
+const { handleMultipleFileUploads, handleFileUpload } = require('../utils/fileUpload');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -463,6 +465,7 @@ exports.createReservation = async (req, res, io) => {
 
     // use the virtual field to get the total number of courts
     const totalCourts = court.totalCourts;
+    log('total courts', totalCourts);
 
     // Check if the selected court images are within bounds
     if (selectedCourt.some((index) => index < 0 || index >= totalCourts)) {
@@ -1110,6 +1113,121 @@ exports.getAdminReservations = async (req, res) => {
     return res.status(200).json({ status: 'success', reservationDates });
   } catch (error) {
     console.error(error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.postAdminAnnouncement = async (req, res) => {
+  try {
+    const user = req.user;
+    const adminId = user.id;
+
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    const { heading, details } = req.body;
+    if (!heading || !details) {
+      return res.status(400).json({ status: 'error', message: 'Heading and details are required.' });
+    }
+
+    const courtId = user.court;
+
+    const allowedImages = ['image/jpeg', 'image/png', 'image/gif'];
+
+    let imagesUrls = [];
+    if (req.files && req.files.images) {
+      const images = req.files.images;
+
+      if (Array.isArray(images)) {
+        // handle multiple file uploads
+        imagesUrls = await handleMultipleFileUploads(images, adminId, 'announcementImage', allowedImages);
+      } else {
+        // handle single file upload
+        imagesUrls.push(await handleFileUpload(images, adminId, 'announcementImage', allowedImages));
+      }
+    }
+
+    // create and save the new announcement
+    const announcement = new Announcement({
+      heading,
+      details,
+      images: imagesUrls,
+      court: courtId,
+      postedBy: adminId
+    });
+
+    await announcement.save();
+
+    return res.status(201).json({ status: 'success', data: announcement });
+  } catch (err) {
+    error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.getAllAnnouncements = async (req, res) => {
+  try {
+    const announcements = await Announcement.find().sort({ createdAt: -1 }); // sort by the latest announcements first
+
+    return res.status(200).json({ status: 'success', data: announcements });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.getAdminAnnouncements = async (req, res) => {
+  try {
+    const user = req.user;
+
+    // get the court ID from the user object
+    const courtId = user.court;
+
+    // fetch announcements related to the user's court and posted by the admin
+    const announcements = await Announcement.find({
+      court: courtId,
+      postedBy: user.id // ensure the announcement is posted by the current admin
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json({ status: 'success', data: announcements });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.removeAnnouncement = async (req, res) => {
+  try {
+    const user = req.user;
+
+    log(user);
+
+    // allow only admins to delete announcements
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    const { announcementId } = req.params;
+
+    // find the announcement and check if it belongs to the admin's court
+    const announcement = await Announcement.findById(announcementId);
+
+    if (!announcement) {
+      return res.status(404).json({ status: 'error', message: 'Announcement not found.' });
+    }
+
+    // check if the admin is from the same court as the announcement
+    if (!announcement.court.equals(user.court) && !announcement.postedBy.equals(user.id)) {
+      return res.status(403).json({ status: 'error', message: 'You can only delete your own court’s announcements.' });
+    }
+
+    // proceed with deletion if checks pass
+    await Announcement.findByIdAndDelete(announcementId);
+
+    return res.status(200).json({ status: 'success', message: 'Announcement deleted successfully.' });
+  } catch (err) {
+    console.error(err);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };

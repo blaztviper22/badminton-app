@@ -931,8 +931,15 @@ exports.registerCourt = async (req, res) => {
       });
     }
 
+    const allowedImages = ['image/jpeg', 'image/png', 'image/gif'];
+    const allowedDocs = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
     for (let i = 0; i < facilityImages.length; i++) {
-      const imageUrl = await handleFileUpload(facilityImages[i], decoded.id, 'facilityImage');
+      const imageUrl = await handleFileUpload(facilityImages[i], decoded.id, 'facilityImage', allowedImages);
       facilityData.push({
         name: facilityNames[i],
         image: imageUrl
@@ -940,11 +947,16 @@ exports.registerCourt = async (req, res) => {
     }
 
     // Upload business logo
-    businessLogoUrl = await handleFileUpload(req.files.business_logo, decoded.id, 'businessLogo');
+    businessLogoUrl = await handleFileUpload(req.files.business_logo, decoded.id, 'businessLogo', allowedImages);
 
     // Upload court images (multiple)
     // courtImageUrls = await handleMultipleFileUploads(req.files.court_images, decoded.id);
-    courtImageUrls = await handleMultipleFileUploads(req.files['court_image[]'], decoded.id, 'courtImage');
+    courtImageUrls = await handleMultipleFileUploads(
+      req.files['court_image[]'],
+      decoded.id,
+      'courtImage',
+      allowedImages
+    );
 
     // Upload documents (multiple)
     for (const key of documentKeys) {
@@ -953,10 +965,10 @@ exports.registerCourt = async (req, res) => {
 
       if (Array.isArray(file)) {
         // Handle multiple files
-        documentUrls[key] = await Promise.all(file.map((f) => handleFileUpload(f, decoded.id)));
+        documentUrls[key] = await Promise.all(file.map((f) => handleFileUpload(f, decoded.id, null, allowedDocs)));
       } else {
         // Handle single file
-        documentUrls[key] = await handleFileUpload(file, decoded.id);
+        documentUrls[key] = await handleFileUpload(file, decoded.id, null, allowedDocs);
       }
     }
 
