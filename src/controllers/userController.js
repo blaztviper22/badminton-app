@@ -1197,6 +1197,31 @@ exports.postAdminTournament = async (req, res, io) => {
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };
+exports.getAllEventParticipants = async (req, res) => {
+  try {
+    const user = req.user;
+
+    // check if the user is an admin
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    // retrieve all events and their participants
+    const events = await Event.find().populate('participants');
+
+    // create an array to hold participants for all events
+    const allParticipants = events.map((event) => ({
+      eventId: event._id,
+      eventTitle: event.heading,
+      participants: event.participants
+    }));
+
+    return res.status(200).json({ status: 'success', data: allParticipants });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
 
 exports.postAdminEvent = async (req, res, io) => {
   try {
