@@ -247,8 +247,31 @@ async function submitForm() {
     formData.append('images', image.file);
   });
 
+  // determine the endpoint based on the selected category
+  const selectedCategory = categorySelect.value;
+  let endpoint = '';
+
+  switch (selectedCategory) {
+    case 'announcement':
+      endpoint = '/user/admin/announcement';
+      break;
+    case 'event':
+      endpoint = '/user/admin/event';
+      break;
+    case 'tournament':
+      endpoint = '/user/admin/tournament';
+      break;
+    case 'membership':
+      endpoint = '/user/admin/membership';
+      break;
+    default:
+      alert('Please select a valid category.');
+      return;
+  }
+  log('Endpoint: ', endpoint);
+
   try {
-    const response = await fetch('/user/admin/announcement', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       body: formData
     });
@@ -256,7 +279,7 @@ async function submitForm() {
     if (response.status === 201) {
       const result = await response.json();
       log('Upload successful:', result);
-      await fetchAnnouncements();
+      await fetchPosts();
       localStorage.removeItem('selectedCategory');
     } else {
       const errorResult = await response.json();
@@ -287,7 +310,7 @@ function displayAnnouncements(response) {
       return;
     }
 
-    //    loop through each announcement
+    //  loop through each announcement
     Object.keys(announcements).forEach((key) => {
       const announcement = announcements[key];
 
@@ -359,9 +382,9 @@ function closeAllPopupMenus() {
   });
 }
 
-async function fetchAnnouncements() {
+async function fetchPosts() {
   try {
-    const response = await fetch('/user/announcements/admin');
+    const response = await fetch('/user/admin/posts');
     if (!response.ok) {
       throw new Error('Failed to fetch announcements');
     }
@@ -373,7 +396,7 @@ async function fetchAnnouncements() {
   }
 }
 
-fetchAnnouncements();
+fetchPosts();
 
 async function deletePost(postId) {
   try {
@@ -387,7 +410,7 @@ async function deletePost(postId) {
     if (response.ok) {
       const data = await response.json();
       if (data.status === 'success') {
-        fetchAnnouncements();
+        fetchPosts();
       } else {
         error(`Failed to delete post: ${data.message}`);
       }
