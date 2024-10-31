@@ -18,11 +18,12 @@ const {
   cancelReservation,
   getAdminReservations,
   postAdminAnnouncement,
-  getAllAnnouncements,
   removeAnnouncement,
-  getAdminAnnouncements,
   postAdminEvent,
-  removeEvent
+  removeEvent,
+  getAdminPosts,
+  getAllPosts,
+  postAdminTournament
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -90,9 +91,13 @@ let routes = (app, io) => {
     postAdminEvent(req, res, io);
   });
 
-  router.get('/announcements/all', verifyToken, roleChecker(['player', 'coach']), getAllAnnouncements);
+  router.post('/admin/tournament', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    postAdminTournament(req, res, io);
+  });
 
-  router.get('/announcements/admin', verifyToken, roleChecker(['admin']), getAdminAnnouncements);
+  router.get('/posts', verifyToken, roleChecker(['player', 'coach']), getAllPosts);
+
+  router.get('/admin/posts', verifyToken, roleChecker(['admin']), getAdminPosts);
 
   router.get('/events-and-tournaments', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const tab = req.query.tab;
