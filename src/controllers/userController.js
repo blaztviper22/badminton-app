@@ -1118,6 +1118,86 @@ exports.getAdminReservations = async (req, res) => {
   }
 };
 
+exports.postAdminTournament = async (req, res, io) => {
+  try {
+    const user = req.user;
+    const adminId = user.id;
+
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    // extracting fields from request body
+    const {
+      heading,
+      details,
+      startDate,
+      endDate,
+      reservationFee,
+      eventFee,
+      participantLimit,
+      tournamentFee,
+      tournamentCategories
+    } = req.body;
+
+    // validate required fields
+    if (!heading || !details || !startDate || !endDate || !participantLimit || !tournamentCategories) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Heading, details, start date, end date, participant limit, and tournament categories are required.'
+      });
+    }
+
+    const courtId = user.court;
+
+    // handle image uploads
+    const allowedImages = ['image/jpeg', 'image/png', 'image/gif'];
+    let imagesUrls = [];
+
+    if (req.files && req.files.images) {
+      const images = req.files.images;
+
+      if (Array.isArray(images)) {
+        // handle multiple file uploads
+        imagesUrls = await handleMultipleFileUploads(images, adminId, 'tournamentImage', allowedImages);
+      } else {
+        // handle single file upload
+        imagesUrls.push(await handleFileUpload(images, adminId, 'tournamentImage', allowedImages));
+      }
+    }
+
+    // create and save the new tournament
+    const tournament = new Tournament({
+      heading,
+      details,
+      startDate,
+      endDate,
+      reservationFee,
+      eventFee,
+      participantLimit,
+      tournamentFee,
+      tournamentCategories,
+      participants: [], // initialize as empty array, we will populate it as needed
+      images: imagesUrls,
+      court: courtId,
+      postedBy: adminId
+    });
+
+    await tournament.save();
+
+    // emit event for the new tournament
+    io.emit('newTournament', {
+      status: 'success',
+      data: tournament
+    });
+
+    return res.status(201).json({ status: 'success', data: tournament });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
 exports.postAdminEvent = async (req, res, io) => {
   try {
     const user = req.user;
@@ -1237,33 +1317,87 @@ exports.postAdminAnnouncement = async (req, res, io) => {
   }
 };
 
-exports.getAllAnnouncements = async (req, res) => {
+exports.getAllPosts = async (req, res) => {
   try {
-    const announcements = await Announcement.find().sort({ createdAt: -1 }); // sort by the latest announcements first
+    const { type, dateFilter } = req.query;
 
-    return res.status(200).json({ status: 'success', data: announcements });
+    // base query
+    const query = {};
+
+    // filter by type if provided
+    if (type === 'announcement') {
+      query.__t = { $ne: 'Event' }; // only announcements
+    } else if (type === 'event') {
+      query.__t = 'Event'; // only events
+    }
+
+    // date Filter Logic
+    if (dateFilter) {
+      const today = moment.tz('Asia/Manila').startOf('day');
+      let startDate;
+      let endDate;
+
+      switch (dateFilter.toLowerCase()) {
+        case 'today':
+          startDate = today;
+          endDate = today.clone().endOf('day');
+          break;
+        case 'this week':
+          startDate = today.clone().startOf('week');
+          endDate = today.clone().endOf('week');
+          break;
+        case 'this month':
+          startDate = today.clone().startOf('month');
+          endDate = today.clone().endOf('month');
+          break;
+        default:
+          return res.status(400).json({ status: 'error', message: 'Invalid date filter.' });
+      }
+      query.createdAt = { $gte: startDate.toDate(), $lte: endDate.toDate() };
+    }
+
+    // fetch posts based on the constructed query
+    const posts = await Announcement.find(query).sort({ createdAt: -1 });
+
+    return res.status(200).json({ status: 'success', data: posts });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };
 
-exports.getAdminAnnouncements = async (req, res) => {
+exports.getAdminPosts = async (req, res) => {
   try {
     const user = req.user;
 
     // get the court ID from the user object
     const courtId = user.court;
 
-    // fetch announcements related to the user's court and posted by the admin
-    const announcements = await Announcement.find({
-      court: courtId,
-      postedBy: user.id // ensure the announcement is posted by the current admin
-    }).sort({ createdAt: -1 });
+    // get the type of items to fetch from query parameters (can be 'all', 'announcement', or 'event')
+    const { type } = req.query;
 
-    return res.status(200).json({ status: 'success', data: announcements });
+    // build the base query object
+    const query = {
+      court: courtId,
+      postedBy: user.id
+    };
+
+    // modify query based on the type
+    if (type === 'announcement') {
+      // exclude events by filtering out documents with the __t field
+      query.__t = { $ne: 'Event' }; // get all documents that are not Events
+    } else if (type === 'event') {
+      query.__t = 'Event'; // filter for events only
+      // if type is 'all', do not modify the query (all items for the court by the user will be fetched)
+    }
+
+    log(query);
+
+    const posts = await Announcement.find(query).sort({ createdAt: -1 });
+
+    return res.status(200).json({ status: 'success', data: posts });
   } catch (err) {
-    console.error(err);
+    error(err);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };
