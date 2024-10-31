@@ -2,6 +2,7 @@ const User = require('../models/User');
 const File = require('../models/File');
 const Reservation = require('../models/Reservation');
 const Announcement = require('../models/Announcement');
+const Event = require('../models/Event');
 const { assignFileAccess } = require('../utils/assignFileAccess');
 const { isCourtAvailable } = require('../utils/courtAvailability');
 const { convertTo24Hour } = require('../utils/timeConvertion');
@@ -1127,10 +1128,15 @@ exports.postAdminEvent = async (req, res, io) => {
     }
 
     const { heading, details, startDate, endDate, reservationFee, eventFee, participantLimit } = req.body;
-    
+
     // validate required fields
     if (!heading || !details || !startDate || !endDate || !participantLimit) {
-      return res.status(400).json({ status: 'error', message: 'Heading, details, start date, end date, and participant limit are required.' });
+      return res
+        .status(400)
+        .json({
+          status: 'error',
+          message: 'Heading, details, start date, end date, and participant limit are required.'
+        });
     }
 
     const courtId = user.court;
@@ -1178,7 +1184,6 @@ exports.postAdminEvent = async (req, res, io) => {
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };
-
 
 exports.postAdminAnnouncement = async (req, res, io) => {
   try {

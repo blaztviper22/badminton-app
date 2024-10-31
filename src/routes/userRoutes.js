@@ -75,6 +75,10 @@ let routes = (app, io) => {
     }
   );
 
+  router.post('/admin/event', validateEventPost , verifyToken, roleChecker(['admin']), (req, res, next) => {
+    postAdminEvent(req, res, io);
+  });
+
   router.get('/announcements/all', verifyToken, roleChecker(['player', 'coach']), getAllAnnouncements);
 
   router.get('/announcements/admin', verifyToken, roleChecker(['admin']), getAdminAnnouncements);

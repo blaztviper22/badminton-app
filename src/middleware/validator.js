@@ -6,7 +6,7 @@ const { forgotPasswordSchema } = require('../validation/forgotPassValidatorSchem
 const { userIdSchema } = require('../validation/userIdValidatorSchema');
 const { updateSchema } = require('../validation/userUpdateValidatorSchema');
 const { courtRegistrationSchema } = require('../validation/courtRegValidatorSchema');
-const { validateAnnouncement } = require('../validation/createAnnouncementValidatorSchema');
+const { validateAnnouncement, validateEvent } = require('../validation/announcementEventValidatorSchema');
 
 /**
  * Middleware to validate user verification input.
@@ -159,7 +159,23 @@ const validateAnnouncementPost = (req, res, next) => {
   next();
 };
 
-// Export all validation middleware functions
+/**
+ * Middleware to validate event input.
+ */
+const validateEventPost = (req, res, next) => {
+  const { error } = validateEvent.validate(req.body, { abortEarly: false });
+
+  if (error) {
+    return res.status(400).json({
+      errors: error.details.map((err) => ({
+        message: err.message,
+        path: err.path[0]
+      }))
+    });
+  }
+  next();
+};
+
 module.exports = {
   validateVerify,
   validateRegistration,
@@ -169,5 +185,6 @@ module.exports = {
   validateUserId,
   validateUserInfo,
   validateCourtRegistration,
-  validateAnnouncementPost
+  validateAnnouncementPost,
+  validateEventPost
 };
