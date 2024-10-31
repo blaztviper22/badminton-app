@@ -23,14 +23,16 @@ const {
   removeEvent,
   getAdminPosts,
   getAllPosts,
-  postAdminTournament
+  postAdminTournament,
+  joinEvent
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
   validateUserId,
   validateUserInfo,
   validateAnnouncementPost,
-  validateEventPost
+  validateEventPost,
+  validateTournamentPost
 } = require('../middleware/validator');
 const validateUpdateFields = require('../middleware/validateUpdateField');
 const { createRateLimiter } = require('../middleware/rateLimiter');
@@ -90,6 +92,8 @@ let routes = (app, io) => {
   router.post('/admin/event', validateEventPost, verifyToken, roleChecker(['admin']), (req, res, next) => {
     postAdminEvent(req, res, io);
   });
+
+  router.post('/event/join', verifyToken, roleChecker(['player', 'coach']), joinEvent);
 
   router.post('/admin/tournament', verifyToken, roleChecker(['admin']), (req, res, next) => {
     postAdminTournament(req, res, io);
