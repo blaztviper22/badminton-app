@@ -6,7 +6,11 @@ const { forgotPasswordSchema } = require('../validation/forgotPassValidatorSchem
 const { userIdSchema } = require('../validation/userIdValidatorSchema');
 const { updateSchema } = require('../validation/userUpdateValidatorSchema');
 const { courtRegistrationSchema } = require('../validation/courtRegValidatorSchema');
-const { validateAnnouncement, validateEvent } = require('../validation/announcementEventValidatorSchema');
+const {
+  validateTournament,
+  validateAnnouncement,
+  validateEvent
+} = require('../validation/announcementEventValidatorSchema');
 
 /**
  * Middleware to validate user verification input.
@@ -176,6 +180,23 @@ const validateEventPost = (req, res, next) => {
   next();
 };
 
+/**
+ * Middleware to validate tournament input.
+ */
+const validateTournamentPost = (req, res, next) => {
+  const { error } = validateTournament.validate(req.body, { abortEarly: false });
+
+  if (error) {
+    return res.status(400).json({
+      errors: error.details.map((err) => ({
+        message: err.message,
+        path: err.path[0]
+      }))
+    });
+  }
+  next();
+};
+
 module.exports = {
   validateVerify,
   validateRegistration,
@@ -186,5 +207,6 @@ module.exports = {
   validateUserInfo,
   validateCourtRegistration,
   validateAnnouncementPost,
-  validateEventPost
+  validateEventPost,
+  validateTournamentPost
 };
