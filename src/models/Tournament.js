@@ -10,45 +10,37 @@ const tournamentSchema = new mongoose.Schema(
     },
     tournamentCategories: [
       {
-        name: {
-          type: String,
-          required: true
-        },
-        participantLimit: {
-          type: Number,
-          required: true
-        }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true
       }
     ],
     bracket: {
       type: [
         {
-          round: {
-            type: String, // e.g., "Quarterfinals", "Semifinals", "Finals"
+          category: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Category',
             required: true
           },
-          matchups: [
+          rounds: [
             {
-              participants: [
+              roundNumber: Number,
+              matchups: [
                 {
-                  name: {
-                    type: String,
-                    required: true
-                  },
-                  score: {
-                    type: Number,
-                    default: 0
-                  },
-                  userId: {
+                  participants: [
+                    {
+                      name: { type: String, required: true },
+                      score: { type: Number, default: 0 },
+                      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+                    }
+                  ],
+                  winner: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'User'
                   }
                 }
-              ],
-              winner: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User'
-              }
+              ]
             }
           ]
         }
