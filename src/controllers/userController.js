@@ -1117,6 +1117,69 @@ exports.getAdminReservations = async (req, res) => {
   }
 };
 
+exports.postAdminEvent = async (req, res, io) => {
+  try {
+    const user = req.user;
+    const adminId = user.id;
+
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    const { heading, details, startDate, endDate, reservationFee, eventFee, participantLimit } = req.body;
+    
+    // validate required fields
+    if (!heading || !details || !startDate || !endDate || !participantLimit) {
+      return res.status(400).json({ status: 'error', message: 'Heading, details, start date, end date, and participant limit are required.' });
+    }
+
+    const courtId = user.court;
+
+    const allowedImages = ['image/jpeg', 'image/png', 'image/gif'];
+
+    let imagesUrls = [];
+    if (req.files && req.files.images) {
+      const images = req.files.images;
+
+      if (Array.isArray(images)) {
+        // handle multiple file uploads
+        imagesUrls = await handleMultipleFileUploads(images, adminId, 'eventImage', allowedImages);
+      } else {
+        // handle single file upload
+        imagesUrls.push(await handleFileUpload(images, adminId, 'eventImage', allowedImages));
+      }
+    }
+
+    // create and save the new event
+    const event = new Event({
+      heading,
+      details,
+      startDate,
+      endDate,
+      reservationFee,
+      eventFee,
+      participantLimit,
+      participants: [], // initialize as empty array we will populate it as needed
+      images: imagesUrls,
+      court: courtId,
+      postedBy: adminId
+    });
+
+    await event.save();
+
+    io.emit('newEvent', {
+      status: 'success',
+      data: event
+    });
+
+    return res.status(201).json({ status: 'success', data: event });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+
 exports.postAdminAnnouncement = async (req, res, io) => {
   try {
     const user = req.user;
