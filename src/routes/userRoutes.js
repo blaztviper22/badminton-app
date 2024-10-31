@@ -24,7 +24,9 @@ const {
   getAdminPosts,
   getAllPosts,
   postAdminTournament,
-  joinEvent
+  joinEvent,
+  getAllEventParticipants,
+  getOngoingEvents
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -93,7 +95,14 @@ let routes = (app, io) => {
     postAdminEvent(req, res, io);
   });
 
-  router.post('/event/join', verifyToken, roleChecker(['player', 'coach']), joinEvent);
+  router.post('/event/join', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    joinEvent(req, res, io);
+  });
+  app.get('/events/ongoing', verifyToken, getOngoingEvents);
+
+  router.get('/admin/events/participants', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    getAllEventParticipants(req, res, io);
+  });
 
   router.post('/admin/tournament', verifyToken, roleChecker(['admin']), (req, res, next) => {
     postAdminTournament(req, res, io);

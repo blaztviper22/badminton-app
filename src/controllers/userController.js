@@ -3,6 +3,7 @@ const File = require('../models/File');
 const Reservation = require('../models/Reservation');
 const Announcement = require('../models/Announcement');
 const Event = require('../models/Event');
+const Tournament = require('../models/Tournament');
 const { assignFileAccess } = require('../utils/assignFileAccess');
 const { isCourtAvailable } = require('../utils/courtAvailability');
 const { convertTo24Hour } = require('../utils/timeConvertion');
@@ -28,6 +29,7 @@ const serveFile = require('../utils/fileUtils');
 const path = require('path');
 const { geocodeAddress, getAddressFromCoordinates } = require('../utils/addressUtils');
 const { handleMultipleFileUploads, handleFileUpload } = require('../utils/fileUpload');
+const Category = require('../models/Category');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -1128,20 +1130,25 @@ exports.postAdminTournament = async (req, res, io) => {
     }
 
     // extracting fields from request body
-    const {
-      heading,
-      details,
-      startDate,
-      endDate,
-      reservationFee,
-      eventFee,
-      participantLimit,
-      tournamentFee,
-      tournamentCategories
-    } = req.body;
+    const { heading, details, startDate, endDate, reservationFee, tournamentFee } = req.body;
+
+    // extract tournamentCategories from req.body dynamically
+    const tournamentCategories = [];
+    const categoryKeys = Object.keys(req.body).filter((key) => key.startsWith('tournamentCategories['));
+
+    for (let key of categoryKeys) {
+      const index = key.match(/\d+/)[0]; // extract the index from the key
+      const property = key.replace(`tournamentCategories[${index}][`, '').replace(']', '');
+
+      if (!tournamentCategories[index]) {
+        tournamentCategories[index] = {}; // initialize the object if it doesn't exist
+      }
+
+      tournamentCategories[index][property] = req.body[key];
+    }
 
     // validate required fields
-    if (!heading || !details || !startDate || !endDate || !participantLimit || !tournamentCategories) {
+    if (!heading || !details || !startDate || !endDate || !tournamentCategories) {
       return res.status(400).json({
         status: 'error',
         message: 'Heading, details, start date, end date, participant limit, and tournament categories are required.'
@@ -1166,6 +1173,27 @@ exports.postAdminTournament = async (req, res, io) => {
       }
     }
 
+    // Create category objects and push their ObjectIds to tournamentCategories
+    const categoryIds = [];
+    for (const category of tournamentCategories) {
+      const existingCategory = await Category.findOne({ name: category.name });
+      if (existingCategory) {
+        // Check if the participant limit is within the existing category limit
+        if (category.participantLimit <= existingCategory.participantLimit) {
+          categoryIds.push(existingCategory._id); // Use existing category
+        } else {
+          return res.status(400).json({
+            status: 'error',
+            message: `Participant limit for ${category.name} exceeds allowed limit.`
+          });
+        }
+      } else {
+        const newCategory = new Category(category);
+        await newCategory.save();
+        categoryIds.push(newCategory._id);
+      }
+    }
+
     // create and save the new tournament
     const tournament = new Tournament({
       heading,
@@ -1173,10 +1201,8 @@ exports.postAdminTournament = async (req, res, io) => {
       startDate,
       endDate,
       reservationFee,
-      eventFee,
-      participantLimit,
       tournamentFee,
-      tournamentCategories,
+      tournamentCategories: categoryIds,
       participants: [], // initialize as empty array, we will populate it as needed
       images: imagesUrls,
       court: courtId,
@@ -1354,6 +1380,8 @@ exports.getAllPosts = async (req, res) => {
       query.__t = { $ne: 'Event' }; // only announcements
     } else if (type === 'event') {
       query.__t = 'Event'; // only events
+    } else if (type === 'tournament') {
+      query.__t = 'Tournament'; // only tournaments
     }
 
     // date Filter Logic
@@ -1414,6 +1442,8 @@ exports.getAdminPosts = async (req, res) => {
     } else if (type === 'event') {
       query.__t = 'Event'; // filter for events only
       // if type is 'all', do not modify the query (all items for the court by the user will be fetched)
+    } else if (type === 'tournament') {
+      query.__t = 'Tournament'; // filter for tournaments only
     }
 
     log(query);
@@ -1497,6 +1527,72 @@ exports.removeEvent = async (req, res, io) => {
     });
 
     return res.status(200).json({ status: 'success', message: 'Event deleted successfully.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.joinEvent = async (req, res, io) => {
+  try {
+    const userId = req.user.id;
+    const { eventId } = req.body;
+
+    if (!eventId) {
+      return res.status(400).json({ status: 'error', message: 'Event ID is required.' });
+    }
+
+    // find the event by ID
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ status: 'error', message: 'Event not found.' });
+    }
+
+    // check if the event is ongoing
+    const currentTime = moment.tz('Asia/Manila');
+    log('current time: ', currentTime);
+    if (currentTime.isAfter(moment(event.endDate))) {
+      return res.status(400).json({ status: 'error', message: 'Cannot join the event as it has already ended.' });
+    }
+
+    // check if participant limit is reached
+    if (event.participants.length >= event.participantLimit) {
+      return res.status(400).json({ status: 'error', message: 'Participant limit reached.' });
+    }
+
+    // check if user is already a participant
+    if (event.participants.includes(userId)) {
+      return res.status(400).json({ status: 'error', message: 'User is already a participant.' });
+    }
+
+    // add user to participants array
+    event.participants.push(userId);
+    await event.save();
+
+    // emit an event to notify all clients about the new participant
+    io.emit('participantJoined', {
+      status: 'success',
+      eventId: event._id,
+      participantId: userId,
+      participantsCount: event.participants.length
+    });
+
+    return res.status(200).json({ status: 'success', message: 'Successfully joined the event.', data: event });
+  } catch (err) {
+    error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.getOngoingEvents = async (req, res) => {
+  try {
+    const currentTime = moment.tz('Asia/Manila');
+    const ongoingEvents = await Event.find({
+      endDate: { $gte: currentTime.toDate() }
+    });
+
+    return res.status(200).json({ status: 'success', data: ongoingEvents });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
