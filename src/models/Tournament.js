@@ -54,8 +54,30 @@ const tournamentSchema = new mongoose.Schema(
         }
       ],
       default: []
+    },
+    results: {
+      type: [
+        {
+          categoryId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Category'
+          },
+          scores: [
+            {
+              participantId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+              },
+              score: Number,
+              award: String
+            }
+          ]
+        }
+      ],
+      default: []
     }
   },
+
   {
     timestamps: true,
     strict: 'throw'
