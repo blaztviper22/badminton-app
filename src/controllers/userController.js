@@ -1131,12 +1131,10 @@ exports.postAdminEvent = async (req, res, io) => {
 
     // validate required fields
     if (!heading || !details || !startDate || !endDate || !participantLimit) {
-      return res
-        .status(400)
-        .json({
-          status: 'error',
-          message: 'Heading, details, start date, end date, and participant limit are required.'
-        });
+      return res.status(400).json({
+        status: 'error',
+        message: 'Heading, details, start date, end date, and participant limit are required.'
+      });
     }
 
     const courtId = user.court;
@@ -1303,6 +1301,43 @@ exports.removeAnnouncement = async (req, res, io) => {
     });
 
     return res.status(200).json({ status: 'success', message: 'Announcement deleted successfully.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.removeEvent = async (req, res, io) => {
+  try {
+    const user = req.user;
+
+    // allow only admins to delete events
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    const { eventId } = req.params;
+
+    // find the event and check if it belongs to the admin's court
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ status: 'error', message: 'Event not found.' });
+    }
+
+    // check if the admin is from the same court as the event
+    if (!event.court.equals(user.court) && !event.postedBy.equals(user.id)) {
+      return res.status(403).json({ status: 'error', message: 'You can only delete your own court’s events.' });
+    }
+
+    // proceed with deletion if checks pass
+    await Event.findByIdAndDelete(eventId);
+
+    io.emit('deleteEvent', {
+      status: 'success'
+    });
+
+    return res.status(200).json({ status: 'success', message: 'Event deleted successfully.' });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });

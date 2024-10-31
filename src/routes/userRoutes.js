@@ -20,10 +20,17 @@ const {
   postAdminAnnouncement,
   getAllAnnouncements,
   removeAnnouncement,
-  getAdminAnnouncements
+  getAdminAnnouncements,
+  postAdminEvent,
+  removeEvent
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
-const { validateUserId, validateUserInfo, validateAnnouncementPost } = require('../middleware/validator');
+const {
+  validateUserId,
+  validateUserInfo,
+  validateAnnouncementPost,
+  validateEventPost
+} = require('../middleware/validator');
 const validateUpdateFields = require('../middleware/validateUpdateField');
 const { createRateLimiter } = require('../middleware/rateLimiter');
 const { checkFilePermissions } = require('../middleware/checkFilePermission');
@@ -75,7 +82,11 @@ let routes = (app, io) => {
     }
   );
 
-  router.post('/admin/event', validateEventPost , verifyToken, roleChecker(['admin']), (req, res, next) => {
+  router.delete('/admin/event/:eventId', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    removeEvent(req, res, io);
+  });
+
+  router.post('/admin/event', validateEventPost, verifyToken, roleChecker(['admin']), (req, res, next) => {
     postAdminEvent(req, res, io);
   });
 
