@@ -22,7 +22,6 @@ const tournamentFields = getById('tournament-fields');
 const membershipFields = getById('membership-fields');
 const previewContainer = getById('imagePreviewContainer');
 const cancelButton = getById('cancelModal');
-const popupMenu = getById('popup-menu');
 
 const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
@@ -43,24 +42,35 @@ function clearForm() {
   getById('details').value = '';
 
   categorySelect.selectedIndex = 0;
-  hideAllFields();
   images = [];
   previewContainer.innerHTML = '';
+  hideAllFields();
 }
 
 function closeModal() {
   modal.style.display = 'none';
   clearForm();
+  localStorage.removeItem('selectedCategory');
 }
 
 btn.onclick = () => {
   modal.style.display = 'flex';
+  clearForm();
   hideAllFields();
 };
 
 categorySelect.onchange = function () {
   hideAllFields();
   showFields(this.value);
+  localStorage.setItem('selectedCategory', this.value);
+};
+
+window.onload = function () {
+  const savedCategory = localStorage.getItem('selectedCategory');
+  if (savedCategory) {
+    categorySelect.value = savedCategory;
+    showFields(savedCategory);
+  }
 };
 
 // function to hide all fields
@@ -247,6 +257,7 @@ async function submitForm() {
       const result = await response.json();
       log('Upload successful:', result);
       await fetchAnnouncements();
+      localStorage.removeItem('selectedCategory');
     } else {
       const errorResult = await response.json();
       alert(`Upload failed: ${errorResult.message}`);
