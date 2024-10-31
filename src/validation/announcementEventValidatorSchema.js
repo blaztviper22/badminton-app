@@ -34,7 +34,10 @@ const validateEvent = baseAnnouncementSchema.append({
 });
 
 // tournament-specific validation schema
-const validateTournament = validateEvent.append({
+const validateTournament = baseAnnouncementSchema.keys({
+  startDate: validateEvent.extract('startDate'),
+  endDate: validateEvent.extract('endDate'),
+  reservationFee: validateEvent.extract('reservationFee'),
   tournamentFee: Joi.number().optional().default(null),
   tournamentCategories: Joi.array()
     .items(
@@ -55,35 +58,75 @@ const validateTournament = validateEvent.append({
   bracket: Joi.array()
     .items(
       Joi.object({
-        round: Joi.string().required().messages({
-          'string.empty': 'Round name is required'
+        category: Joi.string().required().messages({
+          'string.empty': 'Category ID is required'
         }),
-        matchups: Joi.array()
+        rounds: Joi.array()
           .items(
             Joi.object({
-              participants: Joi.array()
+              roundNumber: Joi.number().required().messages({
+                'number.base': 'Round number is required'
+              }),
+              matchups: Joi.array()
                 .items(
                   Joi.object({
-                    name: Joi.string().required().messages({
-                      'string.empty': 'Participant name is required'
-                    }),
-                    score: Joi.number().optional().default(0),
-                    userId: Joi.string().optional()
+                    participants: Joi.array()
+                      .items(
+                        Joi.object({
+                          name: Joi.string().required().messages({
+                            'string.empty': 'Participant name is required'
+                          }),
+                          score: Joi.number().optional().default(0),
+                          userId: Joi.string().optional()
+                        })
+                      )
+                      .required()
+                      .messages({
+                        'array.base': 'Participants are required'
+                      }),
+                    winner: Joi.string().optional()
                   })
                 )
                 .required()
                 .messages({
-                  'array.base': 'Participants are required'
-                }),
-              winner: Joi.string().optional()
+                  'array.base': 'Matchups are required'
+                })
             })
           )
-          .optional()
-          .default([])
+          .required()
+          .messages({
+            'array.base': 'Rounds are required'
+          })
+      })
+    )
+    .optional()
+    .default([]),
+  results: Joi.array()
+    .items(
+      Joi.object({
+        categoryId: Joi.string().required().messages({
+          'string.empty': 'Category ID is required'
+        }),
+        scores: Joi.array()
+          .items(
+            Joi.object({
+              participantId: Joi.string().required().messages({
+                'string.empty': 'Participant ID is required'
+              }),
+              score: Joi.number().required().messages({
+                'number.base': 'Score is required'
+              }),
+              award: Joi.string().optional()
+            })
+          )
+          .required()
+          .messages({
+            'array.base': 'Scores are required'
+          })
       })
     )
     .optional()
     .default([])
 });
 
-module.exports = { validateAnnouncement: baseAnnouncementSchema, validateEvent };
+module.exports = { validateAnnouncement: baseAnnouncementSchema, validateEvent, validateTournament };
