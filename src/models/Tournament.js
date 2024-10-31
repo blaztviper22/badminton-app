@@ -1,9 +1,33 @@
 const mongoose = require('mongoose');
-const Event = require('./Event');
+const Announcement = require('./Announcement');
 
 // define the schema for Tournament
 const tournamentSchema = new mongoose.Schema(
   {
+    startDate: {
+      type: Date,
+      required: [true, 'Start date is required']
+    },
+    endDate: {
+      type: Date,
+      required: [true, 'End date is required']
+    },
+    reservationFee: {
+      type: Number,
+      required: false,
+      default: null
+    },
+    eventFee: {
+      type: Number,
+      required: false,
+      default: null
+    },
+    participants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ],
     tournamentFee: {
       type: Number,
       default: null
@@ -12,7 +36,8 @@ const tournamentSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required: true
+        required: true,
+        participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
       }
     ],
     bracket: {
@@ -77,6 +102,6 @@ const tournamentSchema = new mongoose.Schema(
 );
 
 //tournament model, inheriting from Event
-const Tournament = Event.discriminator('Tournament', tournamentSchema);
+const Tournament = Announcement.discriminator('Tournament', tournamentSchema);
 
 module.exports = Tournament;
