@@ -19,6 +19,7 @@ const Court = require('../models/Court');
 const moment = require('moment-timezone');
 const calculateTotalAmount = require('../utils/amountCalculator');
 const createError = require('http-errors');
+const config = require('config');
 const {
   createPayPalPayment,
   capturePayPalPayment,
@@ -1580,9 +1581,12 @@ exports.joinEvent = async (req, res, io) => {
     // calculate total payment required
     const totalAmount = (event.reservationFee || 0) + (event.eventFee || 0);
 
+    const returnUrl = `${config.get('frontendUrl')}/user/confirm-event-payment?eventId=${eventId}`;
+    const cancelUrl = `${config.get('frontendUrl')}/user/events-and-tournaments?tab=my-feed`;
+
     if (totalAmount > 0) {
       // if there is a fee, create a PayPal payment
-      const payment = await createPayPalPayment(totalAmount);
+      const payment = await createPayPalPayment(totalAmount, null, null, returnUrl, cancelUrl);
       const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
 
       // respond with the approval URL to redirect the user for payment
@@ -1623,5 +1627,75 @@ exports.getOngoingEvents = async (req, res) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.checkIfUserJoined = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { eventId } = req.params;
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ status: 'error', message: 'Event not found.' });
+    }
+
+    const isJoined = event.participants.includes(userId);
+    return res.status(200).json({ status: 'success', isJoined });
+  } catch (err) {
+    error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.confirmEventPayment = async (req, res, next) => {
+  const { token, eventId } = req.query;
+
+  try {
+    const event = await Event.findById(eventId).populate('court');
+    if (!event) {
+      return next(createError(404, 'Event not found'));
+    }
+
+    // get the court owner's email from the populated court data
+    const courtOwnerEmail = event.court.business_email;
+
+    // Process the payment if the token is provided
+    if (token) {
+      const paymentCapture = await capturePayPalPayment(token);
+      if (paymentCapture.status !== 'COMPLETED') {
+        return next(createError(400, 'Payment was not successful'));
+      }
+      const paymentDetails = paymentCapture.purchase_units[0].payments;
+      const transaction = paymentDetails.captures[0];
+      const totalAmount = transaction.amount.value;
+      log(totalAmount);
+
+      // Initiate payout to the event owner
+      await createPayPalPayout(courtOwnerEmail, totalAmount);
+      log('Payout to event owner initiated');
+
+      // Add user to event participants
+      const userId = req.user.id;
+      event.participants.push(userId);
+      await event.save();
+
+      // Optional: Notify clients about the new participant
+      // io.emit('participantJoined', {
+      //   status: 'success',
+      //   eventId: event._id,
+      //   participantId: userId,
+      //   participantsCount: event.participants.length
+      // });
+
+      // Redirect to the specified URL
+      return res.redirect(`/user/events-and-tournaments?tab=my-feed`);
+    }
+
+    // If no token, return an error indicating a token is required
+    return next(createError(400, 'Payment token is required'));
+  } catch (err) {
+    error('Error confirming event payment:', err);
+    return next(createError(500, 'Internal Server Error'));
   }
 };

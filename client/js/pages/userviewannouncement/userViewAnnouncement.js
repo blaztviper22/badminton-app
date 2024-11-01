@@ -140,12 +140,18 @@ function displayPosts(response) {
       `;
 
       box.appendChild(postCard);
+      const joinButton = postCard.querySelector('.join-button');
+      if (isEvent) {
+        // Call checkIfJoined for this specific event
+        checkIfJoined(post._id, joinButton);
+      }
+
       postCard.querySelector('.three-dots').addEventListener('click', (event) => {
         event.stopPropagation();
         // closeAllPopupMenus();
         // showPopupMenu(event, postCard);
       });
-      postCard.querySelector('.join-button').addEventListener('click', handleJoinButtonClick);
+      joinButton.addEventListener('click', handleJoinButtonClick);
     });
   } else {
     error('Failed to load posts or invalid response format.');
@@ -167,16 +173,25 @@ async function handleJoinButtonClick(event) {
   log(reservationFee);
   log(eventFee);
 
-  // check if payment is required
-  if (reservationFee > 0 || eventFee > 0) {
-    showJoinModal(eventId, reservationFee + eventFee);
+  // determine if this post is an event or an announcement
+  const isEvent = button.textContent === 'Join';
+
+  if (isEvent) {
+    // handle joining the event
+    if (reservationFee > 0 || eventFee > 0) {
+      showJoinModal(eventId);
+    } else {
+      // If no fees, proceed to join directly
+      await joinEvent(eventId, button);
+    }
   } else {
-    // if no fees, proceed to join directly
-    // await joinEvent(eventId);
+    // if this is not an event, you can handle the "View More" action if needed
+    // for example, you could fetch more details about the announcement here
+    log(`Viewing more details for post ID: ${eventId}`);
   }
 }
 
-function showJoinModal(eventId, totalAmount) {
+function showJoinModal(eventId) {
   const joinModal = get('#joinModal');
   const payNowButton = get('#payNowButton');
   const privacyCheckbox = get('#privacyPolicy');
@@ -184,13 +199,14 @@ function showJoinModal(eventId, totalAmount) {
   joinModal.style.display = 'block';
 
   payNowButton.disabled = true;
+  privacyCheckbox.checked = false;
 
   privacyCheckbox.addEventListener('change', () => {
     payNowButton.disabled = !privacyCheckbox.checked;
   });
 
   payNowButton.onclick = async () => {
-    await handlePayment(totalAmount, eventId);
+    await joinEvent(eventId);
     joinModal.style.display = 'none';
   };
 
@@ -220,25 +236,51 @@ async function getCurrentUserId() {
   }
 }
 
-async function joinEvent(eventId) {
+async function joinEvent(eventId, joinButton) {
   try {
-    const response = await fetch(`/user/event/join/${eventId}`, {
+    const response = await fetch(`/user/event/join`, {
       method: 'POST',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({ eventId })
     });
 
     const result = await response.json();
     if (result.status === 'success') {
       alert('Successfully joined the event!');
-      // Update UI or perform further actions if needed
+
+      joinButton.disabled = true;
+      joinButton.classList.add('disabled-join-button');
+      joinButton.textContent = 'Joined';
+      // update UI or perform further actions if needed
+    } else if (result.status === 'payment_required') {
+      // if payment is required, redirect to PayPal
+      window.location.href = result.approvalUrl;
     } else {
       alert('Failed to join the event: ' + result.message);
     }
   } catch (err) {
     error('Error joining the event:', err);
     alert('Failed to join the event. Please try again later.');
+  }
+}
+
+async function checkIfJoined(eventId, joinButton) {
+  try {
+    const response = await fetch(`/user/event/check-joined/${eventId}`, {
+      method: 'GET'
+    });
+
+    const result = await response.json();
+    if (result.status === 'success' && result.isJoined) {
+      // joinButton.disabled = true;
+      joinButton.disabled = true;
+      joinButton.classList.add('disabled-join-button');
+      joinButton.textContent = 'Joined';
+    }
+  } catch (err) {
+    error('Error checking join status:', err);
   }
 }

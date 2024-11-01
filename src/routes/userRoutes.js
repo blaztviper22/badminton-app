@@ -26,7 +26,9 @@ const {
   postAdminTournament,
   joinEvent,
   getAllEventParticipants,
-  getOngoingEvents
+  getOngoingEvents,
+  checkIfUserJoined,
+  confirmEventPayment
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -49,7 +51,7 @@ let routes = (app, io) => {
   router.get('/get-user/:id', verifyToken, validateUserId, getUserById);
 
   // route to serve files from R2
-  router.get('/data/:filename', verifyToken, checkFilePermissions, limiter, serveData);
+  router.get('/data/:filename', verifyToken, checkFilePermissions, serveData);
 
   router.put(
     '/update',
@@ -95,10 +97,12 @@ let routes = (app, io) => {
     postAdminEvent(req, res, io);
   });
 
+  router.get('/event/check-joined/:eventId', verifyToken, roleChecker(['player', 'coach']), checkIfUserJoined);
+
   router.post('/event/join', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     joinEvent(req, res, io);
   });
-  app.get('/events/ongoing', verifyToken, getOngoingEvents);
+  router.get('/events/ongoing', verifyToken, getOngoingEvents);
 
   router.get('/admin/events/participants', verifyToken, roleChecker(['admin']), (req, res, next) => {
     getAllEventParticipants(req, res, io);
@@ -125,11 +129,14 @@ let routes = (app, io) => {
         break;
       default:
         filePath = path.resolve(__dirname, '../../build/userviewannouncement.html');
+
         break;
     }
 
     serveFile(filePath, res, next);
   });
+
+  router.get('/confirm-event-payment', verifyToken, roleChecker(['player', 'coach']), confirmEventPayment);
 
   router.get('/admin/view-post', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const tab = req.query.tab;
