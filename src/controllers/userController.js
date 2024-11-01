@@ -1285,12 +1285,15 @@ exports.postAdminEvent = async (req, res, io) => {
       }
     }
 
+    const parsedStartDate = moment.tz(startDate, 'Asia/Manila');
+    const parsedEndDate = moment.tz(endDate, 'Asia/Manila');
+
     // create and save the new event
     const event = new Event({
       heading,
       details,
-      startDate,
-      endDate,
+      startDate: parsedStartDate.toDate(),
+      endDate: parsedEndDate.toDate(),
       reservationFee,
       eventFee,
       participantLimit,
@@ -1370,7 +1373,7 @@ exports.postAdminAnnouncement = async (req, res, io) => {
 
 exports.getAllPosts = async (req, res) => {
   try {
-    const { type, dateFilter } = req.query;
+    const { type, dateFilter, sort } = req.query;
 
     // base query
     const query = {};
@@ -1409,8 +1412,16 @@ exports.getAllPosts = async (req, res) => {
       query.createdAt = { $gte: startDate.toDate(), $lte: endDate.toDate() };
     }
 
+    let sortCriteria = { createdAt: -1 }; // default sorting by createdAt in descending order
+    if (sort) {
+      const [field, order] = sort.split(':');
+      sortCriteria = {
+        [field]: order === 'asc' ? 1 : -1 // ascending if 'asc' is specified, otherwise descending
+      };
+    }
+
     // fetch posts based on the constructed query
-    const posts = await Announcement.find(query).sort({ createdAt: -1 });
+    const posts = await Announcement.find(query).sort(sortCriteria);
 
     return res.status(200).json({ status: 'success', data: posts });
   } catch (err) {

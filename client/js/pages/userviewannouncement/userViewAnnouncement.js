@@ -40,7 +40,7 @@ getCurrentUserId().then((userId) => {
 
 async function fetchAnnouncements(withPreloader = true) {
   try {
-    const response = await fetch('/user/announcements/all', {
+    const response = await fetch('/user/posts', {
       withPreloader
     });
 
