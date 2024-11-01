@@ -24,13 +24,25 @@ getCurrentUserId().then((userId) => {
     socket.on('newAnnouncement', (data) => {
       if (data.status === 'success') {
         log('websocket:', data);
-        fetchAnnouncements(false);
+        fetchPost(false);
+      }
+    });
+    socket.on('newEvent', (data) => {
+      if (data.status === 'success') {
+        log('websocket:', data);
+        fetchPost(false);
       }
     });
     socket.on('deleteAnnouncement', (data) => {
       if (data.status === 'success') {
         log('websocket:', data);
-        fetchAnnouncements(false);
+        fetchPost(false);
+      }
+    });
+    socket.on('deleteEvent', (data) => {
+      if (data.status === 'success') {
+        log('websocket:', data);
+        fetchPost(false);
       }
     });
   } else {
@@ -38,31 +50,30 @@ getCurrentUserId().then((userId) => {
   }
 });
 
-async function fetchAnnouncements(withPreloader = true) {
+async function fetchPost(withPreloader = true) {
   try {
     const response = await fetch('/user/posts', {
       withPreloader
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch announcements');
+      throw new Error('Failed to fetch posts');
     }
-    const announcements = await response.json();
-    log(announcements);
-    displayAnnouncements(announcements);
+    const posts = await response.json();
+    displayPosts(posts);
   } catch (err) {
-    error('Error fetching announcements:', err);
-    alert('Failed to load announcements. Please try again later.');
+    error('Error fetching posts:', err);
+    alert('Failed to load posts. Please try again later.');
   }
 }
 
-function displayAnnouncements(response) {
+function displayPosts(response) {
   if (response.status === 'success' && Array.isArray(response.data)) {
-    const announcements = response.data;
+    const posts = response.data;
     const box = get('.box');
     box.innerHTML = '';
 
-    if (announcements.length === 0) {
+    if (posts.length === 0) {
       const noPostsMessage = document.createElement('div');
       noPostsMessage.classList.add('no-posts-message');
       noPostsMessage.textContent = 'No posts yet';
@@ -72,15 +83,19 @@ function displayAnnouncements(response) {
     }
 
     // loop through each announcement
-    Object.keys(announcements).forEach((key) => {
-      const announcement = announcements[key];
+    Object.keys(posts).forEach((key) => {
+      const post = posts[key];
+
+      log(post);
 
       const postCard = document.createElement('div');
       postCard.classList.add('post-card');
-      postCard.setAttribute('data-announcement-id', announcement._id);
+
+      const isEvent = post.__t !== undefined;
+      postCard.setAttribute('data-post-id', post._id + (isEvent ? '-event' : ''));
 
       // convert the createdAt date to Philippine time
-      const createdAt = new Date(announcement.createdAt);
+      const createdAt = new Date(post.createdAt);
       const options = {
         timeZone: 'Asia/Manila',
         year: 'numeric',
@@ -94,23 +109,23 @@ function displayAnnouncements(response) {
       log(formattedDate);
 
       // constructing the images HTML
-      const imagesHtml = (announcement.images || []).map((image) => `<img src="${image}" alt="Post Image" />`).join('');
+      const imagesHtml = (post.images || []).map((image) => `<img src="${image}" alt="Post Image" />`).join('');
 
       postCard.innerHTML = `
         <i class="fas fa-ellipsis-v three-dots" id="three-dots"></i>
         <div class="popup-menu" id="popup-menu" style="display: none"></div>
         <div class="user-info">
           <img src="${
-            announcement.court?.business_logo || '/assets/images/placeholder_50x50.png'
+            post.court?.business_logo || '/assets/images/placeholder_50x50.png'
           }" alt="Business Logo" class="profile-pic" />
           <div class="name-and-time">
-            <span class="name">${announcement.postedBy.first_name} ${announcement.postedBy.last_name}</span>
+            <span class="name">${post.postedBy.first_name} ${post.postedBy.last_name}</span>
             <span class="time">${formattedDate}</span> <!-- Displaying the formatted date -->
           </div>
         </div>
         <hr />
-        <h2>${announcement.heading}</h2>
-        <p class="body-text">${announcement.details}</p>
+        <h2>${post.heading}</h2>
+        <p class="body-text">${post.details}</p>
         <div class="post-images">
           ${imagesHtml} <!-- Dynamically adding images -->
         </div>
@@ -128,7 +143,7 @@ function displayAnnouncements(response) {
       });
     });
   } else {
-    error('Failed to load announcements or invalid response format.');
+    error('Failed to load posts or invalid response format.');
     const noPostsMessage = document.createElement('div');
     noPostsMessage.classList.add('no-posts-message');
     noPostsMessage.textContent = 'No posts yet';
@@ -137,7 +152,7 @@ function displayAnnouncements(response) {
   }
 }
 
-fetchAnnouncements();
+fetchPost();
 
 async function getCurrentUserId() {
   try {

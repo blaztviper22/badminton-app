@@ -279,7 +279,7 @@ async function submitForm() {
     if (response.status === 201) {
       const result = await response.json();
       log('Upload successful:', result);
-      await fetchPosts();
+      await fetchPost();
       localStorage.removeItem('selectedCategory');
     } else {
       const errorResult = await response.json();
@@ -386,7 +386,7 @@ function closeAllPopupMenus() {
   });
 }
 
-async function fetchPosts() {
+async function fetchPost() {
   try {
     const response = await fetch('/user/admin/posts');
     if (!response.ok) {
@@ -395,12 +395,12 @@ async function fetchPosts() {
     const posts = await response.json();
     displayPosts(posts);
   } catch (err) {
-    error('Error fetching announcements:', err);
-    alert('Failed to load announcements. Please try again later.');
+    error('Error fetching posts:', err);
+    alert('Failed to load posts. Please try again later.');
   }
 }
 
-fetchPosts();
+fetchPost();
 
 async function deletePost(postId) {
   try {
@@ -419,7 +419,7 @@ async function deletePost(postId) {
     if (response.ok) {
       const data = await response.json();
       if (data.status === 'success') {
-        fetchPosts();
+        fetchPost();
       } else {
         error(`Failed to delete post: ${data.message}`);
       }

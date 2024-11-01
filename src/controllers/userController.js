@@ -565,7 +565,7 @@ exports.createReservation = async (req, res, io) => {
 
     const payerId = admin.payer_id;
 
-    const payment = await createPayPalPayment(hourlyRate, payerId, courtId, userId);
+    const payment = await createPayPalPayment(hourlyRate, payerId, courtId);
     const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
 
     log(payment);
@@ -1575,6 +1575,22 @@ exports.joinEvent = async (req, res, io) => {
     // check if user is already a participant
     if (event.participants.includes(userId)) {
       return res.status(400).json({ status: 'error', message: 'User is already a participant.' });
+    }
+
+    // calculate total payment required
+    const totalAmount = (event.reservationFee || 0) + (event.eventFee || 0);
+
+    if (totalAmount > 0) {
+      // if there is a fee, create a PayPal payment
+      const payment = await createPayPalPayment(totalAmount);
+      const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
+
+      // respond with the approval URL to redirect the user for payment
+      return res.status(200).json({
+        status: 'payment_required',
+        message: 'Payment is required to join the event.',
+        approvalUrl
+      });
     }
 
     // add user to participants array

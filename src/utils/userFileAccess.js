@@ -27,6 +27,9 @@ const assignFileToAdmin = async (file, adminId, category) => {
       roleBasedAccess = ['admin', 'coach', 'player'];
       file.isPublic = false;
       break;
+    case 'eventImage':
+      roleBasedAccess = ['admin', 'coach', 'player'];
+      file.isPublic = false;
     default:
       roleBasedAccess = []; // No specific roles
       file.isPublic = false;
