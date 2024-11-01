@@ -30,17 +30,18 @@ const validateEvent = baseAnnouncementSchema.append({
     .allow(null, '')
     .default(null)
     .custom((value, helpers) => {
-      if (value === '' || value.trim() === '') {
+      if (typeof value === 'string' && value.trim() === '') {
         return null;
       }
       return value;
     }),
+
   eventFee: Joi.number()
     .optional()
     .allow(null, '')
     .default(null)
     .custom((value, helpers) => {
-      if (value === '' || value.trim() === '') {
+      if (typeof value === 'string' && value.trim() === '') {
         return null;
       }
       return value;
