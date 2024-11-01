@@ -24,8 +24,27 @@ const validateEvent = baseAnnouncementSchema.append({
     'date.empty': 'End date is required',
     'date.greater': 'End date must be greater than start date'
   }),
-  reservationFee: Joi.number().optional().default(null),
-  eventFee: Joi.number().optional().default(null),
+  // reservationFee: Joi.number().optional().allow(null).default(null),
+  reservationFee: Joi.number()
+    .optional()
+    .allow(null, '')
+    .default(null)
+    .custom((value, helpers) => {
+      if (value === '' || value.trim() === '') {
+        return null;
+      }
+      return value;
+    }),
+  eventFee: Joi.number()
+    .optional()
+    .allow(null, '')
+    .default(null)
+    .custom((value, helpers) => {
+      if (value === '' || value.trim() === '') {
+        return null;
+      }
+      return value;
+    }),
   participantLimit: Joi.number().required().min(1).messages({
     'number.base': 'Participant limit is required',
     'number.empty': 'Participant limit must be at least 1'

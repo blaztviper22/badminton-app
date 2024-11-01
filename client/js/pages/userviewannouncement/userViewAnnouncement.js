@@ -111,6 +111,8 @@ function displayPosts(response) {
       // constructing the images HTML
       const imagesHtml = (post.images || []).map((image) => `<img src="${image}" alt="Post Image" />`).join('');
 
+      let buttonText = isEvent ? 'Join' : 'View More';
+
       postCard.innerHTML = `
         <i class="fas fa-ellipsis-v three-dots" id="three-dots"></i>
         <div class="popup-menu" id="popup-menu" style="display: none"></div>
@@ -120,18 +122,20 @@ function displayPosts(response) {
           }" alt="Business Logo" class="profile-pic" />
           <div class="name-and-time">
             <span class="name">${post.postedBy.first_name} ${post.postedBy.last_name}</span>
-            <span class="time">${formattedDate}</span> <!-- Displaying the formatted date -->
+            <span class="time">${formattedDate}</span>
           </div>
         </div>
         <hr />
         <h2>${post.heading}</h2>
         <p class="body-text">${post.details}</p>
         <div class="post-images">
-          ${imagesHtml} <!-- Dynamically adding images -->
+          ${imagesHtml}
         </div>
         <hr />
         <div class="view-more">
-          <button>View More</button>
+          <button class="join-button" data-id="${post._id}" data-reservation-fee="${
+        post.reservationFee
+      }" data-event-fee="${post.eventFee}">${buttonText}</button>
         </div>
       `;
 
@@ -141,6 +145,7 @@ function displayPosts(response) {
         // closeAllPopupMenus();
         // showPopupMenu(event, postCard);
       });
+      postCard.querySelector('.join-button').addEventListener('click', handleJoinButtonClick);
     });
   } else {
     error('Failed to load posts or invalid response format.');
@@ -150,6 +155,48 @@ function displayPosts(response) {
     noPostsMessage.style.textAlign = 'center';
     box.appendChild(noPostsMessage);
   }
+}
+
+async function handleJoinButtonClick(event) {
+  const button = event.currentTarget;
+  const eventId = button.getAttribute('data-id');
+  const reservationFee = parseFloat(button.getAttribute('data-reservation-fee')) || 0;
+  const eventFee = parseFloat(button.getAttribute('data-event-fee')) || 0;
+
+  log(eventId);
+  log(reservationFee);
+  log(eventFee);
+
+  // check if payment is required
+  if (reservationFee > 0 || eventFee > 0) {
+    showJoinModal(eventId, reservationFee + eventFee);
+  } else {
+    // if no fees, proceed to join directly
+    // await joinEvent(eventId);
+  }
+}
+
+function showJoinModal(eventId, totalAmount) {
+  const joinModal = get('#joinModal');
+  const payNowButton = get('#payNowButton');
+  const privacyCheckbox = get('#privacyPolicy');
+
+  joinModal.style.display = 'block';
+
+  payNowButton.disabled = true;
+
+  privacyCheckbox.addEventListener('change', () => {
+    payNowButton.disabled = !privacyCheckbox.checked;
+  });
+
+  payNowButton.onclick = async () => {
+    await handlePayment(totalAmount, eventId);
+    joinModal.style.display = 'none';
+  };
+
+  get('#cancelButton').onclick = () => {
+    joinModal.style.display = 'none';
+  };
 }
 
 fetchPost();
@@ -170,5 +217,28 @@ async function getCurrentUserId() {
   } catch (err) {
     error('Error fetching user ID:', err);
     return null;
+  }
+}
+
+async function joinEvent(eventId) {
+  try {
+    const response = await fetch(`/user/event/join/${eventId}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const result = await response.json();
+    if (result.status === 'success') {
+      alert('Successfully joined the event!');
+      // Update UI or perform further actions if needed
+    } else {
+      alert('Failed to join the event: ' + result.message);
+    }
+  } catch (err) {
+    error('Error joining the event:', err);
+    alert('Failed to join the event. Please try again later.');
   }
 }
