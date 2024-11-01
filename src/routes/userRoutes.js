@@ -18,12 +18,26 @@ const {
   cancelReservation,
   getAdminReservations,
   postAdminAnnouncement,
-  getAllAnnouncements,
   removeAnnouncement,
-  getAdminAnnouncements
+  postAdminEvent,
+  removeEvent,
+  getAdminPosts,
+  getAllPosts,
+  postAdminTournament,
+  joinEvent,
+  getAllEventParticipants,
+  getOngoingEvents,
+  checkIfUserJoined,
+  confirmEventPayment
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
-const { validateUserId, validateUserInfo, validateAnnouncementPost } = require('../middleware/validator');
+const {
+  validateUserId,
+  validateUserInfo,
+  validateAnnouncementPost,
+  validateEventPost,
+  validateTournamentPost
+} = require('../middleware/validator');
 const validateUpdateFields = require('../middleware/validateUpdateField');
 const { createRateLimiter } = require('../middleware/rateLimiter');
 const { checkFilePermissions } = require('../middleware/checkFilePermission');
@@ -37,7 +51,7 @@ let routes = (app, io) => {
   router.get('/get-user/:id', verifyToken, validateUserId, getUserById);
 
   // route to serve files from R2
-  router.get('/data/:filename', verifyToken, checkFilePermissions, limiter, serveData);
+  router.get('/data/:filename', verifyToken, checkFilePermissions, serveData);
 
   router.put(
     '/update',
@@ -75,9 +89,32 @@ let routes = (app, io) => {
     }
   );
 
-  router.get('/announcements/all', verifyToken, roleChecker(['player', 'coach']), getAllAnnouncements);
+  router.delete('/admin/event/:eventId', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    removeEvent(req, res, io);
+  });
 
-  router.get('/announcements/admin', verifyToken, roleChecker(['admin']), getAdminAnnouncements);
+  router.post('/admin/event', validateEventPost, verifyToken, roleChecker(['admin']), (req, res, next) => {
+    postAdminEvent(req, res, io);
+  });
+
+  router.get('/event/check-joined/:eventId', verifyToken, roleChecker(['player', 'coach']), checkIfUserJoined);
+
+  router.post('/event/join', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    joinEvent(req, res, io);
+  });
+  router.get('/events/ongoing', verifyToken, getOngoingEvents);
+
+  router.get('/admin/events/participants', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    getAllEventParticipants(req, res, io);
+  });
+
+  router.post('/admin/tournament', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    postAdminTournament(req, res, io);
+  });
+
+  router.get('/posts', verifyToken, roleChecker(['player', 'coach']), getAllPosts);
+
+  router.get('/admin/posts', verifyToken, roleChecker(['admin']), getAdminPosts);
 
   router.get('/events-and-tournaments', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const tab = req.query.tab;
@@ -92,11 +129,14 @@ let routes = (app, io) => {
         break;
       default:
         filePath = path.resolve(__dirname, '../../build/userviewannouncement.html');
+
         break;
     }
 
     serveFile(filePath, res, next);
   });
+
+  router.get('/confirm-event-payment', verifyToken, roleChecker(['player', 'coach']), confirmEventPayment);
 
   router.get('/admin/view-post', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const tab = req.query.tab;

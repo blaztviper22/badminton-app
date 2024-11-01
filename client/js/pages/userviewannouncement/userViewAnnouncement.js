@@ -24,13 +24,25 @@ getCurrentUserId().then((userId) => {
     socket.on('newAnnouncement', (data) => {
       if (data.status === 'success') {
         log('websocket:', data);
-        fetchAnnouncements(false);
+        fetchPost(false);
+      }
+    });
+    socket.on('newEvent', (data) => {
+      if (data.status === 'success') {
+        log('websocket:', data);
+        fetchPost(false);
       }
     });
     socket.on('deleteAnnouncement', (data) => {
       if (data.status === 'success') {
         log('websocket:', data);
-        fetchAnnouncements(false);
+        fetchPost(false);
+      }
+    });
+    socket.on('deleteEvent', (data) => {
+      if (data.status === 'success') {
+        log('websocket:', data);
+        fetchPost(false);
       }
     });
   } else {
@@ -38,31 +50,30 @@ getCurrentUserId().then((userId) => {
   }
 });
 
-async function fetchAnnouncements(withPreloader = true) {
+async function fetchPost(withPreloader = true) {
   try {
-    const response = await fetch('/user/announcements/all', {
+    const response = await fetch('/user/posts', {
       withPreloader
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch announcements');
+      throw new Error('Failed to fetch posts');
     }
-    const announcements = await response.json();
-    log(announcements);
-    displayAnnouncements(announcements);
+    const posts = await response.json();
+    displayPosts(posts);
   } catch (err) {
-    error('Error fetching announcements:', err);
-    alert('Failed to load announcements. Please try again later.');
+    error('Error fetching posts:', err);
+    alert('Failed to load posts. Please try again later.');
   }
 }
 
-function displayAnnouncements(response) {
+function displayPosts(response) {
   if (response.status === 'success' && Array.isArray(response.data)) {
-    const announcements = response.data;
+    const posts = response.data;
     const box = get('.box');
     box.innerHTML = '';
 
-    if (announcements.length === 0) {
+    if (posts.length === 0) {
       const noPostsMessage = document.createElement('div');
       noPostsMessage.classList.add('no-posts-message');
       noPostsMessage.textContent = 'No posts yet';
@@ -72,15 +83,19 @@ function displayAnnouncements(response) {
     }
 
     // loop through each announcement
-    Object.keys(announcements).forEach((key) => {
-      const announcement = announcements[key];
+    Object.keys(posts).forEach((key) => {
+      const post = posts[key];
+
+      log(post);
 
       const postCard = document.createElement('div');
       postCard.classList.add('post-card');
-      postCard.setAttribute('data-announcement-id', announcement._id);
+
+      const isEvent = post.__t !== undefined;
+      postCard.setAttribute('data-post-id', post._id + (isEvent ? '-event' : ''));
 
       // convert the createdAt date to Philippine time
-      const createdAt = new Date(announcement.createdAt);
+      const createdAt = new Date(post.createdAt);
       const options = {
         timeZone: 'Asia/Manila',
         year: 'numeric',
@@ -94,41 +109,52 @@ function displayAnnouncements(response) {
       log(formattedDate);
 
       // constructing the images HTML
-      const imagesHtml = (announcement.images || []).map((image) => `<img src="${image}" alt="Post Image" />`).join('');
+      const imagesHtml = (post.images || []).map((image) => `<img src="${image}" alt="Post Image" />`).join('');
+
+      let buttonText = isEvent ? 'Join' : 'View More';
 
       postCard.innerHTML = `
         <i class="fas fa-ellipsis-v three-dots" id="three-dots"></i>
         <div class="popup-menu" id="popup-menu" style="display: none"></div>
         <div class="user-info">
           <img src="${
-            announcement.court?.business_logo || '/assets/images/placeholder_50x50.png'
+            post.court?.business_logo || '/assets/images/placeholder_50x50.png'
           }" alt="Business Logo" class="profile-pic" />
           <div class="name-and-time">
-            <span class="name">${announcement.postedBy.first_name} ${announcement.postedBy.last_name}</span>
-            <span class="time">${formattedDate}</span> <!-- Displaying the formatted date -->
+            <span class="name">${post.postedBy.first_name} ${post.postedBy.last_name}</span>
+            <span class="time">${formattedDate}</span>
           </div>
         </div>
         <hr />
-        <h2>${announcement.heading}</h2>
-        <p class="body-text">${announcement.details}</p>
+        <h2>${post.heading}</h2>
+        <p class="body-text">${post.details}</p>
         <div class="post-images">
-          ${imagesHtml} <!-- Dynamically adding images -->
+          ${imagesHtml}
         </div>
         <hr />
         <div class="view-more">
-          <button>View More</button>
+          <button class="join-button" data-id="${post._id}" data-reservation-fee="${
+        post.reservationFee
+      }" data-event-fee="${post.eventFee}">${buttonText}</button>
         </div>
       `;
 
       box.appendChild(postCard);
+      const joinButton = postCard.querySelector('.join-button');
+      if (isEvent) {
+        // Call checkIfJoined for this specific event
+        checkIfJoined(post._id, joinButton);
+      }
+
       postCard.querySelector('.three-dots').addEventListener('click', (event) => {
         event.stopPropagation();
         // closeAllPopupMenus();
         // showPopupMenu(event, postCard);
       });
+      joinButton.addEventListener('click', handleJoinButtonClick);
     });
   } else {
-    error('Failed to load announcements or invalid response format.');
+    error('Failed to load posts or invalid response format.');
     const noPostsMessage = document.createElement('div');
     noPostsMessage.classList.add('no-posts-message');
     noPostsMessage.textContent = 'No posts yet';
@@ -137,7 +163,59 @@ function displayAnnouncements(response) {
   }
 }
 
-fetchAnnouncements();
+async function handleJoinButtonClick(event) {
+  const button = event.currentTarget;
+  const eventId = button.getAttribute('data-id');
+  const reservationFee = parseFloat(button.getAttribute('data-reservation-fee')) || 0;
+  const eventFee = parseFloat(button.getAttribute('data-event-fee')) || 0;
+
+  log(eventId);
+  log(reservationFee);
+  log(eventFee);
+
+  // determine if this post is an event or an announcement
+  const isEvent = button.textContent === 'Join';
+
+  if (isEvent) {
+    // handle joining the event
+    if (reservationFee > 0 || eventFee > 0) {
+      showJoinModal(eventId);
+    } else {
+      // If no fees, proceed to join directly
+      await joinEvent(eventId, button);
+    }
+  } else {
+    // if this is not an event, you can handle the "View More" action if needed
+    // for example, you could fetch more details about the announcement here
+    log(`Viewing more details for post ID: ${eventId}`);
+  }
+}
+
+function showJoinModal(eventId) {
+  const joinModal = get('#joinModal');
+  const payNowButton = get('#payNowButton');
+  const privacyCheckbox = get('#privacyPolicy');
+
+  joinModal.style.display = 'block';
+
+  payNowButton.disabled = true;
+  privacyCheckbox.checked = false;
+
+  privacyCheckbox.addEventListener('change', () => {
+    payNowButton.disabled = !privacyCheckbox.checked;
+  });
+
+  payNowButton.onclick = async () => {
+    await joinEvent(eventId);
+    joinModal.style.display = 'none';
+  };
+
+  get('#cancelButton').onclick = () => {
+    joinModal.style.display = 'none';
+  };
+}
+
+fetchPost();
 
 async function getCurrentUserId() {
   try {
@@ -155,5 +233,54 @@ async function getCurrentUserId() {
   } catch (err) {
     error('Error fetching user ID:', err);
     return null;
+  }
+}
+
+async function joinEvent(eventId, joinButton) {
+  try {
+    const response = await fetch(`/user/event/join`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ eventId })
+    });
+
+    const result = await response.json();
+    if (result.status === 'success') {
+      alert('Successfully joined the event!');
+
+      joinButton.disabled = true;
+      joinButton.classList.add('disabled-join-button');
+      joinButton.textContent = 'Joined';
+      // update UI or perform further actions if needed
+    } else if (result.status === 'payment_required') {
+      // if payment is required, redirect to PayPal
+      window.location.href = result.approvalUrl;
+    } else {
+      alert('Failed to join the event: ' + result.message);
+    }
+  } catch (err) {
+    error('Error joining the event:', err);
+    alert('Failed to join the event. Please try again later.');
+  }
+}
+
+async function checkIfJoined(eventId, joinButton) {
+  try {
+    const response = await fetch(`/user/event/check-joined/${eventId}`, {
+      method: 'GET'
+    });
+
+    const result = await response.json();
+    if (result.status === 'success' && result.isJoined) {
+      // joinButton.disabled = true;
+      joinButton.disabled = true;
+      joinButton.classList.add('disabled-join-button');
+      joinButton.textContent = 'Joined';
+    }
+  } catch (err) {
+    error('Error checking join status:', err);
   }
 }

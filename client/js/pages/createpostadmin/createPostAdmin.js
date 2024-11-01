@@ -22,7 +22,6 @@ const tournamentFields = getById('tournament-fields');
 const membershipFields = getById('membership-fields');
 const previewContainer = getById('imagePreviewContainer');
 const cancelButton = getById('cancelModal');
-const popupMenu = getById('popup-menu');
 
 const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
@@ -43,24 +42,35 @@ function clearForm() {
   getById('details').value = '';
 
   categorySelect.selectedIndex = 0;
-  hideAllFields();
   images = [];
   previewContainer.innerHTML = '';
+  hideAllFields();
 }
 
 function closeModal() {
   modal.style.display = 'none';
   clearForm();
+  localStorage.removeItem('selectedCategory');
 }
 
 btn.onclick = () => {
   modal.style.display = 'flex';
+  clearForm();
   hideAllFields();
 };
 
 categorySelect.onchange = function () {
   hideAllFields();
   showFields(this.value);
+  localStorage.setItem('selectedCategory', this.value);
+};
+
+window.onload = function () {
+  const savedCategory = localStorage.getItem('selectedCategory');
+  if (savedCategory) {
+    categorySelect.value = savedCategory;
+    showFields(savedCategory);
+  }
 };
 
 // function to hide all fields
@@ -173,23 +183,25 @@ function showPopupMenu(event, postCard) {
   const popupMenu = postCard.querySelector('.popup-menu');
   const threeDotsRect = event.target.closest('.three-dots').getBoundingClientRect();
 
+  const postId = postCard.getAttribute('data-post-id');
+
   popupMenu.innerHTML = `
     <ul>
       <li id="editPost">Edit</li>
-      <li id="deletePost" data-post-id="${postCard.getAttribute('data-announcement-id')}">Delete</li>
+      <li id="deletePost" data-post-id="${postId}">Delete</li>
     </ul>
   `;
 
   popupMenu.style.display = 'block';
   popupMenu.style.position = 'fixed';
   const offset = 10; // Optional offset for better appearance
-  popupMenu.style.left = `${threeDotsRect.right + offset}px`; // Place to the right of the icon
-  popupMenu.style.top = `${threeDotsRect.top}px`; // Align with the top of the icon
+  popupMenu.style.left = `${threeDotsRect.right + offset}px`; // place to the right of the icon
+  popupMenu.style.top = `${threeDotsRect.top}px`; // align with the top of the icon
 
   // event listener for the delete post action
   popupMenu.querySelector('#deletePost').addEventListener('click', () => {
-    const postId = postCard.getAttribute('data-announcement-id');
-    deletePost(postId); // Call the delete function
+    const postId = popupMenu.querySelector('#deletePost').getAttribute('data-post-id');
+    confirmDelete(postId);
   });
 
   popupMenu.addEventListener('transitionend', () => {
@@ -237,8 +249,29 @@ async function submitForm() {
     formData.append('images', image.file);
   });
 
+  // determine the endpoint based on the selected category
+  const selectedCategory = categorySelect.value;
+  let endpoint = '';
+
+  switch (selectedCategory) {
+    case 'announcement':
+      endpoint = '/user/admin/announcement';
+      break;
+    case 'event':
+      endpoint = '/user/admin/event';
+      formData.append('startDate', getById('start-date').value);
+      formData.append('endDate', getById('end-date').value);
+      formData.append('eventFee', getById('eventFee').value);
+      formData.append('participantLimit', getById('participantLimit').value);
+      break;
+    default:
+      alert('Please select a valid category.');
+      return;
+  }
+  log('Endpoint: ', endpoint);
+
   try {
-    const response = await fetch('/user/admin/announcement', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       body: formData
     });
@@ -246,7 +279,8 @@ async function submitForm() {
     if (response.status === 201) {
       const result = await response.json();
       log('Upload successful:', result);
-      await fetchAnnouncements();
+      await fetchPost();
+      localStorage.removeItem('selectedCategory');
     } else {
       const errorResult = await response.json();
       alert(`Upload failed: ${errorResult.message}`);
@@ -261,13 +295,13 @@ async function submitForm() {
 const submitButton = getById('postNow');
 submitButton.addEventListener('click', submitForm);
 
-function displayAnnouncements(response) {
+function displayPosts(response) {
   if (response.status === 'success' && Array.isArray(response.data)) {
-    const announcements = response.data;
+    const posts = response.data;
     const box = get('.box');
     box.innerHTML = '';
 
-    if (announcements.length === 0) {
+    if (posts.length === 0) {
       const noPostsMessage = document.createElement('div');
       noPostsMessage.classList.add('no-posts-message');
       noPostsMessage.textContent = 'No posts yet';
@@ -276,16 +310,20 @@ function displayAnnouncements(response) {
       return;
     }
 
-    //    loop through each announcement
-    Object.keys(announcements).forEach((key) => {
-      const announcement = announcements[key];
+    //  loop through each announcement
+    Object.keys(posts).forEach((key) => {
+      const post = posts[key];
+
+      log(post);
 
       const postCard = document.createElement('div');
       postCard.classList.add('post-card');
-      postCard.setAttribute('data-announcement-id', announcement._id);
+
+      const isEvent = post.__t !== undefined;
+      postCard.setAttribute('data-post-id', post._id + (isEvent ? '-event' : ''));
 
       // convert the createdAt date to Philippine time
-      const createdAt = new Date(announcement.createdAt);
+      const createdAt = new Date(post.createdAt);
       const options = {
         timeZone: 'Asia/Manila',
         year: 'numeric',
@@ -299,23 +337,23 @@ function displayAnnouncements(response) {
       log(formattedDate);
 
       // constructing the images HTML
-      const imagesHtml = (announcement.images || []).map((image) => `<img src="${image}" alt="Post Image" />`).join('');
+      const imagesHtml = (post.images || []).map((image) => `<img src="${image}" alt="Post Image" />`).join('');
 
       postCard.innerHTML = `
         <i class="fas fa-ellipsis-v three-dots" id="three-dots"></i>
         <div class="popup-menu" id="popup-menu" style="display: none"></div>
         <div class="user-info">
           <img src="${
-            announcement.court?.business_logo || '/assets/images/placeholder_50x50.png'
+            post.court?.business_logo || '/assets/images/placeholder_50x50.png'
           }" alt="Business Logo" class="profile-pic" />
           <div class="name-and-time">
-            <span class="name">${announcement.postedBy.first_name} ${announcement.postedBy.last_name}</span>
+            <span class="name">${post.postedBy.first_name} ${post.postedBy.last_name}</span>
             <span class="time">${formattedDate}</span> <!-- Displaying the formatted date -->
           </div>
         </div>
         <hr />
-        <h2>${announcement.heading}</h2>
-        <p class="body-text">${announcement.details}</p>
+        <h2>${post.heading}</h2>
+        <p class="body-text">${post.details}</p>
         <div class="post-images">
           ${imagesHtml} <!-- Dynamically adding images -->
         </div>
@@ -333,7 +371,7 @@ function displayAnnouncements(response) {
       });
     });
   } else {
-    error('Failed to load announcements or invalid response format.');
+    error('Failed to load posts or invalid response format.');
     const noPostsMessage = document.createElement('div');
     noPostsMessage.classList.add('no-posts-message');
     noPostsMessage.textContent = 'No posts yet';
@@ -348,35 +386,40 @@ function closeAllPopupMenus() {
   });
 }
 
-async function fetchAnnouncements() {
+async function fetchPost() {
   try {
-    const response = await fetch('/user/announcements/admin');
+    const response = await fetch('/user/admin/posts');
     if (!response.ok) {
-      throw new Error('Failed to fetch announcements');
+      throw new Error('Failed to fetch posts');
     }
-    const announcements = await response.json();
-    displayAnnouncements(announcements);
+    const posts = await response.json();
+    displayPosts(posts);
   } catch (err) {
-    error('Error fetching announcements:', err);
-    alert('Failed to load announcements. Please try again later.');
+    error('Error fetching posts:', err);
+    alert('Failed to load posts. Please try again later.');
   }
 }
 
-fetchAnnouncements();
+fetchPost();
 
 async function deletePost(postId) {
   try {
-    const response = await fetch(`/user/admin/announcement/${postId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    // check if the postId indicates it's an event by looking for '-event'
+    const isEvent = postId.includes('-event');
+    // extract the base ID (without the '-event' suffix if it exists)
+    const basePostId = isEvent ? postId.replace('-event', '') : postId;
+
+    // set the appropriate endpoint based on whether it's an event or an announcement
+    const endpoint = isEvent ? `/user/admin/event/${basePostId}` : `/user/admin/announcement/${basePostId}`;
+
+    const response = await fetch(endpoint, {
+      method: 'DELETE'
     });
 
     if (response.ok) {
       const data = await response.json();
       if (data.status === 'success') {
-        fetchAnnouncements();
+        fetchPost();
       } else {
         error(`Failed to delete post: ${data.message}`);
       }
@@ -386,5 +429,11 @@ async function deletePost(postId) {
   } catch (err) {
     error('Error:', err);
     error('An error occurred while trying to delete the post.');
+  }
+}
+
+function confirmDelete(postId) {
+  if (confirm('Are you sure you want to delete this post?')) {
+    deletePost(postId);
   }
 }
