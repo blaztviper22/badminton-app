@@ -255,7 +255,7 @@ module.exports = () => {
       userschedulereservation: './client/js/pages/userschedulereservation/userScheduleReservation.js',
       viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js',
       vieweventtournalist: './client/js/pages/vieweventtournalist/viewEventTournaList.js',
-      viewevent: './client/js/pages/vieweventparticipants/viewEventParticipants.js'
+      vieweventparticipants: './client/js/pages/vieweventparticipants/viewEventParticipants.js'
     },
     output: {
       filename: '[name].[contenthash].js',
