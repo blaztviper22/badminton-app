@@ -1,6 +1,6 @@
 import '../../../css/components/preloader.css';
 import '../../../css/components/sideNavAdmin.css';
-import '../../../css/pages/viewEventParticipants/viewEventParticipants.css';
+import '../../../css/pages/vieweventparticipants/viewEventParticipants.css';
 import { startSessionChecks } from '../../../utils/sessionUtils.js';
 import '../../components/sideNavAdmin.js';
 
