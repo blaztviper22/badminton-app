@@ -3,7 +3,7 @@
   "ignore": [".git", "node_modules/**/node_modules"],
   "verbose": true,
   "events": {
-    "start": "cls",
+    "start": "clear",
     "restart": "kill-port 5000",
     "crash": "kill-port 5000"
   },

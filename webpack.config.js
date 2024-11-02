@@ -28,7 +28,10 @@ const pageTitles = {
   viewusercourtreservationsched: 'Reservation Schedule',
   adminschedulereservation: 'Schedule',
   adminviewuserpayment: 'User Payments',
-  viewadminpost: 'View Posts'
+  adminviewuserpaymentet: 'User Payments',
+  viewadminpost: 'View Posts',
+  vieweventtournalist: 'Events and Tournaments',
+  viewevent: 'View Event'
 };
 
 // Page-specific stylesheets and scripts
@@ -115,6 +118,15 @@ const pageAssets = {
     hasNavbar: false,
     hasSidebar: true
   },
+  adminviewuserpaymentet: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
   viewadminpost: {
     styles: [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
@@ -163,6 +175,24 @@ const pageAssets = {
     scripts: [],
     hasNavbar: true,
     hasSidebar: false
+  },
+  vieweventtournalist: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+  viewevent: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
   }
 };
 
@@ -216,13 +246,16 @@ module.exports = () => {
       admindash: './client/js/pages/admindash/admindash.js',
       adminschedulereservation: './client/js/pages/adminschedulereservation/adminScheduleReservation.js',
       adminviewuserpayment: './client/js/pages/adminviewuserpayment/adminViewUserPayment.js',
+      adminviewuserpaymentet: './client/js/pages/adminviewuserpaymentet/adminViewUserPaymentET.js',
       viewadminpost: './client/js/pages/createpostadmin/createPostAdmin.js',
       usercourtlist: './client/js/pages/usercourtlist/userCourtList.js',
       usercourtviewing: './client/js/pages/usercourtviewing/userCourtViewing.js',
       usercourtreservation: './client/js/pages/usercourtreservation/userCourtReservation.js',
       userviewannouncement: './client/js/pages/userviewannouncement/userViewAnnouncement.js',
       userschedulereservation: './client/js/pages/userschedulereservation/userScheduleReservation.js',
-      viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js'
+      viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js',
+      vieweventtournalist: './client/js/pages/vieweventtournalist/viewEventTournaList.js',
+      viewevent: './client/js/pages/vieweventparticipants/viewEventParticipants.js'
     },
     output: {
       filename: '[name].[contenthash].js',

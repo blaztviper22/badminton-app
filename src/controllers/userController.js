@@ -1240,10 +1240,38 @@ exports.getAllEventParticipants = async (req, res) => {
     const allParticipants = events.map((event) => ({
       eventId: event._id,
       eventTitle: event.heading,
-      participants: event.participants
+      eventFee: event.eventFee,
+      reservationFee: event.reservationFee,
+      participants: event.participants,
+      createdAt: event.createdAt
     }));
 
     return res.status(200).json({ status: 'success', data: allParticipants });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.getEventById = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const event = await Event.findById(eventId).populate('participants');
+
+    if (!event) {
+      return res.status(404).json({ status: 'error', message: 'Event not found' });
+    }
+
+    const eventDetails = {
+      eventId: event._id,
+      eventTitle: event.heading,
+      eventFee: event.eventFee,
+      reservationFee: event.reservationFee,
+      participants: event.participants,
+      createdAt: event.createdAt
+    };
+
+    return res.status(200).json({ status: 'success', data: eventDetails });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
