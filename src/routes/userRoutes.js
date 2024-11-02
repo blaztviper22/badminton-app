@@ -28,7 +28,8 @@ const {
   getAllEventParticipants,
   getOngoingEvents,
   checkIfUserJoined,
-  confirmEventPayment
+  confirmEventPayment,
+  getEventById
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -71,6 +72,18 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
+  router.get('/admin/events-and-tournaments', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/vieweventtournalist.html');
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/admin/view-event', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/viewevent.html');
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/admin/get-event/:id', verifyToken, roleChecker(['admin']), getEventById);
+
   router.get('/court-reservation', verifyToken, checkCourtId, roleChecker(['player', 'coach']), (req, res, next) => {
     handleCourtReservation(req, res, next, io);
   });
@@ -96,6 +109,8 @@ let routes = (app, io) => {
   router.post('/admin/event', validateEventPost, verifyToken, roleChecker(['admin']), (req, res, next) => {
     postAdminEvent(req, res, io);
   });
+
+  router.get('/event/check-joined/:eventId', verifyToken, roleChecker(['player', 'coach']), checkIfUserJoined);
 
   router.get('/event/check-joined/:eventId', verifyToken, roleChecker(['player', 'coach']), checkIfUserJoined);
 
@@ -163,7 +178,7 @@ let routes = (app, io) => {
 
     switch (tab) {
       case 'event-and-tournaments':
-        filePath = path.resolve(__dirname, '../../build/eventtournaments.html');
+        filePath = path.resolve(__dirname, '../../build/adminviewuserpaymentet.html');
         break;
       case 'training-sessions':
         // specify the file path for training sessions here
