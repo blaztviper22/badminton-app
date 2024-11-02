@@ -12,13 +12,37 @@ const {
   getAllCourts,
   getCourtById,
   createReservation,
-  getAvailability
+  getAvailability,
+  handleCourtReservation,
+  getReservations,
+  cancelReservation,
+  getAdminReservations,
+  postAdminAnnouncement,
+  removeAnnouncement,
+  postAdminEvent,
+  removeEvent,
+  getAdminPosts,
+  getAllPosts,
+  postAdminTournament,
+  joinEvent,
+  getAllEventParticipants,
+  getOngoingEvents,
+  checkIfUserJoined,
+  confirmEventPayment,
+  getEventById
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
-const { validateUserId, validateUserInfo } = require('../middleware/validator');
+const {
+  validateUserId,
+  validateUserInfo,
+  validateAnnouncementPost,
+  validateEventPost,
+  validateTournamentPost
+} = require('../middleware/validator');
 const validateUpdateFields = require('../middleware/validateUpdateField');
 const { createRateLimiter } = require('../middleware/rateLimiter');
 const { checkFilePermissions } = require('../middleware/checkFilePermission');
+const checkCourtId = require('../middleware/checkCourtId');
 
 const limiter = createRateLimiter(15 * 60 * 1000, 100);
 
@@ -28,7 +52,7 @@ let routes = (app, io) => {
   router.get('/get-user/:id', verifyToken, validateUserId, getUserById);
 
   // route to serve files from R2
-  router.get('/data/:filename', verifyToken, checkFilePermissions, limiter, serveData);
+  router.get('/data/:filename', verifyToken, checkFilePermissions, serveData);
 
   router.put(
     '/update',
@@ -48,22 +72,135 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-  router.get('/court-reservation', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
-    const filePath = path.resolve(__dirname, '../../build/usercourtreservation.html');
+  router.get('/admin/events-and-tournaments', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/vieweventtournalist.html');
     serveFile(filePath, res, next);
   });
 
-  // endpoint to get the client Key for adyen
-  router.get('/client-key', verifyToken, (req, res) => {
-    const clientKey = config.get('adyen').clientKey;
-    res.json({ clientKey });
+  router.get('/admin/view-event', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/viewevent.html');
+    serveFile(filePath, res, next);
   });
 
-  router.get('/admin/schedule-dashboard', verifyToken, roleChecker(['admin']), (req, res, next) => {
+  router.get('/admin/get-event/:id', verifyToken, roleChecker(['admin']), getEventById);
+
+  router.get('/court-reservation', verifyToken, checkCourtId, roleChecker(['player', 'coach']), (req, res, next) => {
+    handleCourtReservation(req, res, next, io);
+  });
+
+  router.delete('/admin/announcement/:announcementId', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    removeAnnouncement(req, res, io);
+  });
+
+  router.post(
+    '/admin/announcement',
+    verifyToken,
+    validateAnnouncementPost,
+    roleChecker(['admin']),
+    (req, res, next) => {
+      postAdminAnnouncement(req, res, io);
+    }
+  );
+
+  router.delete('/admin/event/:eventId', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    removeEvent(req, res, io);
+  });
+
+  router.post('/admin/event', validateEventPost, verifyToken, roleChecker(['admin']), (req, res, next) => {
+    postAdminEvent(req, res, io);
+  });
+
+  router.get('/event/check-joined/:eventId', verifyToken, roleChecker(['player', 'coach']), checkIfUserJoined);
+
+  router.get('/event/check-joined/:eventId', verifyToken, roleChecker(['player', 'coach']), checkIfUserJoined);
+
+  router.post('/event/join', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    joinEvent(req, res, io);
+  });
+  router.get('/events/ongoing', verifyToken, getOngoingEvents);
+
+  router.get('/admin/events/participants', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    getAllEventParticipants(req, res, io);
+  });
+
+  router.post('/admin/tournament', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    postAdminTournament(req, res, io);
+  });
+
+  router.get('/posts', verifyToken, roleChecker(['player', 'coach']), getAllPosts);
+
+  router.get('/admin/posts', verifyToken, roleChecker(['admin']), getAdminPosts);
+
+  router.get('/events-and-tournaments', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const tab = req.query.tab;
+    let filePath;
+
+    switch (tab) {
+      case 'schedule-reservation':
+        filePath = path.resolve(__dirname, '../../build/userschedulereservation.html');
+        break;
+      case 'view-tournaments':
+        filePath = path.resolve(__dirname, '../../build/userviewtournaments.html');
+        break;
+      default:
+        filePath = path.resolve(__dirname, '../../build/userviewannouncement.html');
+
+        break;
+    }
+
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/confirm-event-payment', verifyToken, roleChecker(['player', 'coach']), confirmEventPayment);
+
+  router.get('/admin/view-post', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const tab = req.query.tab;
+    let filePath;
+
+    switch (tab) {
+      case 'announcements':
+        break;
+      case 'events':
+        break;
+      case 'tournaments':
+        break;
+      default:
+        filePath = path.resolve(__dirname, '../../build/viewadminpost.html');
+        break;
+    }
+
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/admin/user-payments', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const tab = req.query.tab; // get the page from the query parameter
     let filePath;
 
-    // determine which HTML file to serve based on the query parameter
+    switch (tab) {
+      case 'event-and-tournaments':
+        filePath = path.resolve(__dirname, '../../build/adminviewuserpaymentet.html');
+        break;
+      case 'training-sessions':
+        // specify the file path for training sessions here
+        filePath = path.resolve(__dirname, '../../build/trainingsessions.html');
+        break;
+      case 'product-reservation':
+        // specify the file path for product reservation here
+        filePath = path.resolve(__dirname, '../../build/productpickup.html');
+        break;
+      default:
+        // default to court reservations
+        filePath = path.resolve(__dirname, '../../build/adminviewuserpayment.html');
+        break;
+    }
+
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/admin/schedule', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const tab = req.query.tab; // get the page from the query parameter
+    let filePath;
+
     switch (tab) {
       case 'event-and-tournaments':
         filePath = path.resolve(__dirname, '../../build/eventtournaments.html');
@@ -78,7 +215,7 @@ let routes = (app, io) => {
         break;
       default:
         // default to court reservations
-        filePath = path.resolve(__dirname, '../../build/courtreservations.html');
+        filePath = path.resolve(__dirname, '../../build/adminschedulereservation.html');
         break;
     }
 
@@ -104,12 +241,24 @@ let routes = (app, io) => {
     createReservation(req, res, io);
   });
 
+  router.get('/reservations', verifyToken, roleChecker(['player', 'coach']), getReservations);
+
+  router.get('/admin/reservations', verifyToken, roleChecker(['admin']), getAdminReservations);
+
+  router.post('/reservations/cancel', verifyToken, roleChecker(['player', 'coach']), cancelReservation);
+
   router.get('/availability', verifyToken, roleChecker(['player', 'coach']), getAvailability);
 
   router.get('/dashboard', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/userdash.html');
     serveFile(filePath, res, next);
   });
+
+  router.get('/view-schedule', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/viewusercourtreservationsched.html');
+    serveFile(filePath, res, next);
+  });
+
   router.get('/edit-profile', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/userprofile.html');
     serveFile(filePath, res, next);

@@ -193,28 +193,6 @@ input:focus {
   font-size: 14px;
 }
 
-.payment-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 35px;
-  width: 100px;
-  border: none;
-  outline: none;
-  color: white;
-  border-radius: 5px;
-  margin: 10px 0;
-  background-color: #142850;
-  cursor: pointer;
-  text-transform: uppercase;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.payment-button:hover {
-  background-color: #397cf7;
-}
-
 .payment-section {
   margin-top: 10px;
   font-size: 14px;
@@ -246,18 +224,6 @@ input:focus {
 .total-payment-value {
   font-size: 18px;
   color: #000;
-}
-
-.payment-note-button-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.payment-note {
-  font-size: 12px;
-  color: #666;
 }
 
 .court-image {
@@ -295,6 +261,10 @@ input:focus {
 .reserved {
   background-color: #397cf7;
 }
+.user-reserved {
+  background-color: #0d98ba; /* Change to your preferred color for current user's dates */
+}
+
 .fc-daygrid-day {
   cursor: pointer; /* Changes the cursor to a hand (pointer) */
 }

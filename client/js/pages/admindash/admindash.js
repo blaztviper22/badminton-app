@@ -3,9 +3,6 @@ import '../../../css/components/sideNavAdmin.css';
 import '../../../css/pages/admindash/adminDash.css';
 import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
 import '../../components/sideNavAdmin.js';
-import { setupLogoutListener } from '../../global/logout.js';
-
-setupLogoutListener();
 
 // start session checks on page load
 startSessionChecks();

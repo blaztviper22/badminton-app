@@ -10,6 +10,8 @@ const verifyToken = require('../middleware/authJwt');
 const { serveData } = require('../controllers/userController');
 const { createRateLimiter } = require('../middleware/rateLimiter');
 const { checkFilePermissions } = require('../middleware/checkFilePermission');
+const verifyPayPalSignature = require('../middleware/verifyPaypalSignature');
+const { paypalWebhookHandler } = require('../controllers/authController');
 
 const limiter = createRateLimiter(15 * 60 * 1000, 100);
 
@@ -18,6 +20,8 @@ let routes = (app) => {
     const filePath = path.resolve(__dirname, '../../build/index.html');
     serveFile(filePath, res, next);
   });
+
+  app.post('/paypal-webhook', verifyPayPalSignature, paypalWebhookHandler);
 
   router.get('/ping', verifyToken, (req, res) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate');

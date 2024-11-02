@@ -47,10 +47,14 @@ const reservationSchema = new mongoose.Schema(
     paymentStatus: {
       type: String,
       enum: ['cancelled', 'paid', 'unpaid', 'pending'],
-      default: 'pending'
+      default: 'unpaid'
     },
     totalAmount: {
       type: Number,
+      required: true
+    },
+    selectedCourt: {
+      type: Array,
       required: true
     },
     paymentMethod: {
@@ -67,6 +71,10 @@ const reservationSchema = new mongoose.Schema(
       default: ''
     },
     payerEmail: {
+      type: String,
+      default: ''
+    },
+    payerId: {
       type: String,
       default: ''
     }

@@ -50,6 +50,39 @@ const clearPastReservations = async () => {
     error('Error clearing past reservations:', err);
   }
 };
+const deleteCancelledReservations = async (io) => {
+  try {
+    // delete reservations with status 'cancelled'
+    const deletedReservations = await Reservation.deleteMany({
+      status: 'cancelled'
+    });
+
+    log(`Deleted ${deletedReservations.deletedCount} cancelled reservations.`);
+    io.emit('reservationStatusUpdated', {
+      message: `${deletedReservations.deletedCount} cancelled reservations have been deleted.`,
+      timestamp: moment().tz('Asia/Manila').format()
+    });
+  } catch (err) {
+    error('Error deleting cancelled reservations:', err);
+  }
+};
+
+const deletePendingReservations = async (io) => {
+  try {
+    // delete reservations with status 'pending'
+    const deletedReservations = await Reservation.deleteMany({
+      status: 'pending'
+    });
+
+    log(`Deleted ${deletedReservations.deletedCount} pending reservations.`);
+    io.emit('reservationStatusUpdated', {
+      message: `${deletedReservations.deletedCount} pending reservations have been deleted.`,
+      timestamp: moment().tz('Asia/Manila').format()
+    });
+  } catch (err) {
+    error('Error deleting pending reservations:', err);
+  }
+};
 
 // cron job to run every minute (for testing)
 const startReservationCleanupCronJob = () => {
@@ -67,6 +100,40 @@ const startReservationCleanupCronJob = () => {
   log('Cron job scheduled to clean past reservations every minute.');
 };
 
+// cron job to delete cancelled reservations every minute
+const startCancelledCleanupCronJob = (io) => {
+  cron.schedule(
+    '*/5 * * * *', // run every minute for cancelled reservations
+    async () => {
+      log('Running scheduled job to delete cancelled reservations...');
+      await deleteCancelledReservations(io);
+    },
+    {
+      timezone: 'Asia/Manila'
+    }
+  );
+
+  log('Cron job scheduled to delete cancelled reservations every minute.');
+};
+
+// cron job to delete pending reservations every 5 minutes
+const startPendingCleanupCronJob = (io) => {
+  cron.schedule(
+    '*/5 * * * *', // Run every 5 minutes for pending reservations
+    async () => {
+      log('Running scheduled job to delete pending reservations...');
+      await deletePendingReservations(io);
+    },
+    {
+      timezone: 'Asia/Manila'
+    }
+  );
+
+  log('Cron job scheduled to delete pending reservations every 5 minutes.');
+};
+
 module.exports = {
-  startReservationCleanupCronJob
+  startReservationCleanupCronJob,
+  startPendingCleanupCronJob,
+  startCancelledCleanupCronJob
 };

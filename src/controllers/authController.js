@@ -9,6 +9,8 @@ const jwt = require('jsonwebtoken');
 const { Buffer } = require('buffer');
 const { sendOTP, sendForgotPasswordEmail } = require('../services/emailService');
 const { deleteUserFilesAndProfilePhoto } = require('../utils/fileCleanup');
+const Reservation = require('../models/Reservation');
+const { getUserSocket } = require('../utils/userSocketManager');
 
 exports.loginUser = async (req, res, next) => {
   try {
@@ -165,7 +167,7 @@ exports.loginUser = async (req, res, next) => {
     // Determine redirect URL based on user role
     let redirectUrl;
     if (user.role === 'admin') {
-      redirectUrl = '/user/admin/dashboard';
+      redirectUrl = '/user/admin/view-post';
     } else if (user.role === 'player' || user.role === 'coach') {
       redirectUrl = '/user/dashboard';
     }
@@ -578,6 +580,8 @@ exports.refreshToken = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    console.log('Incoming refresh token:', incomingRefreshToken);
+    console.log('User refresh token from DB:', user.refreshToken);
 
     // If refresh token in DB does not match the incoming refresh token
     if (user.refreshToken !== incomingRefreshToken) {
@@ -927,8 +931,15 @@ exports.registerCourt = async (req, res) => {
       });
     }
 
+    const allowedImages = ['image/jpeg', 'image/png', 'image/gif'];
+    const allowedDocs = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
     for (let i = 0; i < facilityImages.length; i++) {
-      const imageUrl = await handleFileUpload(facilityImages[i], decoded.id, 'facilityImage');
+      const imageUrl = await handleFileUpload(facilityImages[i], decoded.id, 'facilityImage', allowedImages);
       facilityData.push({
         name: facilityNames[i],
         image: imageUrl
@@ -936,11 +947,16 @@ exports.registerCourt = async (req, res) => {
     }
 
     // Upload business logo
-    businessLogoUrl = await handleFileUpload(req.files.business_logo, decoded.id, 'businessLogo');
+    businessLogoUrl = await handleFileUpload(req.files.business_logo, decoded.id, 'businessLogo', allowedImages);
 
     // Upload court images (multiple)
     // courtImageUrls = await handleMultipleFileUploads(req.files.court_images, decoded.id);
-    courtImageUrls = await handleMultipleFileUploads(req.files['court_image[]'], decoded.id, 'courtImage');
+    courtImageUrls = await handleMultipleFileUploads(
+      req.files['court_image[]'],
+      decoded.id,
+      'courtImage',
+      allowedImages
+    );
 
     // Upload documents (multiple)
     for (const key of documentKeys) {
@@ -949,10 +965,10 @@ exports.registerCourt = async (req, res) => {
 
       if (Array.isArray(file)) {
         // Handle multiple files
-        documentUrls[key] = await Promise.all(file.map((f) => handleFileUpload(f, decoded.id)));
+        documentUrls[key] = await Promise.all(file.map((f) => handleFileUpload(f, decoded.id, null, allowedDocs)));
       } else {
         // Handle single file
-        documentUrls[key] = await handleFileUpload(file, decoded.id);
+        documentUrls[key] = await handleFileUpload(file, decoded.id, null, allowedDocs);
       }
     }
 
@@ -999,4 +1015,41 @@ exports.registerCourt = async (req, res) => {
       message: 'Internal Server Error'
     });
   }
+};
+
+exports.paypalWebhookHandler = async (req, res) => {
+  const webhookEvent = req.body;
+
+  console.log('Received PayPal webhook event:', webhookEvent);
+
+  if (webhookEvent.event_type === 'CHECKOUT.ORDER.APPROVED') {
+    const payerId = webhookEvent.resource.payer.payer_id;
+
+    try {
+      // find the reservation using the payerId
+      const reservation = await Reservation.findOne({ payerId });
+
+      if (reservation) {
+        // get the user ID from the reservation
+        const userId = reservation.user;
+
+        // get the user socket for the current user
+        const userSocket = getUserSocket(userId.toString());
+
+        // notify the frontend
+        if (userSocket) {
+          userSocket.emit('paymentSuccess', {
+            message: 'Payment was successful! Your reservation is confirmed.'
+          });
+        }
+      } else {
+        console.log(`No reservation found for payerId: ${payerId}`);
+      }
+    } catch (error) {
+      console.error('Error fetching reservation:', error);
+      return res.status(500).send('Internal Server Error');
+    }
+  }
+
+  res.status(200).send('OK');
 };

@@ -148,8 +148,7 @@ const userSchema = new mongoose.Schema(
     },
     isAdmin: {
       type: Boolean,
-      default: false,
-      select: false // Ensure it's hidden in queries
+      default: false
     }
   },
 
@@ -269,7 +268,7 @@ userSchema.methods.generateToken = function (type) {
 
   if (type === 'access') {
     // Generate an access token (short-lived)
-    return jwt.sign(payload, config.jwtSecret, { expiresIn: '15m', algorithm: 'HS256' });
+    return jwt.sign(payload, config.jwtSecret, { expiresIn: '1d', algorithm: 'HS256' });
   }
 
   if (type === 'refresh') {

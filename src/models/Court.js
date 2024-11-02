@@ -110,14 +110,13 @@ const courtRegistrationSchema = new mongoose.Schema(
     }
   },
   {
-    toJSON: { virtuals: true }, 
+    toJSON: { virtuals: true },
     toObject: { virtuals: true }
   }
 );
 
-// virtual field to calculate totalCourts based on the length of court_images array
 courtRegistrationSchema.virtual('totalCourts').get(function () {
-  return this.court_images.length;
+  return this.court_images ? this.court_images.length : undefined;
 });
 
 // create a compound index for geospatial queries

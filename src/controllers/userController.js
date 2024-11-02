@@ -1,6 +1,9 @@
 const User = require('../models/User');
 const File = require('../models/File');
 const Reservation = require('../models/Reservation');
+const Announcement = require('../models/Announcement');
+const Event = require('../models/Event');
+const Tournament = require('../models/Tournament');
 const { assignFileAccess } = require('../utils/assignFileAccess');
 const { isCourtAvailable } = require('../utils/courtAvailability');
 const { convertTo24Hour } = require('../utils/timeConvertion');
@@ -13,9 +16,21 @@ const pipelineAsync = promisify(pipeline);
 const mime = require('mime-types');
 const fileType = require('file-type-cjs');
 const Court = require('../models/Court');
-const { geocodeAddress } = require('../utils/addressToCoord');
 const moment = require('moment-timezone');
 const calculateTotalAmount = require('../utils/amountCalculator');
+const createError = require('http-errors');
+const config = require('config');
+const {
+  createPayPalPayment,
+  capturePayPalPayment,
+  createPayPalPayout,
+  getPayPalPaymentDetails
+} = require('../services/paypalService');
+const serveFile = require('../utils/fileUtils');
+const path = require('path');
+const { geocodeAddress, getAddressFromCoordinates } = require('../utils/addressUtils');
+const { handleMultipleFileUploads, handleFileUpload } = require('../utils/fileUpload');
+const Category = require('../models/Category');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -375,6 +390,15 @@ exports.createReservation = async (req, res, io) => {
   try {
     const userId = req.user.id;
 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        code: 404,
+        message: 'User not found'
+      });
+    }
+
     const { courtId, date, timeSlot, selectedCourt } = req.body;
 
     // Validate input
@@ -394,16 +418,20 @@ exports.createReservation = async (req, res, io) => {
       });
     }
 
-    // Get the current date and time in the Philippines timezone
     const now = moment.tz('Asia/Manila');
 
-    // Convert date to a Date object
+    // Convert date to a Date object in Philippine timezone
     const selectedDate = moment.tz(date, 'Asia/Manila');
     const currentDate = moment.tz(new Date(), 'Asia/Manila');
 
-    // Normalize to the start of the day for comparison
-    const currentDateStartOfDay = moment().startOf('day');
-    const selectedDateStartOfDay = selectedDate.startOf('day');
+    // Normalize to the start of the day for comparison in Philippine timezone
+    const currentDateStartOfDay = now.clone().startOf('day');
+    const selectedDateStartOfDay = selectedDate.clone().startOf('day');
+
+    console.log('Now:', now.format());
+    console.log('Selected Date:', selectedDate.format());
+    console.log('Current Date Start of Day:', currentDateStartOfDay.format());
+    console.log('Selected Date Start of Day:', selectedDateStartOfDay.format());
 
     // Check if the selected date is in the past
     if (selectedDateStartOfDay.isBefore(currentDateStartOfDay)) {
@@ -441,6 +469,7 @@ exports.createReservation = async (req, res, io) => {
 
     // use the virtual field to get the total number of courts
     const totalCourts = court.totalCourts;
+    log('total courts', totalCourts);
 
     // Check if the selected court images are within bounds
     if (selectedCourt.some((index) => index < 0 || index >= totalCourts)) {
@@ -525,12 +554,34 @@ exports.createReservation = async (req, res, io) => {
 
     await reservation.save();
 
+    const admin = await User.findOne({ court: courtId, role: 'admin' }).select('payer_id');
+
+    if (!admin) {
+      return res.status(404).json({
+        status: 'error',
+        code: 404,
+        message: 'Admin with specified court ID not found'
+      });
+    }
+
+    const payerId = admin.payer_id;
+
+    const payment = await createPayPalPayment(hourlyRate, payerId, courtId);
+    const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
+
+    log(payment);
+
     io.emit('reservationCreated', {
       courtId,
       date
     });
 
-    return res.status(201).json(reservation);
+    return res.status(201).json({
+      status: 'success',
+      code: 201,
+      reservation,
+      approvalUrl: approvalUrl
+    });
   } catch (err) {
     // handle duplicate key error
     console.error('Error while creating reservation:', err);
@@ -548,9 +599,11 @@ exports.createReservation = async (req, res, io) => {
     });
   }
 };
+
 exports.getAvailability = async (req, res) => {
   try {
     const { date, courtId } = req.query;
+    const userId = req.user.id;
 
     // Validate the date parameter
     if (!date) {
@@ -577,6 +630,7 @@ exports.getAvailability = async (req, res) => {
     const response = {
       status: 'success',
       reservedDates: [],
+      userReservedDates: [],
       courts: []
     };
 
@@ -597,15 +651,26 @@ exports.getAvailability = async (req, res) => {
         }
       };
 
-      // Get reservations
-      const reservations = await Reservation.find({ court: court._id });
+      // get only reservations that are confirmed/completed and paid
+      const reservations = await Reservation.find({
+        court: court._id,
+        status: { $in: ['confirmed', 'pending'] },
+        paymentStatus: { $in: ['paid', 'unpaid'] }
+      });
 
-      // Check for reservations and populate reservedDates
       reservations.forEach((reservation) => {
         const reservationDate = moment(reservation.date).tz('Asia/Manila').startOf('day');
         if (reservationDate.isSame(currentDate, 'day') || reservationDate.isAfter(currentDate)) {
-          if (!response.reservedDates.includes(reservationDate.format('YYYY-MM-DD'))) {
-            response.reservedDates.push(reservationDate.format('YYYY-MM-DD'));
+          // check if the reservation is by the current user
+          if (reservation.user.toString() === userId) {
+            if (!response.userReservedDates.includes(reservationDate.format('YYYY-MM-DD'))) {
+              response.userReservedDates.push(reservationDate.format('YYYY-MM-DD'));
+            }
+          } else {
+            // only push to reservedDates if it's from another user
+            if (!response.reservedDates.includes(reservationDate.format('YYYY-MM-DD'))) {
+              response.reservedDates.push(reservationDate.format('YYYY-MM-DD'));
+            }
           }
         }
       });
@@ -701,5 +766,964 @@ exports.getAvailability = async (req, res) => {
       code: 500,
       message: 'Internal Server Error'
     });
+  }
+};
+
+exports.handleCourtReservation = async (req, res, next, io) => {
+  const { token, id } = req.query;
+  try {
+    const court = await Court.findById(id);
+    if (!court) {
+      // use createError for court not found
+      return next(createError(404, 'Court not found'));
+    }
+
+    if (token) {
+      const courtOwnerEmail = court.paypal_email;
+      const reservation = await Reservation.findOne({ court: id, user: req.user.id }).sort({ createdAt: -1 });
+
+      if (!reservation) {
+        // use createError for reservation not found
+        return next(createError(404, 'Reservation not found'));
+      }
+
+      const totalAmount = reservation.totalAmount;
+
+      try {
+        const paymentDetails = await getPayPalPaymentDetails(token);
+        const paymentStatus = paymentDetails.status;
+
+        if (paymentStatus === 'PAYER_ACTION_REQUIRED') {
+          // Log cancellation and delete reservation
+          log(`Payment canceled for reservation ID: ${reservation._id}. Removing reservation.`);
+          await Reservation.findByIdAndDelete(reservation._id);
+          io.emit('reservationCanceled', {
+            reservationId: reservation._id,
+            courtId: id,
+            date: moment().tz('Asia/Manila').format('YYYY-MM-DD')
+          });
+        } else if (paymentStatus === 'COMPLETED' || paymentStatus === 'APPROVED') {
+          const paymentCapture = await capturePayPalPayment(token);
+          log('Payment captured:', paymentCapture);
+
+          await createPayPalPayout(courtOwnerEmail, totalAmount);
+          log('Payout to court owner initiated');
+
+          // update reservation with 'paid' payment status and 'confirmed' status
+          await Reservation.findByIdAndUpdate(reservation._id, {
+            paymentStatus: 'paid',
+            status: 'confirmed',
+            transactionId: paymentCapture.id,
+            payerEmail: paymentDetails.payer.email_address,
+            payerId: paymentDetails.payer.payer_id
+          });
+        }
+      } catch (paymentError) {
+        error('Error processing payment:', paymentError);
+        return next(createError(500, 'There was an issue processing the payment.'));
+      }
+    }
+
+    const filePath = path.resolve(__dirname, '../../build/usercourtreservation.html');
+    serveFile(filePath, res, next);
+  } catch (err) {
+    error('Error handling reservation:', err);
+    return next(createError(500, 'Internal Server Error'));
+  }
+};
+
+exports.getReservations = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { dateFilter, statusFilter, sortOrder } = req.query;
+
+    const query = { user: userId };
+
+    moment.updateLocale('en', {
+      week: {
+        dow: 1 // Start the week on a different day
+      }
+    });
+
+    const now = moment.tz('Asia/Manila');
+
+    // Date Filter Logic
+    if (dateFilter) {
+      const today = moment.tz('Asia/Manila').startOf('day');
+      let startDate;
+      let endDate;
+
+      switch (dateFilter) {
+        case 'Today':
+          startDate = today;
+          endDate = today.clone().endOf('day');
+          break;
+        case 'This Week':
+          startDate = today.clone().startOf('week');
+          endDate = today.clone().endOf('week');
+          break;
+        case 'This Month':
+          startDate = today.clone().startOf('month');
+          endDate = today.clone().endOf('month');
+          break;
+        default:
+          return res.status(400).json({ status: 'error', message: 'Invalid date filter.' });
+      }
+      query.date = { $gte: startDate.toDate(), $lte: endDate.toDate() };
+    }
+
+    // Status Filter Logic
+    const validStatuses = ['pending', 'confirmed', 'cancelled', 'ongoing'];
+    if (statusFilter && !validStatuses.includes(statusFilter.toLowerCase())) {
+      return res.status(400).json({ status: 'error', message: 'Invalid status filter.' });
+    }
+
+    // If the statusFilter is "ongoing", we don't need to set it in the query,
+    // as we will handle this in the mapping process
+    if (statusFilter && statusFilter.toLowerCase() !== 'ongoing') {
+      query.status = statusFilter.toLowerCase();
+    }
+
+    // Fetch reservations from the database
+    const reservations = await Reservation.find(query)
+      .populate('court', 'business_name location.coordinates')
+      .sort({ date: sortOrder === 'descending' ? -1 : 1 });
+
+    // If no reservations found
+    if (reservations.length === 0) {
+      return res.status(404).json({ status: 'success', message: 'No reservations found.' });
+    }
+
+    // Prepare the response structure
+    const reservationData = await Promise.all(
+      reservations.map(async (reservation) => {
+        const reservationDate = moment.tz(reservation.date, 'Asia/Manila');
+
+        // Convert stored 24-hour format times to 12-hour format
+        const timeFrom24 = convertTo24Hour(reservation.timeSlot.from);
+        const timeTo24 = convertTo24Hour(reservation.timeSlot.to);
+
+        // Set reservationStart and reservationEnd based on 24-hour times
+        const reservationStart = reservationDate.clone().set({
+          hour: parseInt(timeFrom24.split(':')[0], 10),
+          minute: parseInt(timeFrom24.split(':')[1], 10)
+        });
+
+        const reservationEnd = reservationDate.clone().set({
+          hour: parseInt(timeTo24.split(':')[0], 10),
+          minute: parseInt(timeTo24.split(':')[1], 10)
+        });
+
+        // Determine if the reservation is ongoing
+        const isOngoing = now.isBetween(reservationStart, reservationEnd, null, '[]');
+
+        // Get the address from coordinates
+        const address = await getAddressFromCoordinates(reservation.court.location.coordinates);
+
+        return {
+          reservationId: reservation._id,
+          courtId: reservation.court._id,
+          businessName: reservation.court.business_name,
+          date: reservationDate.format('YYYY-MM-DD'),
+          timeSlot: {
+            from: moment.tz(reservation.timeSlot.from, 'h:mm A', 'Asia/Manila').format('h:mm A'),
+            to: moment.tz(reservation.timeSlot.to, 'h:mm A', 'Asia/Manila').format('h:mm A')
+          },
+          status: isOngoing ? 'ongoing' : reservation.status,
+          paymentStatus: reservation.paymentStatus,
+          location: address
+        };
+      })
+    );
+
+    // Filter for ongoing reservations if statusFilter is set to "ongoing"
+    const filteredReservations =
+      statusFilter && statusFilter.toLowerCase() === 'ongoing'
+        ? reservationData.filter((reservation) => reservation.status === 'ongoing')
+        : reservationData;
+
+    return res.status(200).json({
+      status: 'success',
+      reservations: filteredReservations
+    });
+  } catch (error) {
+    console.error('Error fetching reservations:', error);
+    return res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.cancelReservation = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { reservationId } = req.body;
+
+    if (!reservationId) {
+      return res.status(400).json({ status: 'error', message: 'Reservation ID is required.' });
+    }
+
+    // find the reservation by ID and ensure it belongs to the authenticated user
+    const reservation = await Reservation.findOne({
+      _id: reservationId,
+      user: userId
+    });
+
+    console.log('Fetched reservation:', reservation);
+
+    // if the reservation does not exist, respond with an error
+    if (!reservation) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Reservation not found or does not belong to the user.'
+      });
+    }
+
+    // update the status of the reservation to 'cancelled' using findByIdAndUpdate
+    const updatedReservation = await Reservation.findByIdAndUpdate(
+      reservationId,
+      { status: 'cancelled' },
+      { new: true }
+    );
+
+    // log the updated reservation for debugging
+    console.log('Updated reservation:', updatedReservation);
+
+    // if the update fails, respond with an error
+    if (!updatedReservation) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Failed to update reservation status.'
+      });
+    }
+
+    // respond with success message
+    return res.status(200).json({ status: 'success', message: 'Reservation cancelled successfully.' });
+  } catch (error) {
+    // log the error for debugging
+    console.error('Error cancelling reservation:', error);
+    return res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.getAdminReservations = async (req, res) => {
+  try {
+    const adminId = req.user.id;
+    const { date, username, dateOnly } = req.query;
+
+    const query = {};
+
+    // fetch the admin user to check their registered courts
+    const adminUser = await User.findById(adminId).populate('court');
+    if (!adminUser) {
+      return res.status(404).json({ status: 'error', message: 'Admin user not found.' });
+    }
+
+    // check if the admin has any registered courts
+    if (!adminUser.court) {
+      return res.status(404).json({ status: 'error', message: 'No courts registered for this admin.' });
+    }
+
+    // include court ID in the query
+    query.court = adminUser.court._id;
+
+    // if dateOnly is provided, fetch unique reservation dates
+    if (dateOnly) {
+      const reservations = await Reservation.find({ court: query.court }).select('date').sort({ date: 1 });
+
+      const uniqueDates = [
+        ...new Set(reservations.map((reservation) => moment.tz(reservation.date, 'Asia/Manila').format('YYYY-MM-DD')))
+      ];
+
+      return res.status(200).json({ status: 'success', dates: uniqueDates });
+    }
+
+    // check if a date is provided
+    if (date) {
+      // validate date format (YYYY-MM-DD)
+      const isValidDate = moment(date, 'YYYY-MM-DD', true).isValid();
+      if (!isValidDate) {
+        return res.status(400).json({ status: 'error', message: 'Invalid date format. Use YYYY-MM-DD.' });
+      }
+
+      // set query date to find reservations for the specified date
+      query.date = moment.tz(date, 'Asia/Manila').startOf('day').toDate();
+    }
+
+    // add username filter if provided
+    if (username) {
+      const user = await User.findOne({ username: new RegExp(username, 'i') });
+      if (user) {
+        query.user = user._id;
+      } else {
+        return res.status(404).json({ status: 'error', message: 'User not found.' });
+      }
+    }
+
+    // fetch all reservations based on the constructed query
+    const reservations = await Reservation.find(query)
+      .populate('court')
+      .populate('user', 'first_name last_name')
+      .sort({ date: 1 });
+
+    // if no reservations found
+    if (reservations.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'No reservations found.' });
+    }
+
+    const reservationDates = {};
+
+    reservations.forEach((reservation) => {
+      const reservationDate = moment.tz(reservation.date, 'Asia/Manila').format('YYYY-MM-DD');
+
+      if (!reservationDates[reservationDate]) {
+        reservationDates[reservationDate] = [];
+      }
+
+      reservationDates[reservationDate].push({
+        reservationId: reservation._id,
+        courtId: reservation.court._id,
+        selectedCourts: reservation.selectedCourt,
+        totalCourts: reservation.court.totalCourts,
+        operatingHours: reservation.court.operating_hours,
+        user: {
+          userId: reservation.user._id,
+          firstName: reservation.user.first_name,
+          lastName: reservation.user.last_name
+        },
+        timeSlot: {
+          from: moment.tz(reservation.timeSlot.from, 'h:mm A', 'Asia/Manila').format('h:mm A'),
+          to: moment.tz(reservation.timeSlot.to, 'h:mm A', 'Asia/Manila').format('h:mm A')
+        },
+        status: reservation.status,
+        paymentStatus: reservation.paymentStatus,
+        userPayment: {
+          payerEmail: reservation.payerEmail,
+          paymentMethod: reservation.paymentMethod,
+          transactionId: reservation.transactionId,
+          reservationFee: reservation.court.hourly_rate,
+          totalAmount: reservation.totalAmount,
+          datePaid: reservation.createdAt ? moment(reservation.createdAt).tz('Asia/Manila').format('YYYY-MM-DD') : null
+        }
+      });
+    });
+
+    return res.status(200).json({ status: 'success', reservationDates });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.postAdminTournament = async (req, res, io) => {
+  try {
+    const user = req.user;
+    const adminId = user.id;
+
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    // extracting fields from request body
+    const { heading, details, startDate, endDate, reservationFee, tournamentFee } = req.body;
+
+    // extract tournamentCategories from req.body dynamically
+    const tournamentCategories = [];
+    const categoryKeys = Object.keys(req.body).filter((key) => key.startsWith('tournamentCategories['));
+
+    for (let key of categoryKeys) {
+      const index = key.match(/\d+/)[0]; // extract the index from the key
+      const property = key.replace(`tournamentCategories[${index}][`, '').replace(']', '');
+
+      if (!tournamentCategories[index]) {
+        tournamentCategories[index] = {}; // initialize the object if it doesn't exist
+      }
+
+      tournamentCategories[index][property] = req.body[key];
+    }
+
+    // validate required fields
+    if (!heading || !details || !startDate || !endDate || !tournamentCategories) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Heading, details, start date, end date, participant limit, and tournament categories are required.'
+      });
+    }
+
+    const courtId = user.court;
+
+    // handle image uploads
+    const allowedImages = ['image/jpeg', 'image/png', 'image/gif'];
+    let imagesUrls = [];
+
+    if (req.files && req.files.images) {
+      const images = req.files.images;
+
+      if (Array.isArray(images)) {
+        // handle multiple file uploads
+        imagesUrls = await handleMultipleFileUploads(images, adminId, 'tournamentImage', allowedImages);
+      } else {
+        // handle single file upload
+        imagesUrls.push(await handleFileUpload(images, adminId, 'tournamentImage', allowedImages));
+      }
+    }
+
+    // Create category objects and push their ObjectIds to tournamentCategories
+    const categoryIds = [];
+    for (const category of tournamentCategories) {
+      const existingCategory = await Category.findOne({ name: category.name });
+      if (existingCategory) {
+        // Check if the participant limit is within the existing category limit
+        if (category.participantLimit <= existingCategory.participantLimit) {
+          categoryIds.push(existingCategory._id); // Use existing category
+        } else {
+          return res.status(400).json({
+            status: 'error',
+            message: `Participant limit for ${category.name} exceeds allowed limit.`
+          });
+        }
+      } else {
+        const newCategory = new Category(category);
+        await newCategory.save();
+        categoryIds.push(newCategory._id);
+      }
+    }
+
+    // create and save the new tournament
+    const tournament = new Tournament({
+      heading,
+      details,
+      startDate,
+      endDate,
+      reservationFee,
+      tournamentFee,
+      tournamentCategories: categoryIds,
+      participants: [], // initialize as empty array, we will populate it as needed
+      images: imagesUrls,
+      court: courtId,
+      postedBy: adminId
+    });
+
+    await tournament.save();
+
+    // emit event for the new tournament
+    io.emit('newTournament', {
+      status: 'success',
+      data: tournament
+    });
+
+    return res.status(201).json({ status: 'success', data: tournament });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+exports.getAllEventParticipants = async (req, res) => {
+  try {
+    const user = req.user;
+
+    // check if the user is an admin
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    // retrieve all events and their participants
+    const events = await Event.find().populate('participants');
+
+    // create an array to hold participants for all events
+    const allParticipants = events.map((event) => ({
+      eventId: event._id,
+      eventTitle: event.heading,
+      eventFee: event.eventFee,
+      reservationFee: event.reservationFee,
+      participants: event.participants,
+      createdAt: event.createdAt
+    }));
+
+    return res.status(200).json({ status: 'success', data: allParticipants });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.getEventById = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const event = await Event.findById(eventId).populate('participants');
+
+    if (!event) {
+      return res.status(404).json({ status: 'error', message: 'Event not found' });
+    }
+
+    const eventDetails = {
+      eventId: event._id,
+      eventTitle: event.heading,
+      eventFee: event.eventFee,
+      reservationFee: event.reservationFee,
+      participants: event.participants,
+      createdAt: event.createdAt
+    };
+
+    return res.status(200).json({ status: 'success', data: eventDetails });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.postAdminEvent = async (req, res, io) => {
+  try {
+    const user = req.user;
+    const adminId = user.id;
+
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    const { heading, details, startDate, endDate, reservationFee, eventFee, participantLimit } = req.body;
+
+    // validate required fields
+    if (!heading || !details || !startDate || !endDate || !participantLimit) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Heading, details, start date, end date, and participant limit are required.'
+      });
+    }
+
+    const courtId = user.court;
+
+    const allowedImages = ['image/jpeg', 'image/png', 'image/gif'];
+
+    let imagesUrls = [];
+    if (req.files && req.files.images) {
+      const images = req.files.images;
+
+      if (Array.isArray(images)) {
+        // handle multiple file uploads
+        imagesUrls = await handleMultipleFileUploads(images, adminId, 'eventImage', allowedImages);
+      } else {
+        // handle single file upload
+        imagesUrls.push(await handleFileUpload(images, adminId, 'eventImage', allowedImages));
+      }
+    }
+
+    const parsedStartDate = moment.tz(startDate, 'Asia/Manila');
+    const parsedEndDate = moment.tz(endDate, 'Asia/Manila');
+
+    // create and save the new event
+    const event = new Event({
+      heading,
+      details,
+      startDate: parsedStartDate.toDate(),
+      endDate: parsedEndDate.toDate(),
+      reservationFee,
+      eventFee,
+      participantLimit,
+      participants: [], // initialize as empty array we will populate it as needed
+      images: imagesUrls,
+      court: courtId,
+      postedBy: adminId
+    });
+
+    await event.save();
+
+    io.emit('newEvent', {
+      status: 'success',
+      data: event
+    });
+
+    return res.status(201).json({ status: 'success', data: event });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.postAdminAnnouncement = async (req, res, io) => {
+  try {
+    const user = req.user;
+    const adminId = user.id;
+
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    const { heading, details } = req.body;
+    if (!heading || !details) {
+      return res.status(400).json({ status: 'error', message: 'Heading and details are required.' });
+    }
+
+    const courtId = user.court;
+
+    const allowedImages = ['image/jpeg', 'image/png', 'image/gif'];
+
+    let imagesUrls = [];
+    if (req.files && req.files.images) {
+      const images = req.files.images;
+
+      if (Array.isArray(images)) {
+        // handle multiple file uploads
+        imagesUrls = await handleMultipleFileUploads(images, adminId, 'announcementImage', allowedImages);
+      } else {
+        // handle single file upload
+        imagesUrls.push(await handleFileUpload(images, adminId, 'announcementImage', allowedImages));
+      }
+    }
+
+    // create and save the new announcement
+    const announcement = new Announcement({
+      heading,
+      details,
+      images: imagesUrls,
+      court: courtId,
+      postedBy: adminId
+    });
+
+    await announcement.save();
+
+    io.emit('newAnnouncement', {
+      status: 'success',
+      data: announcement
+    });
+
+    return res.status(201).json({ status: 'success', data: announcement });
+  } catch (err) {
+    error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.getAllPosts = async (req, res) => {
+  try {
+    const { type, dateFilter, sort } = req.query;
+
+    // base query
+    const query = {};
+
+    // filter by type if provided
+    if (type === 'announcement') {
+      query.__t = { $ne: 'Event' }; // only announcements
+    } else if (type === 'event') {
+      query.__t = 'Event'; // only events
+    } else if (type === 'tournament') {
+      query.__t = 'Tournament'; // only tournaments
+    }
+
+    // date Filter Logic
+    if (dateFilter) {
+      const today = moment.tz('Asia/Manila').startOf('day');
+      let startDate;
+      let endDate;
+
+      switch (dateFilter.toLowerCase()) {
+        case 'today':
+          startDate = today;
+          endDate = today.clone().endOf('day');
+          break;
+        case 'this week':
+          startDate = today.clone().startOf('week');
+          endDate = today.clone().endOf('week');
+          break;
+        case 'this month':
+          startDate = today.clone().startOf('month');
+          endDate = today.clone().endOf('month');
+          break;
+        default:
+          return res.status(400).json({ status: 'error', message: 'Invalid date filter.' });
+      }
+      query.createdAt = { $gte: startDate.toDate(), $lte: endDate.toDate() };
+    }
+
+    let sortCriteria = { createdAt: -1 }; // default sorting by createdAt in descending order
+    if (sort) {
+      const [field, order] = sort.split(':');
+      sortCriteria = {
+        [field]: order === 'asc' ? 1 : -1 // ascending if 'asc' is specified, otherwise descending
+      };
+    }
+
+    // fetch posts based on the constructed query
+    const posts = await Announcement.find(query).sort(sortCriteria);
+
+    return res.status(200).json({ status: 'success', data: posts });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.getAdminPosts = async (req, res) => {
+  try {
+    const user = req.user;
+
+    // get the court ID from the user object
+    const courtId = user.court;
+
+    // get the type of items to fetch from query parameters (can be 'all', 'announcement', or 'event')
+    const { type } = req.query;
+
+    // build the base query object
+    const query = {
+      court: courtId,
+      postedBy: user.id
+    };
+
+    // modify query based on the type
+    if (type === 'announcement') {
+      // exclude events by filtering out documents with the __t field
+      query.__t = { $ne: 'Event' }; // get all documents that are not Events
+    } else if (type === 'event') {
+      query.__t = 'Event'; // filter for events only
+      // if type is 'all', do not modify the query (all items for the court by the user will be fetched)
+    } else if (type === 'tournament') {
+      query.__t = 'Tournament'; // filter for tournaments only
+    }
+
+    log(query);
+
+    const posts = await Announcement.find(query).sort({ createdAt: -1 });
+
+    return res.status(200).json({ status: 'success', data: posts });
+  } catch (err) {
+    error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.removeAnnouncement = async (req, res, io) => {
+  try {
+    const user = req.user;
+
+    log(user);
+
+    // allow only admins to delete announcements
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    const { announcementId } = req.params;
+
+    // find the announcement and check if it belongs to the admin's court
+    const announcement = await Announcement.findById(announcementId);
+
+    if (!announcement) {
+      return res.status(404).json({ status: 'error', message: 'Announcement not found.' });
+    }
+
+    // check if the admin is from the same court as the announcement
+    if (!announcement.court.equals(user.court) && !announcement.postedBy.equals(user.id)) {
+      return res.status(403).json({ status: 'error', message: 'You can only delete your own court’s announcements.' });
+    }
+
+    // proceed with deletion if checks pass
+    await Announcement.findByIdAndDelete(announcementId);
+
+    io.emit('deleteAnnouncement', {
+      status: 'success'
+    });
+
+    return res.status(200).json({ status: 'success', message: 'Announcement deleted successfully.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.removeEvent = async (req, res, io) => {
+  try {
+    const user = req.user;
+
+    // allow only admins to delete events
+    if (!user.isAdmin) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins only.' });
+    }
+
+    const { eventId } = req.params;
+
+    // find the event and check if it belongs to the admin's court
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ status: 'error', message: 'Event not found.' });
+    }
+
+    // check if the admin is from the same court as the event
+    if (!event.court.equals(user.court) && !event.postedBy.equals(user.id)) {
+      return res.status(403).json({ status: 'error', message: 'You can only delete your own court’s events.' });
+    }
+
+    // proceed with deletion if checks pass
+    await Event.findByIdAndDelete(eventId);
+
+    io.emit('deleteEvent', {
+      status: 'success'
+    });
+
+    return res.status(200).json({ status: 'success', message: 'Event deleted successfully.' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.joinEvent = async (req, res, io) => {
+  try {
+    const userId = req.user.id;
+    const { eventId } = req.body;
+
+    if (!eventId) {
+      return res.status(400).json({ status: 'error', message: 'Event ID is required.' });
+    }
+
+    // find the event by ID
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ status: 'error', message: 'Event not found.' });
+    }
+
+    // check if the event is ongoing
+    const currentTime = moment.tz('Asia/Manila');
+    log('current time: ', currentTime);
+    if (currentTime.isAfter(moment(event.endDate))) {
+      return res.status(400).json({ status: 'error', message: 'Cannot join the event as it has already ended.' });
+    }
+
+    // check if participant limit is reached
+    if (event.participants.length >= event.participantLimit) {
+      return res.status(400).json({ status: 'error', message: 'Participant limit reached.' });
+    }
+
+    // check if user is already a participant
+    if (event.participants.includes(userId)) {
+      return res.status(400).json({ status: 'error', message: 'User is already a participant.' });
+    }
+
+    // calculate total payment required
+    const totalAmount = (event.reservationFee || 0) + (event.eventFee || 0);
+
+    const returnUrl = `${config.get('frontendUrl')}/user/confirm-event-payment?eventId=${eventId}`;
+    const cancelUrl = `${config.get('frontendUrl')}/user/events-and-tournaments?tab=my-feed`;
+
+    if (totalAmount > 0) {
+      // if there is a fee, create a PayPal payment
+      const payment = await createPayPalPayment(totalAmount, null, null, returnUrl, cancelUrl);
+      const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
+
+      // respond with the approval URL to redirect the user for payment
+      return res.status(200).json({
+        status: 'payment_required',
+        message: 'Payment is required to join the event.',
+        approvalUrl
+      });
+    }
+
+    // add user to participants array
+    event.participants.push(userId);
+    await event.save();
+
+    // emit an event to notify all clients about the new participant
+    io.emit('participantJoined', {
+      status: 'success',
+      eventId: event._id,
+      participantId: userId,
+      participantsCount: event.participants.length
+    });
+
+    return res.status(200).json({ status: 'success', message: 'Successfully joined the event.', data: event });
+  } catch (err) {
+    error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.getOngoingEvents = async (req, res) => {
+  try {
+    const currentTime = moment.tz('Asia/Manila');
+    const ongoingEvents = await Event.find({
+      endDate: { $gte: currentTime.toDate() }
+    });
+
+    return res.status(200).json({ status: 'success', data: ongoingEvents });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.checkIfUserJoined = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { eventId } = req.params;
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ status: 'error', message: 'Event not found.' });
+    }
+
+    const isJoined = event.participants.includes(userId);
+    return res.status(200).json({ status: 'success', isJoined });
+  } catch (err) {
+    error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.confirmEventPayment = async (req, res, next) => {
+  const { token, eventId } = req.query;
+
+  try {
+    const event = await Event.findById(eventId).populate('court');
+    if (!event) {
+      return next(createError(404, 'Event not found'));
+    }
+
+    // get the court owner's email from the populated court data
+    const courtOwnerEmail = event.court.business_email;
+
+    // Process the payment if the token is provided
+    if (token) {
+      const paymentCapture = await capturePayPalPayment(token);
+      if (paymentCapture.status !== 'COMPLETED') {
+        return next(createError(400, 'Payment was not successful'));
+      }
+      const paymentDetails = paymentCapture.purchase_units[0].payments;
+      const transaction = paymentDetails.captures[0];
+      const totalAmount = transaction.amount.value;
+      log(totalAmount);
+
+      // Initiate payout to the event owner
+      await createPayPalPayout(courtOwnerEmail, totalAmount);
+      log('Payout to event owner initiated');
+
+      // Add user to event participants
+      const userId = req.user.id;
+      event.participants.push(userId);
+      await event.save();
+
+      // Optional: Notify clients about the new participant
+      // io.emit('participantJoined', {
+      //   status: 'success',
+      //   eventId: event._id,
+      //   participantId: userId,
+      //   participantsCount: event.participants.length
+      // });
+
+      // Redirect to the specified URL
+      return res.redirect(`/user/events-and-tournaments?tab=my-feed`);
+    }
+
+    // If no token, return an error indicating a token is required
+    return next(createError(400, 'Payment token is required'));
+  } catch (err) {
+    error('Error confirming event payment:', err);
+    return next(createError(500, 'Internal Server Error'));
   }
 };

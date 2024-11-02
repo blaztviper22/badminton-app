@@ -20,7 +20,12 @@ const MAX_FILE_SIZE = config.get('maxFileSize');
 
 // database connection
 const connectDB = require('./config/db');
-const { startReservationCleanupCronJob } = require('./src/utils/reservationCleanup.js');
+const {
+  startReservationCleanupCronJob,
+  startCancelledCleanupCronJob,
+  startPendingCleanupCronJob
+} = require('./src/utils/reservationCleanup.js');
+const userSocketManager = require('./src/utils/userSocketManager.js');
 connectDB(config);
 
 const app = express();
@@ -34,36 +39,28 @@ app.set('views', path.join(__dirname, 'client', 'views'));
 // check the environment variable to decide on security features
 const disableSecurity = config.get('disableSecurity');
 
-// Set CORS options
-const corsOptions = {
-  origin: [config.get('frontendUrl'), 'https://checkoutanalytics-test.adyen.com'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-};
-
-// CORS middleware allows your API to be accessed from other origins (domains)
-if (!disableSecurity) {
-  app.use(cors(corsOptions));
-}
 app.disable('x-powered-by'); // reduce fingerprinting
 app.use(cookieParser());
 // enable compression reduces the size of html css and js to significantly improves the latency
 app.use(compression());
 // for logging HTTP requests.
 app.use(morgan('dev'));
-//It protects against common security vulnerabilities like clickjacking, XSS, etc.
 
 if (!disableSecurity) {
+  // CORS middleware allows your API to be accessed from other origins (domains)
+  app.use(cors());
+  //It protects against common security vulnerabilities like clickjacking, XSS, etc.
+  app.use(helmet());
   app.use(
     helmet.contentSecurityPolicy({
       directives: {
         defaultSrc: ["'self'"],
+        connectSrc: ["'self'", 'https://nominatim.openstreetmap.org', 'https://raw.githubusercontent.com'],
         baseUri: ["'self'"],
         fontSrc: ["'self'", 'https:', 'data:'],
         formAction: ["'self'"],
         frameAncestors: ["'self'"],
-        imgSrc: ["'self'", 'data:'],
+        imgSrc: ["'self'", 'data:', 'https://*.tile.openstreetmap.org'],
         objectSrc: ["'none'"],
         scriptSrc: [
           "'self'",
@@ -74,9 +71,12 @@ if (!disableSecurity) {
         scriptSrcAttr: ["'none'"],
         styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
         upgradeInsecureRequests: []
-      }
+      },
+      reportOnly: false
     })
   );
+} else {
+  console.log('Security features disabled, CORS and Helmet are not applied.');
 }
 
 // middleware to parse JSON bodies from incoming requests
@@ -112,18 +112,29 @@ app.use(
   })
 );
 
-// Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('New client connected');
+  const userId = socket.handshake.query.userId;
 
-  // You can listen for events from the client
+  if (userId) {
+    userSocketManager.addUserSocket(userId, socket);
+    console.log(`User ${userId} connected. Current users: ${userSocketManager.getUserList()}`);
+
+    socket.on('clientReady', () => {
+      console.log(`User ${userId} is ready.`);
+      socket.emit('welcome', { message: 'You are now connected and ready to receive notifications!' });
+    });
+
+    socket.on('disconnect', () => {
+      userSocketManager.removeUserSocket(userId);
+      console.log(`User ${userId} disconnected.`);
+    });
+  } else {
+    console.error('User ID not provided during socket connection.');
+  }
+
   socket.on('message', (message) => {
     console.log('Received message:', message);
-  });
-
-  // Notify clients about a reservation update
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
   });
 });
 
@@ -169,6 +180,9 @@ const server = httpServer.listen(config.get('port'), config.get('host'), () => {
   startTokenCleanupCronJob();
   // start the reservation cleanup cron job
   startReservationCleanupCronJob();
+
+  startCancelledCleanupCronJob(io);
+  startPendingCleanupCronJob(io);
 });
 
 // handle graceful shutdown

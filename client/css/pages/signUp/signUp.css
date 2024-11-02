@@ -239,6 +239,9 @@ form button i {
   color: red;
   visibility: visible;
 }
+.logo-container {
+  z-index: 1000;
+}
 
 .container {
   width: 60%;

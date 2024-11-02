@@ -18,7 +18,8 @@ const requiredEnvVars = [
   'R2_AUTH_KEY',
   'R2_UPLOAD_URL',
   'PAYPAL_CLIENT_ID',
-  'PAYPAL_SECRET_KEY'
+  'PAYPAL_SECRET_KEY',
+  'PAYPAL_WEBHOOK_ID'
 ];
 
 requiredEnvVars.forEach((varName) => {

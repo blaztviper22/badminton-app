@@ -20,12 +20,18 @@ const pageTitles = {
   userprofile: 'Edit Profile',
   courtregistration: 'Court Registration',
   admindash: 'Welcome',
-  courtreservations: 'Court Schedule',
-  eventtournaments: 'Event & Tournaments',
-  viewuserpayment: 'User Payment',
   usercourtlist: 'Reserve Court',
   usercourtreservation: 'Create Reservation',
-  usercourtviewing: 'View Available Courts'
+  usercourtviewing: 'View Available Courts',
+  userviewannouncement: 'View Announcement',
+  userschedulereservation: 'Reservation Schedule',
+  viewusercourtreservationsched: 'Reservation Schedule',
+  adminschedulereservation: 'Schedule',
+  adminviewuserpayment: 'User Payments',
+  adminviewuserpaymentet: 'User Payments',
+  viewadminpost: 'View Posts',
+  vieweventtournalist: 'Events and Tournaments',
+  viewevent: 'View Event'
 };
 
 // Page-specific stylesheets and scripts
@@ -94,7 +100,34 @@ const pageAssets = {
     hasNavbar: false,
     hasSidebar: true
   },
-  courtreservations: {
+  adminschedulereservation: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+  adminviewuserpayment: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+  adminviewuserpaymentet: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+  viewadminpost: {
     styles: [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
       'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
@@ -104,24 +137,6 @@ const pageAssets = {
     hasSidebar: true
   },
 
-  eventtournaments: {
-    styles: [
-      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
-      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
-    ],
-    scripts: [],
-    hasNavbar: false,
-    hasSidebar: true
-  },
-  viewuserpayment: {
-    styles: [
-      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
-      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
-    ],
-    scripts: [],
-    hasNavbar: false,
-    hasSidebar: true
-  },
   usercourtlist: {
     styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
     scripts: [],
@@ -142,6 +157,42 @@ const pageAssets = {
     scripts: ['https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'],
     hasNavbar: true,
     hasSidebar: false
+  },
+  userviewannouncement: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
+  },
+  userschedulereservation: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
+  },
+  viewusercourtreservationsched: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
+  },
+  vieweventtournalist: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+  viewevent: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
   }
 };
 
@@ -189,16 +240,22 @@ module.exports = () => {
       signup: './client/js/pages/signUp/signUp.js',
       verification: './client/js/pages/verification/verification.js',
       resetpassword: './client/js/pages/resetpassword/resetPassword.js',
-      userdash: './client/js/pages/userdash/userDash.js',
+      userdash: './client/js/pages/userdash/userdash.js',
       userprofile: './client/js/pages/userprofile/userprofile.js',
       courtregistration: './client/js/pages/courtregistration/courtRegistration.js',
-      admindash: './client/js/pages/admindash/adminDash.js',
-      courtreservations: './client/js/pages/courtreservations/courtReservations.js',
-      eventtournaments: './client/js/pages/event&tournaments/event&Tournaments.js',
-      viewuserpayment: './client/js/pages/viewuserpayment/viewUserPayment.js',
+      admindash: './client/js/pages/admindash/admindash.js',
+      adminschedulereservation: './client/js/pages/adminschedulereservation/adminScheduleReservation.js',
+      adminviewuserpayment: './client/js/pages/adminviewuserpayment/adminViewUserPayment.js',
+      adminviewuserpaymentet: './client/js/pages/adminviewuserpaymentet/adminViewUserPaymentET.js',
+      viewadminpost: './client/js/pages/createpostadmin/createPostAdmin.js',
       usercourtlist: './client/js/pages/usercourtlist/userCourtList.js',
       usercourtviewing: './client/js/pages/usercourtviewing/userCourtViewing.js',
-      usercourtreservation: './client/js/pages/usercourtreservation/userCourtReservation.js'
+      usercourtreservation: './client/js/pages/usercourtreservation/userCourtReservation.js',
+      userviewannouncement: './client/js/pages/userviewannouncement/userViewAnnouncement.js',
+      userschedulereservation: './client/js/pages/userschedulereservation/userScheduleReservation.js',
+      viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js',
+      vieweventtournalist: './client/js/pages/vieweventtournalist/viewEventTournaList.js',
+      viewevent: './client/js/pages/vieweventparticipants/viewEventParticipants.js'
     },
     output: {
       filename: '[name].[contenthash].js',

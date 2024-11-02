@@ -28,38 +28,6 @@ body {
   width: calc(100% - 250px);
 }
 
-/* Profile Navigation */
-.profile-nav {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  width: 100%;
-  background-color: #fff;
-  border-bottom: 1px solid #ddd;
-  padding: 10px 0;
-  margin-bottom: 20px;
-}
-
-.profile-nav a {
-  color: #142850;
-  text-decoration: none;
-  padding: 10px 40px;
-  font-weight: 500;
-  text-align: center;
-  flex-grow: 1;
-}
-
-.profile-nav a.active {
-  background-color: #f1f1f1;
-  font-weight: bold;
-  border-bottom: 3px solid #142850;
-}
-
-.profile-nav a:hover {
-  background-color: #f1f1f1;
-}
-
-/* Updated Box Styles */
 .box {
   background-color: #fff;
   border-radius: 8px;
@@ -70,8 +38,13 @@ body {
 
 .filter-container {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-bottom: 10px;
+  align-items: center;
+}
+
+.filter-left {
+  font-weight: 600;
 }
 
 .filter-button {
@@ -80,10 +53,12 @@ body {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  background-color: #eee; /* Button background color */
+  background-color: #eee;
   display: flex;
   align-items: center;
   font-weight: 500;
+  text-decoration: none;
+  font-size: 14px;
 }
 
 .filter-button i {
@@ -95,7 +70,6 @@ body {
   color: #fff;
 }
 
-/* Table Styles */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -130,24 +104,51 @@ tbody tr:last-child td {
   border-bottom: 1px solid #e0e0e0;
 }
 
-tbody td input {
-  width: 100%;
-  border: none;
-  background-color: transparent;
-  font-size: 14px;
-  text-align: center;
+tbody tr:nth-child(odd) {
+  background-color: #f9f9f9;
 }
 
-/* View Schedule Button */
-.view-schedule-button {
-  padding: 5px 15px;
-  background-color: green;
-  color: #fff;
+tbody tr:nth-child(even) {
+  background-color: #fff;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-container select {
+  padding: 10px 20px;
+  color: #000;
   border: none;
   border-radius: 5px;
-  cursor: pointer;
+  background-color: #eee;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
 }
 
-.view-schedule-button:hover {
-  background-color: #66bb6a;
+.filter-container button {
+  margin-left: 10px;
+}
+
+.filter-container label {
+  margin-right: 10px;
+}
+
+.search-field {
+  padding: 10px 20px;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  background-color: #eee;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.search-field:focus {
+  outline-color: #000;
 }
