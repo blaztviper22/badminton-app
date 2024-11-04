@@ -251,6 +251,7 @@ async function submitForm() {
 
   // determine the endpoint based on the selected category
   const selectedCategory = categorySelect.value;
+  log(selectedCategory);
   let endpoint = '';
 
   switch (selectedCategory) {
@@ -262,7 +263,13 @@ async function submitForm() {
       formData.append('startDate', getById('start-date').value);
       formData.append('endDate', getById('end-date').value);
       formData.append('eventFee', getById('eventFee').value);
+      formData.append('reservationFee', getById('reservationFee').value);
       formData.append('participantLimit', getById('participantLimit').value);
+      break;
+    case 'membership':
+      endpoint = '/user/admin/membership';
+      formData.append('reservationFee', getById('reservationFee').value);
+      formData.append('membershipFee', getById('membershipFee').value);
       break;
     default:
       alert('Please select a valid category.');
@@ -319,8 +326,9 @@ function displayPosts(response) {
       const postCard = document.createElement('div');
       postCard.classList.add('post-card');
 
-      const isEvent = post.__t !== undefined;
-      postCard.setAttribute('data-post-id', post._id + (isEvent ? '-event' : ''));
+      const isEvent = post.__t === 'Event';
+      const isMembership = post.__t === 'Membership';
+      postCard.setAttribute('data-post-id', post._id + (isEvent ? '-event' : isMembership ? '-membership' : ''));
 
       // convert the createdAt date to Philippine time
       const createdAt = new Date(post.createdAt);
@@ -347,7 +355,7 @@ function displayPosts(response) {
             post.court?.business_logo || '/assets/images/placeholder_50x50.png'
           }" alt="Business Logo" class="profile-pic" />
           <div class="name-and-time">
-            <span class="name">${post.court.business_name}</span>
+            <span class="name">${post.court?.business_name}</span>
             <span class="time">${formattedDate}</span> <!-- Displaying the formatted date -->
           </div>
         </div>
@@ -371,7 +379,7 @@ function displayPosts(response) {
       });
     });
   } else {
-    error('Failed to load posts or invalid response format.');
+    // error('Failed to load posts or invalid response format.');
     const noPostsMessage = document.createElement('div');
     noPostsMessage.classList.add('no-posts-message');
     noPostsMessage.textContent = 'No posts yet';
@@ -396,7 +404,7 @@ async function fetchPost() {
     displayPosts(posts);
   } catch (err) {
     error('Error fetching posts:', err);
-    alert('Failed to load posts. Please try again later.');
+    // alert('Failed to load posts. Please try again later.');
   }
 }
 

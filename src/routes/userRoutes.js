@@ -29,7 +29,8 @@ const {
   getOngoingEvents,
   checkIfUserJoined,
   confirmEventPayment,
-  getEventById
+  getEventById,
+  postAdminMembership
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -112,8 +113,6 @@ let routes = (app, io) => {
 
   router.get('/event/check-joined/:eventId', verifyToken, roleChecker(['player', 'coach']), checkIfUserJoined);
 
-  router.get('/event/check-joined/:eventId', verifyToken, roleChecker(['player', 'coach']), checkIfUserJoined);
-
   router.post('/event/join', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     joinEvent(req, res, io);
   });
@@ -126,6 +125,8 @@ let routes = (app, io) => {
   router.post('/admin/tournament', verifyToken, roleChecker(['admin']), (req, res, next) => {
     postAdminTournament(req, res, io);
   });
+
+  router.post('/admin/membership', verifyToken, roleChecker(['admin']), postAdminMembership);
 
   router.get('/posts', verifyToken, roleChecker(['player', 'coach']), getAllPosts);
 

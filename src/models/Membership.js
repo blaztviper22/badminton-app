@@ -12,7 +12,13 @@ const membershipSchema = new mongoose.Schema(
       type: Number,
       required: false,
       default: null
-    }
+    },
+    participants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    ]
   },
   {
     timestamps: true,

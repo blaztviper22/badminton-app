@@ -31,6 +31,7 @@ const path = require('path');
 const { geocodeAddress, getAddressFromCoordinates } = require('../utils/addressUtils');
 const { handleMultipleFileUploads, handleFileUpload } = require('../utils/fileUpload');
 const Category = require('../models/Category');
+const Membership = require('../models/Membership');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -1484,6 +1485,8 @@ exports.getAdminPosts = async (req, res) => {
       // if type is 'all', do not modify the query (all items for the court by the user will be fetched)
     } else if (type === 'tournament') {
       query.__t = 'Tournament'; // filter for tournaments only
+    } else if (type === 'membership') {
+      query.__t = 'Membership'; // filter for membership only
     }
 
     log(query);
@@ -1573,6 +1576,65 @@ exports.removeEvent = async (req, res, io) => {
   }
 };
 
+exports.joinMembership = async (req, res, io) => {
+  try {
+    const userId = req.user.id;
+    const { membershipId } = req.body;
+
+    if (!membershipId) {
+      return res.status(400).json({ status: 'error', message: 'Membership ID is required.' });
+    }
+    const membership = await Membership.findById(membershipId);
+
+    if (!membership) {
+      return res.status(404).json({ status: 'error', message: 'Membership not found.' });
+    }
+
+    // check if user is already a participant
+    if (membership.participants.includes(userId)) {
+      return res.status(400).json({ status: 'error', message: 'User is already a participant.' });
+    }
+
+    // calculate total payment required
+    const totalAmount = membership.membershipFee;
+
+    const returnUrl = `${config.get('frontendUrl')}/user/confirm-membership-payment?membershipId=${membershipId}`;
+    const cancelUrl = `${config.get('frontendUrl')}/user/tournaments?tab=my-feed`;
+
+    if (totalAmount > 0) {
+      // if there is a fee, create a PayPal payment
+      const payment = await createPayPalPayment(totalAmount, null, null, returnUrl, cancelUrl);
+      const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
+
+      // respond with the approval URL to redirect the user for payment
+      return res.status(200).json({
+        status: 'payment_required',
+        message: 'Payment is required to join the event.',
+        approvalUrl
+      });
+    }
+
+    // add user to participants array
+    membership.participants.push(userId);
+    await event.save();
+
+    // emit an event to notify all clients about the new participant
+    io.emit('participantJoined', {
+      status: 'success',
+      eventId: membership._id,
+      participantId: userId,
+      participantsCount: membership.participants.length
+    });
+
+    return res
+      .status(200)
+      .json({ status: 'success', message: 'Successfully joined the membership program.', data: membership });
+  } catch (err) {
+    error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
 exports.joinEvent = async (req, res, io) => {
   try {
     const userId = req.user.id;
@@ -1607,10 +1669,11 @@ exports.joinEvent = async (req, res, io) => {
     }
 
     // calculate total payment required
-    const totalAmount = (event.reservationFee || 0) + (event.eventFee || 0);
+    // const totalAmount = (event.reservationFee || 0) + (event.eventFee || 0);
+    const totalAmount = event.eventFee || 0;
 
     const returnUrl = `${config.get('frontendUrl')}/user/confirm-event-payment?eventId=${eventId}`;
-    const cancelUrl = `${config.get('frontendUrl')}/user/events-and-tournaments?tab=my-feed`;
+    const cancelUrl = `${config.get('frontendUrl')}/user/tournaments?tab=my-feed`;
 
     if (totalAmount > 0) {
       // if there is a fee, create a PayPal payment
@@ -1717,7 +1780,7 @@ exports.confirmEventPayment = async (req, res, next) => {
       // });
 
       // Redirect to the specified URL
-      return res.redirect(`/user/events-and-tournaments?tab=my-feed`);
+      return res.redirect(`/user/tournaments?tab=my-feed`);
     }
 
     // If no token, return an error indicating a token is required
@@ -1725,5 +1788,53 @@ exports.confirmEventPayment = async (req, res, next) => {
   } catch (err) {
     error('Error confirming event payment:', err);
     return next(createError(500, 'Internal Server Error'));
+  }
+};
+
+// controller function to handle membership posting by admin or court owner
+exports.postAdminMembership = async (req, res) => {
+  try {
+    const user = req.user;
+    const adminId = user.id;
+
+    // check if the user is an admin or court owner
+    if (!user.isAdmin && !user.isCourtOwner) {
+      return res.status(403).json({ status: 'error', message: 'Access denied. Admins or court owners only.' });
+    }
+
+    const { heading, details, reservationFee, membershipFee } = req.body;
+
+    // validate required fields
+    if (!heading || !details) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Heading and details are required.'
+      });
+    }
+
+    const courtId = user.court;
+
+    // create new membership document
+    const newMembership = new Membership({
+      heading,
+      details,
+      images: req.body.images || [],
+      court: courtId,
+      postedBy: adminId,
+      reservationFee,
+      membershipFee
+    });
+
+    await newMembership.save();
+
+    res.status(201).json({
+      status: 'success',
+      data: {
+        membership: newMembership
+      }
+    });
+  } catch (err) {
+    error('Error posting membership:', err);
+    res.status(500).json({ status: 'error', message: 'Server error. Please try again later.' });
   }
 };

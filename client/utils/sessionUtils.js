@@ -166,7 +166,7 @@ export function startSessionChecks() {
   }
 
   // check session validity every 40 seconds
-  sessionCheckIntervalId = setInterval(checkSessionValidity, 50000);
+  sessionCheckIntervalId = setInterval(checkSessionValidity, 5000);
 
   // initial session check on page load
   document.addEventListener('DOMContentLoaded', () => {

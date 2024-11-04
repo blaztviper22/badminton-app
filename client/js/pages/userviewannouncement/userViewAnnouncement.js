@@ -91,8 +91,14 @@ function displayPosts(response) {
       const postCard = document.createElement('div');
       postCard.classList.add('post-card');
 
-      const isEvent = post.__t !== undefined;
-      postCard.setAttribute('data-post-id', post._id + (isEvent ? '-event' : ''));
+      // const isEvent = post.__t !== undefined;
+      // const isMembership = post.__t === 'Membership';
+      // log(isMembership);
+      // postCard.setAttribute('data-post-id', post._id + (isEvent ? '-event' : isMembership ? '-membership' : ''));
+
+      const isEvent = post.__t === 'Event';
+      const isMembership = post.__t === 'Membership';
+      postCard.setAttribute('data-post-id', post._id + (isEvent ? '-event' : isMembership ? '-membership' : ''));
 
       // convert the createdAt date to Philippine time
       const createdAt = new Date(post.createdAt);
@@ -111,7 +117,8 @@ function displayPosts(response) {
       // constructing the images HTML
       const imagesHtml = (post.images || []).map((image) => `<img src="${image}" alt="Post Image" />`).join('');
 
-      let buttonText = isEvent ? 'Join' : 'View More';
+      // let buttonText = isEvent || Membership ? 'Join' : 'View More';
+      let buttonText = isEvent || isMembership ? 'Join' : 'View More';
 
       postCard.innerHTML = `
         <i class="fas fa-ellipsis-v three-dots" id="three-dots"></i>
@@ -121,7 +128,7 @@ function displayPosts(response) {
             post.court?.business_logo || '/assets/images/placeholder_50x50.png'
           }" alt="Business Logo" class="profile-pic" />
           <div class="name-and-time">
-            <span class="name">${post.court.business_name}</span>
+            <span class="name">${post.court?.business_name}</span>
             <span class="time">${formattedDate}</span>
           </div>
         </div>
