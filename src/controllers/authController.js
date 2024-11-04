@@ -153,7 +153,7 @@ exports.loginUser = async (req, res, next) => {
     // define cookie options for access token (15 minutes)
     const accessCookieOptions = {
       ...cookieOptions,
-      maxAge: 15 * 60 * 1000 // 15 minutes
+      maxAge: 60 * 60 * 1000 // 60 minutes
     };
 
     // define cookie options for refresh token (7 days)
@@ -596,12 +596,16 @@ exports.refreshToken = async (req, res, next) => {
       await addToBlacklist(incomingAccessToken, 'access');
     }
 
-    const cookieOptions = config.get('cookieOptions');
+    // define cookie options for access token (15 minutes)
+    const accessCookieOptions = {
+      ...cookieOptions,
+      maxAge: 60 * 60 * 1000 // 60 minutes
+    };
 
     // Generate new access token
     const accessToken = await generateAccessToken(decoded.id);
 
-    return res.status(200).cookie('accessToken', accessToken, cookieOptions).json({
+    return res.status(200).cookie('accessToken', accessToken, accessCookieOptions).json({
       success: true,
       code: 201,
       message: 'Access token refreshed'
