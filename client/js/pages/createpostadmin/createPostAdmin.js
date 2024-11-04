@@ -347,7 +347,7 @@ function displayPosts(response) {
             post.court?.business_logo || '/assets/images/placeholder_50x50.png'
           }" alt="Business Logo" class="profile-pic" />
           <div class="name-and-time">
-            <span class="name">${post.postedBy.first_name} ${post.postedBy.last_name}</span>
+            <span class="name">${post.court.business_name}</span>
             <span class="time">${formattedDate}</span> <!-- Displaying the formatted date -->
           </div>
         </div>

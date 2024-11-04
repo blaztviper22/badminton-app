@@ -18,7 +18,7 @@ module.exports = {
   frontendUrl: process.env.FRONTEND_URL,
   disableSecurity: process.env.DISABLE_SECURITY === 'true',
   cookieOptions: {
-    maxAge: 15 * 60 * 1000, // 15 minutes in milliseconds
+    maxAge: 60 * 60 * 1000, // 60 minutes in milliseconds
     httpOnly: true,
     secure: process.env.DISABLE_SECURITY === 'false',
     sameSite: 'lax'

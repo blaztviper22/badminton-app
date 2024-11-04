@@ -131,7 +131,7 @@ let routes = (app, io) => {
 
   router.get('/admin/posts', verifyToken, roleChecker(['admin']), getAdminPosts);
 
-  router.get('/events-and-tournaments', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+  router.get('/announcements', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const tab = req.query.tab;
     let filePath;
 
@@ -261,6 +261,11 @@ let routes = (app, io) => {
 
   router.get('/edit-profile', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/userprofile.html');
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/admin/membership', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/adminviewmembership.html');
     serveFile(filePath, res, next);
   });
 

@@ -31,7 +31,8 @@ const pageTitles = {
   adminviewuserpaymentet: 'User Payments',
   viewadminpost: 'View Posts',
   vieweventtournalist: 'Events and Tournaments',
-  viewevent: 'View Event'
+  viewevent: 'View Event',
+  adminviewmembership: 'Membership'
 };
 
 // Page-specific stylesheets and scripts
@@ -92,6 +93,15 @@ const pageAssets = {
     hasSidebar: false
   },
   admindash: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+  adminviewmembership: {
     styles: [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
       'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
@@ -255,7 +265,8 @@ module.exports = () => {
       userschedulereservation: './client/js/pages/userschedulereservation/userScheduleReservation.js',
       viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js',
       vieweventtournalist: './client/js/pages/vieweventtournalist/viewEventTournaList.js',
-      viewevent: './client/js/pages/vieweventparticipants/viewEventParticipants.js'
+      viewevent: './client/js/pages/vieweventparticipants/viewEventParticipants.js',
+      adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js'
     },
     output: {
       filename: '[name].[contenthash].js',
