@@ -102,19 +102,32 @@ function populateTable(events) {
     event.participants.forEach((participant) => {
       const row = document.createElement('tr');
 
-      const totalBill = (event.eventFee || 0) + (event.reservationFee || 0);
+      const totalBill = event.reservationFee || 0;
+
+      // determine the bill status based on the reservation fee
+      const billStatus = event.reservationFee === null || event.reservationFee === 0 ? 'Paid' : 'Unpaid';
+
       // create table cells with dynamic data
       row.innerHTML = `
   <td>${participant.first_name} ${participant.last_name}</td>
   <td>${participant.email}</td>
   <td>${new Date().toISOString().split('T')[0]}</td> <!-- Placeholder for Date Paid -->
-  <td>${event.eventFee ? '&#8369;' + event.eventFee.toFixed(2) : 'Free'}</td>
   <td>${event.reservationFee ? '&#8369;' + event.reservationFee.toFixed(2) : 'Free'}</td>
   <td>${event.eventId}</td>
   <td class="hide-column">${event.eventTitle}</td>
   <td class="hide-column">${participant.date_of_birth.split('T')[0]}</td> <!-- Placeholder for Date of Birth -->
   <td class="hide-column">${participant.role}</td>
-  <td>&#8369;${totalBill.toFixed(2)}</td> 
+  <td>${billStatus}</td> 
+  <td>
+    <div class="action-buttons">
+      <button class="icon-button view-schedule" title="View Schedule">
+        <i class="fas fa-calendar-alt"></i>
+      </button>
+      <button class="icon-button edit-status" title="Edit Status">
+        <i class="fas fa-edit"></i>
+      </button>
+    </div>
+  </td>
 `;
 
       tbody.appendChild(row);
@@ -138,13 +151,16 @@ const generateTableHeader = () => {
       Date Paid
       <i class="sort-icon fas fa-sort"></i>
     </th>
-    <th>Event Fee</th>
     <th>Reservation Fee</th>
     <th>Event ID</th>
     <th class="hide-column">Event Title</th>
     <th class="hide-column">Date of Birth</th>
     <th class="hide-column">Role</th>
-    <th>Total Bill</th>
+    <th>
+      Bill Status
+      <i class="sort-icon fas fa-sort"></i>
+    </th>
+    <th>Action</th>
   `;
 
   thead.appendChild(headerRow);

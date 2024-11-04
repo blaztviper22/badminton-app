@@ -264,6 +264,11 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
+  router.get('/admin/membership', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/adminviewmembership.html');
+    serveFile(filePath, res, next);
+  });
+
   app.use('/user', router);
 };
 
