@@ -1,93 +1,200 @@
 <body>
-  <div class="content-container">
-    <!-- Profile Card -->
-    <div class="profile-card">
-      <i class="fas fa-edit edit-icon" id="editIconBox1"></i>
-      <div id="profilePictureContainer">
-        <img src="/assets/images/blank-profile.png" alt="Profile Picture" id="profilePic" />
-        <i class="fas fa-camera upload-icon" id="cameraIcon"></i>
-      </div>
-      <input type="file" id="imageUpload" accept="image/*" />
-      <input type="text" id="username" value="Username" readonly />
-      <button class="navbar-item active">Personal Information</button>
-      <button class="navbar-item">Skill Level</button>
-      <button class="navbar-item">Settings</button>
-    </div>
+  <div class="main-content">
+    <h1>User Profile</h1>
 
-    <!-- Dynamic Content Section -->
-    <div class="personal-info-container" id="dynamicContent">
-      <h3>
-        Personal Information
-        <i class="fas fa-edit" id="editIconBox2"></i>
-      </h3>
-      <div class="info-grid">
-        <div class="input-field">
-          <label for="firstName">First Name</label>
-          <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" readonly />
+    <div class="content-container">
+      <div class="profile-card">
+        <i class="fas fa-edit edit-icon" id="editIconBox1" onclick="toggleEditModeBox1()"></i>
+        <div style="position: relative; display: inline-block">
+          <img src="https://via.placeholder.com/150" alt="Profile Picture" id="profilePic" />
+          <i
+            class="fas fa-camera upload-icon"
+            id="cameraIcon"
+            onclick="document.getElementById('imageUpload').click();"></i>
         </div>
-        <div class="input-field">
-          <label for="middleName">Middle Name</label>
-          <input type="text" id="middleName" name="middleName" placeholder="Enter your middle name" readonly />
+        <input type="file" id="imageUpload" style="display: none" accept="image/*" onchange="previewImage(event)" />
+        <input type="text" id="username" value="Username" readonly />
+        <button class="navbar-item active" onclick="showSection('personalInfo')">Personal Information</button>
+        <button class="navbar-item" onclick="showSection('skillLevel')">Skill Level</button>
+        <button class="navbar-item" onclick="showSection('settings')">Settings</button>
+      </div>
+
+      <div class="personal-info-container" id="dynamicContent">
+        <div class="content-section active" id="personalInfo">
+          <div class="info-grid">
+            <div class="input-field">
+              <label for="firstName">First Name</label>
+              <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" readonly />
+            </div>
+            <div class="input-field">
+              <label for="middleName">Middle Name</label>
+              <input type="text" id="middleName" name="middleName" placeholder="Enter your middle name" readonly />
+            </div>
+            <div class="input-field">
+              <label for="lastName">Last Name</label>
+              <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" readonly />
+            </div>
+            <div class="input-field">
+              <label for="gender">Gender</label>
+              <select id="gender" name="gender" disabled>
+                <option disabled selected>Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="birthday">Birthday</label>
+              <input type="date" id="birthday" name="birthday" readonly />
+            </div>
+            <div class="input-field">
+              <label for="phoneNumber">Phone Number</label>
+              <input type="text" id="phoneNumber" name="phoneNumber" placeholder="Enter your phone number" readonly />
+            </div>
+            <div class="input-field">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email_owner" placeholder="Enter your email" required />
+            </div>
+            <div class="input-field">
+              <label for="status">Status</label>
+              <select id="status" name="status_owner" required disabled>
+                <option disabled selected>Select Status</option>
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+                <option value="Widowed/er">Widowed/er</option>
+                <option value="Separated">Separated</option>
+                <option value="Cohabitant">Cohabitant</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="municipality">Municipality</label>
+              <select id="municipality" name="municipality_owner" required disabled>
+                <option disabled selected>Select Municipality</option>
+                <option value="Abucay">Abucay</option>
+                <option value="Bagac">Bagac</option>
+                <option value="Balanga City">Balanga City</option>
+                <option value="Dinalupihan">Dinalupihan</option>
+                <option value="Hermosa">Hermosa</option>
+                <option value="Limay">Limay</option>
+                <option value="Mariveles">Mariveles</option>
+                <option value="Morong">Morong</option>
+                <option value="Orani">Orani</option>
+                <option value="Orion">Orion</option>
+                <option value="Samal">Samal</option>
+                <option value="Pilar">Pilar</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="user-type">User Type</label>
+              <select id="user-type" name="user_type" required disabled>
+                <option value="COACH">Coach</option>
+                <option value="PLAYER">Player</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="input-field">
-          <label for="lastName">Last Name</label>
-          <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" readonly />
+
+        <div class="content-section" id="skillLevel">
+          <div class="coaching-info-grid" id="skillInfo">
+            <div class="input-field">
+              <label for="skillLevelSelect">Select Your Skill Level</label>
+              <select id="skillLevelSelect" name="skillLevel" required>
+                <option disabled selected>Select Skill Level</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Professional">Professional</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="preferredPlayStyle">Preferred Play Style</label>
+              <select id="preferredPlayStyle" name="preferredPlayStyle" required>
+                <option disabled selected>Select Play Style</option>
+                <option value="Singles">Singles</option>
+                <option value="Doubles">Doubles</option>
+                <option value="Mixed Doubles">Mixed Doubles</option>
+              </select>
+            </div>
+            <div class="input-field">
+              <label for="physicalFitness">Physical Fitness Level</label>
+              <select id="physicalFitness" name="physicalFitness" required>
+                <option disabled selected>Select Fitness Level</option>
+                <option value="Excellent">Excellent</option>
+                <option value="Good">Good</option>
+                <option value="Average">Average</option>
+                <option value="Below Average">Below Average</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="coaching-info-grid" id="experienceSection">
+            <h4>Experience</h4>
+            <button class="add-button" onclick="addExperience()"><i class="fas fa-plus"></i></button>
+            <div class="input-template" id="experience-template" style="display: none">
+              <div class="input-field">
+                <label for="experienceTitle">Title</label>
+                <input type="text" placeholder="Experience Title" />
+                <label for="experienceYears">Years</label>
+                <input type="number" placeholder="Years of Experience" min="0" />
+                <button class="remove-button" onclick="removeField(this)">Remove</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="coaching-info-grid" id="specializationSection">
+            <h4>Specialization</h4>
+            <button class="add-button" onclick="addSpecialization()"><i class="fas fa-plus"></i></button>
+            <div class="input-template" id="specialization-template" style="display: none">
+              <div class="input-field">
+                <label for="specialization">Specialization</label>
+                <input type="text" placeholder="Specialization Area" />
+                <button class="remove-button" onclick="removeField(this)">Remove</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="coaching-info-grid" id="licenseSection">
+            <h4>License</h4>
+            <button class="add-button" onclick="addLicense()"><i class="fas fa-plus"></i></button>
+            <div class="input-template" id="license-template" style="display: none">
+              <div class="input-field">
+                <label for="licenseType">License Type</label>
+                <input type="text" placeholder="License Type" />
+                <label for="licenseNumber">License Number</label>
+                <input type="text" placeholder="License Number" />
+                <label for="licenseExpiry">Expiry Date</label>
+                <input type="date" />
+                <button class="remove-button" onclick="removeField(this)">Remove</button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="input-field">
-          <label for="gender">Gender</label>
-          <select id="gender" name="gender" disabled>
-            <option disabled selected>Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-        </div>
-        <div class="input-field">
-          <label for="birthday">Birthday</label>
-          <input type="date" id="birthday" name="birthday" readonly />
-        </div>
-        <div class="input-field">
-          <label for="phoneNumber">Phone Number</label>
-          <input type="text" id="phoneNumber" name="phoneNumber" placeholder="Enter your phone number" readonly />
-        </div>
-        <div class="input-field">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email_owner" placeholder="Enter your email" required />
-        </div>
-        <div class="input-field">
-          <label for="status">Status</label>
-          <select id="status" name="status_owner" required disabled>
-            <option disabled selected>Select Status</option>
-            <option value="Single">Single</option>
-            <option value="Married">Married</option>
-            <option value="Widowed/er">Widowed/er</option>
-            <option value="Separated">Separated</option>
-            <option value="Cohabitant">Cohabitant</option>
-          </select>
-        </div>
-        <div class="input-field">
-          <label for="municipality">Municipality</label>
-          <select id="municipality" name="municipality_owner" required disabled>
-            <option disabled selected>Select Municipality</option>
-            <option value="Abucay">Abucay</option>
-            <option value="Bagac">Bagac</option>
-            <option value="Balanga City">Balanga City</option>
-            <option value="Dinalupihan">Dinalupihan</option>
-            <option value="Hermosa">Hermosa</option>
-            <option value="Limay">Limay</option>
-            <option value="Mariveles">Mariveles</option>
-            <option value="Morong">Morong</option>
-            <option value="Orani">Orani</option>
-            <option value="Orion">Orion</option>
-            <option value="Samal">Samal</option>
-            <option value="Pilar">Pilar</option>
-          </select>
-        </div>
-        <div class="input-field">
-          <label for="user-type">User Type</label>
-          <select id="user-type" name="user_type" required disabled>
-            <option value="Coach">Coach</option>
-            <option value="Player">Player</option>
-          </select>
+
+        <div class="content-section" id="settings">
+          <div class="settings-info-grid">
+            <h4>Change Password</h4>
+            <div class="settings-field">
+              <label for="currentPassword">Current Password</label>
+              <input type="password" id="currentPassword" placeholder="Enter Current Password" required />
+            </div>
+
+            <div class="settings-field">
+              <label for="newPassword">New Password</label>
+              <input type="password" id="newPassword" placeholder="Enter New Password" required />
+            </div>
+
+            <div class="settings-field">
+              <label for="confirmPassword">Confirm New Password</label>
+              <input type="password" id="confirmPassword" placeholder="Confirm New Password" required />
+            </div>
+
+            <button class="submit-button" onclick="changePassword()">Change Password</button>
+
+            <div class="delete-account">
+              <h4>Delete Account</h4>
+              <p>Warning: Deleting your account is irreversible.</p>
+              <button class="delete-button" onclick="confirmDeleteAccount()">Delete Account</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
