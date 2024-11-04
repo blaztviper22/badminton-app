@@ -131,7 +131,7 @@ let routes = (app, io) => {
 
   router.get('/admin/posts', verifyToken, roleChecker(['admin']), getAdminPosts);
 
-  router.get('/events-and-tournaments', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+  router.get('/announcements', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const tab = req.query.tab;
     let filePath;
 
