@@ -181,13 +181,9 @@ let routes = (app, io) => {
       case 'event-and-tournaments':
         filePath = path.resolve(__dirname, '../../build/adminviewuserpaymentet.html');
         break;
-      case 'training-sessions':
-        // specify the file path for training sessions here
-        filePath = path.resolve(__dirname, '../../build/trainingsessions.html');
-        break;
       case 'product-reservation':
         // specify the file path for product reservation here
-        filePath = path.resolve(__dirname, '../../build/productpickup.html');
+        filePath = path.resolve(__dirname, '../../build/adminviewuserpaymentproduct.html');
         break;
       default:
         // default to court reservations

@@ -29,6 +29,7 @@ const pageTitles = {
   adminschedulereservation: 'Schedule',
   adminviewuserpayment: 'User Payments',
   adminviewuserpaymentet: 'User Payments',
+  adminviewuserpaymentproduct: 'User Payments',
   viewadminpost: 'View Posts',
   vieweventtournalist: 'Events and Tournaments',
   viewevent: 'View Event',
@@ -187,6 +188,15 @@ const pageAssets = {
     hasNavbar: false,
     hasSidebar: true
   },
+  adminviewuserpaymentproduct: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
   viewadminpost: {
     styles: [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
@@ -307,6 +317,7 @@ module.exports = () => {
       adminschedulereservation: './client/js/pages/adminschedulereservation/adminScheduleReservation.js',
       adminviewuserpayment: './client/js/pages/adminviewuserpayment/adminViewUserPayment.js',
       adminviewuserpaymentet: './client/js/pages/adminviewuserpaymentet/adminViewUserPaymentET.js',
+      adminviewuserpaymentproduct: './client/js/pages/adminviewuserpaymentproduct/adminViewUserPaymentProduct.js',
       viewadminpost: './client/js/pages/createpostadmin/createPostAdmin.js',
       usercourtlist: './client/js/pages/usercourtlist/userCourtList.js',
       usercourtviewing: './client/js/pages/usercourtviewing/userCourtViewing.js',
