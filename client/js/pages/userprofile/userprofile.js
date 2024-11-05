@@ -11,6 +11,7 @@ const { error } = console;
 
 const getById = (id) => doc.getElementById(id);
 const getAll = (selector) => doc.querySelectorAll(selector);
+const get = (selector) => doc.querySelector(selector);
 
 // Start session checks on page load
 startSessionChecks();
@@ -93,3 +94,21 @@ doc.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const personalInfoBtn = getById('personalInfoBtn');
+  const skillLevelBtn = getById('skillLevelBtn');
+  const settingsBtn = getById('settingsBtn');
+
+  if (personalInfoBtn) personalInfoBtn.addEventListener('click', () => showSection('personalInfo'));
+  if (skillLevelBtn) skillLevelBtn.addEventListener('click', () => showSection('skillLevel'));
+  if (settingsBtn) settingsBtn.addEventListener('click', () => showSection('settings'));
+});
+
+function showSection(sectionId) {
+  getAll('.content-section').forEach((section) => section.classList.remove('active'));
+  getById(sectionId).classList.add('active');
+
+  getAll('.navbar-item').forEach((item) => item.classList.remove('active'));
+  get(`[data-section="${sectionId}"]`).classList.add('active');
+}

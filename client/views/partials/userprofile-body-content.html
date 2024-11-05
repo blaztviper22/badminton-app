@@ -4,19 +4,16 @@
 
     <div class="content-container">
       <div class="profile-card">
-        <i class="fas fa-edit edit-icon" id="editIconBox1" onclick="toggleEditModeBox1()"></i>
+        <i class="fas fa-edit edit-icon" id="editIconBox1"></i>
         <div style="position: relative; display: inline-block">
-          <img src="https://via.placeholder.com/150" alt="Profile Picture" id="profilePic" />
-          <i
-            class="fas fa-camera upload-icon"
-            id="cameraIcon"
-            onclick="document.getElementById('imageUpload').click();"></i>
+          <img src="/assets/images/logo_placeholder_150x150.png" alt="Profile Picture" id="profilePic" />
+          <i class="fas fa-camera upload-icon" id="cameraIcon"></i>
         </div>
-        <input type="file" id="imageUpload" style="display: none" accept="image/*" onchange="previewImage(event)" />
+        <input type="file" id="imageUpload" style="display: none" accept="image/*" />
         <input type="text" id="username" value="Username" readonly />
-        <button class="navbar-item active" onclick="showSection('personalInfo')">Personal Information</button>
-        <button class="navbar-item" onclick="showSection('skillLevel')">Skill Level</button>
-        <button class="navbar-item" onclick="showSection('settings')">Settings</button>
+        <button class="navbar-item active" id="personalInfoBtn">Personal Information</button>
+        <button class="navbar-item" id="skillLevelBtn">Skill Level</button>
+        <button class="navbar-item" id="settingsBtn">Settings</button>
       </div>
 
       <div class="personal-info-container" id="dynamicContent">
@@ -128,33 +125,33 @@
 
           <div class="coaching-info-grid" id="experienceSection">
             <h4>Experience</h4>
-            <button class="add-button" onclick="addExperience()"><i class="fas fa-plus"></i></button>
+            <button class="add-button"><i class="fas fa-plus"></i></button>
             <div class="input-template" id="experience-template" style="display: none">
               <div class="input-field">
                 <label for="experienceTitle">Title</label>
                 <input type="text" placeholder="Experience Title" />
                 <label for="experienceYears">Years</label>
                 <input type="number" placeholder="Years of Experience" min="0" />
-                <button class="remove-button" onclick="removeField(this)">Remove</button>
+                <button class="remove-button">Remove</button>
               </div>
             </div>
           </div>
 
           <div class="coaching-info-grid" id="specializationSection">
             <h4>Specialization</h4>
-            <button class="add-button" onclick="addSpecialization()"><i class="fas fa-plus"></i></button>
+            <button class="add-button"><i class="fas fa-plus"></i></button>
             <div class="input-template" id="specialization-template" style="display: none">
               <div class="input-field">
                 <label for="specialization">Specialization</label>
                 <input type="text" placeholder="Specialization Area" />
-                <button class="remove-button" onclick="removeField(this)">Remove</button>
+                <button class="remove-button">Remove</button>
               </div>
             </div>
           </div>
 
           <div class="coaching-info-grid" id="licenseSection">
             <h4>License</h4>
-            <button class="add-button" onclick="addLicense()"><i class="fas fa-plus"></i></button>
+            <button class="add-button"><i class="fas fa-plus"></i></button>
             <div class="input-template" id="license-template" style="display: none">
               <div class="input-field">
                 <label for="licenseType">License Type</label>
@@ -163,7 +160,7 @@
                 <input type="text" placeholder="License Number" />
                 <label for="licenseExpiry">Expiry Date</label>
                 <input type="date" />
-                <button class="remove-button" onclick="removeField(this)">Remove</button>
+                <button class="remove-button">Remove</button>
               </div>
             </div>
           </div>
@@ -187,12 +184,12 @@
               <input type="password" id="confirmPassword" placeholder="Confirm New Password" required />
             </div>
 
-            <button class="submit-button" onclick="changePassword()">Change Password</button>
+            <button class="submit-button">Change Password</button>
 
             <div class="delete-account">
               <h4>Delete Account</h4>
               <p>Warning: Deleting your account is irreversible.</p>
-              <button class="delete-button" onclick="confirmDeleteAccount()">Delete Account</button>
+              <button class="delete-button">Delete Account</button>
             </div>
           </div>
         </div>
