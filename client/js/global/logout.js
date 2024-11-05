@@ -1,9 +1,12 @@
+import { setupHelp } from './help';
+
 const doc = document;
 const { log, error } = console;
 
 const getById = (id) => doc.getElementById(id);
 const getAll = (selector) => doc.querySelectorAll(selector);
 const get = (selector) => doc.querySelector(selector);
+setupHelp();
 
 // Function to set up logout listener
 export function setupLogoutListener() {
