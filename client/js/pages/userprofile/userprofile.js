@@ -7,16 +7,16 @@ import { setupLogoutListener } from '../../global/logout.js';
 setupLogoutListener();
 
 const doc = document;
-const { log, error } = console;
+const { error } = console;
 
 const getById = (id) => doc.getElementById(id);
 const getAll = (selector) => doc.querySelectorAll(selector);
 const get = (selector) => doc.querySelector(selector);
 
-// start session checks on page load
+// Start session checks on page load
 startSessionChecks();
 
-// initialize input fields and store them in a variable
+// Initialize input fields and store them in a variable
 const userProfileFields = {
   username: getById('username'),
   firstName: getById('firstName'),
@@ -29,15 +29,18 @@ const userProfileFields = {
   status: getById('status'),
   municipality: getById('municipality'),
   userType: getById('user-type'),
-  profilePic: getById('profilePic')
+  profilePic: getById('profilePic'),
+  imageUpload: getById('imageUpload'),
+  cameraIcon: getById('cameraIcon')
 };
 
+// Function to capitalize the first letter of a string
 function capitalizeFirstLetter(string) {
   if (!string) return '';
   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }
 
-// function to fetch user profile data and populate fields
+// Function to fetch user profile data and populate fields
 function fetchUserProfile() {
   fetch('/user/me', {
     method: 'GET',
@@ -50,7 +53,6 @@ function fetchUserProfile() {
       return response.json();
     })
     .then((data) => {
-      // use the userProfileFields object to set values for each input field
       userProfileFields.username.value = data.username || 'Username'; // Default username
       userProfileFields.firstName.value = data.first_name || '';
       userProfileFields.middleName.value = data.middle_name || '';
@@ -68,11 +70,45 @@ function fetchUserProfile() {
     })
     .catch((err) => {
       error('Error fetching user profile:', err);
-      // optionally handle the error, e.g., show a message to the user
+      // Optionally handle the error, e.g., show a message to the user
     });
 }
 
 // Call the function to fetch user profile on page load
 doc.addEventListener('DOMContentLoaded', () => {
   fetchUserProfile();
+
+  // Set up event listeners
+  userProfileFields.cameraIcon.addEventListener('click', () => {
+    userProfileFields.imageUpload.click();
+  });
+
+  userProfileFields.imageUpload.addEventListener('change', (event) => {
+    previewImage(event); // Make sure to define this function if it exists
+  });
+
+  getAll('.navbar-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      const sectionId = item.getAttribute('data-section');
+      showSection(sectionId);
+    });
+  });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const personalInfoBtn = getById('personalInfoBtn');
+  const skillLevelBtn = getById('skillLevelBtn');
+  const settingsBtn = getById('settingsBtn');
+
+  if (personalInfoBtn) personalInfoBtn.addEventListener('click', () => showSection('personalInfo'));
+  if (skillLevelBtn) skillLevelBtn.addEventListener('click', () => showSection('skillLevel'));
+  if (settingsBtn) settingsBtn.addEventListener('click', () => showSection('settings'));
+});
+
+function showSection(sectionId) {
+  getAll('.content-section').forEach((section) => section.classList.remove('active'));
+  getById(sectionId).classList.add('active');
+
+  getAll('.navbar-item').forEach((item) => item.classList.remove('active'));
+  get(`[data-section="${sectionId}"]`).classList.add('active');
+}

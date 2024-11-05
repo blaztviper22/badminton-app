@@ -270,6 +270,30 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
+  router.get('/admin/profile', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const tab = req.query.tab; // get the page from the query parameter
+    let filePath;
+
+    switch (tab) {
+      case 'owner-profile':
+        filePath = path.resolve(__dirname, '../../build/ownerprofile.html');
+        break;
+      case 'business-profile':
+        filePath = path.resolve(__dirname, '../../build/businessprofile.html');
+        break;
+      case 'pinpoint-profile':
+        filePath = path.resolve(__dirname, '../../build/pinpointprofile.html');
+        break;
+    }
+
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/admin/settings', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/adminsettings.html');
+    serveFile(filePath, res, next);
+  });
+
   app.use('/user', router);
 };
 
