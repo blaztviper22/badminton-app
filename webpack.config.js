@@ -36,7 +36,8 @@ const pageTitles = {
   ownerprofile: 'Owner Profile',
   businessprofile: 'Business Profile',
   pinpointprofile: 'Pin Point Profile',
-  adminsettings: 'Settings'
+  adminsettings: 'Settings',
+  viewproduct: 'Product'
 };
 
 // Page-specific stylesheets and scripts
@@ -133,6 +134,15 @@ const pageAssets = {
     hasSidebar: true
   },
   adminviewmembership: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+  viewproduct: {
     styles: [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
       'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
@@ -310,7 +320,8 @@ module.exports = () => {
       ownerprofile: './client/js/pages/ownerprofile/ownerProfile.js',
       pinpointprofile: './client/js/pages/pinpointprofile/pinpointProfile.js',
       businessprofile: './client/js/pages/businessprofile/businessProfile.js',
-      adminsettings: './client/js/pages/adminsettings/adminSettings.js'
+      adminsettings: './client/js/pages/adminsettings/adminSettings.js',
+      viewproduct: './client/js/pages/viewproduct/viewProduct.js'
     },
     output: {
       filename: '[name].[contenthash].js',
