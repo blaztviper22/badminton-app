@@ -289,8 +289,15 @@ let routes = (app, io) => {
     const filePath = path.resolve(__dirname, '../../build/adminsettings.html');
     serveFile(filePath, res, next);
   });
+
   router.get('/admin/products', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/viewproduct.html');
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/products', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/userviewproducts.html');
+
     serveFile(filePath, res, next);
   });
 

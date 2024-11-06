@@ -129,28 +129,28 @@ exports.updateUserInfo = async (req, res) => {
     // check if profile_photo is provided and handle the upload
     let fileUrl;
     if (profile_photo) {
-      // Check file size limit (e.g., 5MB)
-      const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
-      if (profile_photo.size > MAX_SIZE) {
-        return res.status(400).json({
-          status: 'error',
-          code: 400,
-          message: 'File size exceeds the limit of 5MB.'
-        });
-      }
+      // // Check file size limit (e.g., 5MB)
+      // const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+      // if (profile_photo.size > MAX_SIZE) {
+      //   return res.status(400).json({
+      //     status: 'error',
+      //     code: 400,
+      //     message: 'File size exceeds the limit of 5MB.'
+      //   });
+      // }
 
-      // check the file's MIME type using file-type
-      const fileBuffer = profile_photo.data;
-      const type = await fileType.fromBuffer(fileBuffer);
-      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      // // check the file's MIME type using file-type
+      // const fileBuffer = profile_photo.data;
+      // const type = await fileType.fromBuffer(fileBuffer);
+      // const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
-      if (!type || !allowedMimeTypes.includes(type.mime)) {
-        return res.status(400).json({
-          status: 'error',
-          code: 400,
-          message: 'Invalid file type. Only images are allowed.'
-        });
-      }
+      // if (!type || !allowedMimeTypes.includes(type.mime)) {
+      //   return res.status(400).json({
+      //     status: 'error',
+      //     code: 400,
+      //     message: 'Invalid file type. Only images are allowed.'
+      //   });
+      // }
 
       // delete the existing profile photo from Cloudflare R2 if present
       if (user.profile_photo) {
@@ -168,7 +168,8 @@ exports.updateUserInfo = async (req, res) => {
 
       const file = new File({
         fileName: uploadResult.fileName,
-        owner: userId // The ID of the user who owns this file
+        owner: userId, // The ID of the user who owns this file
+        isPublic: true
       });
 
       await assignFileAccess(file, userId, [], accessibleUsers);

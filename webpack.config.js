@@ -38,7 +38,8 @@ const pageTitles = {
   businessprofile: 'Business Profile',
   pinpointprofile: 'Pin Point Profile',
   adminsettings: 'Settings',
-  viewproduct: 'Product'
+  viewproduct: 'Product',
+  userviewproducts: 'Products'
 };
 
 // Page-specific stylesheets and scripts
@@ -263,6 +264,12 @@ const pageAssets = {
     scripts: [],
     hasNavbar: false,
     hasSidebar: true
+  },
+  userviewproducts: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
   }
 };
 
@@ -332,7 +339,8 @@ module.exports = () => {
       pinpointprofile: './client/js/pages/pinpointprofile/pinpointProfile.js',
       businessprofile: './client/js/pages/businessprofile/businessProfile.js',
       adminsettings: './client/js/pages/adminsettings/adminSettings.js',
-      viewproduct: './client/js/pages/viewproduct/viewProduct.js'
+      viewproduct: './client/js/pages/viewproduct/viewProduct.js',
+      userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js'
     },
     output: {
       filename: '[name].[contenthash].js',
