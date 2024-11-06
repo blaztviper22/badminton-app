@@ -10,7 +10,7 @@ export function setupHelp() {
   const helpButton = getById('helpButton');
   if (helpButton) {
     helpButton.addEventListener('click', function () {
-      window.location.href = '/index/html/help.html';
+      window.location.href = '/user/dashboard';
     });
   } else {
     log('Help button not found');
