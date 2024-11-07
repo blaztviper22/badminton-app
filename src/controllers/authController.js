@@ -596,6 +596,8 @@ exports.refreshToken = async (req, res, next) => {
       await addToBlacklist(incomingAccessToken, 'access');
     }
 
+    const cookieOptions = config.get('cookieOptions');
+
     // define cookie options for access token (15 minutes)
     const accessCookieOptions = {
       ...cookieOptions,

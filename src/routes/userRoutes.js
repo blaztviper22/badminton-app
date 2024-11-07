@@ -181,13 +181,9 @@ let routes = (app, io) => {
       case 'event-and-tournaments':
         filePath = path.resolve(__dirname, '../../build/adminviewuserpaymentet.html');
         break;
-      case 'training-sessions':
-        // specify the file path for training sessions here
-        filePath = path.resolve(__dirname, '../../build/trainingsessions.html');
-        break;
       case 'product-reservation':
         // specify the file path for product reservation here
-        filePath = path.resolve(__dirname, '../../build/productpickup.html');
+        filePath = path.resolve(__dirname, '../../build/adminviewuserpaymentproduct.html');
         break;
       default:
         // default to court reservations
@@ -291,6 +287,17 @@ let routes = (app, io) => {
 
   router.get('/admin/settings', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/adminsettings.html');
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/admin/products', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/viewproduct.html');
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/products', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/userviewproducts.html');
+
     serveFile(filePath, res, next);
   });
 

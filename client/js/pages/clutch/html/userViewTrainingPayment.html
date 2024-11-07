@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <title>Training History</title>
+    <link rel="stylesheet" href="../css/userViewTrainingHistory.css">
+</head>
+<body>
+    <div id="navbar"></div>
+    <script>
+        fetch('navBarUser.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar').innerHTML = data;
+            });
+    </script>
+    <div class="main-content">
+        <h1>Training History</h1>
+        <div class="filter-actions">
+            <div class="filter-links">
+                <a href="userViewMembership.html" class="filter-button">Schedule</a>
+                <a href="userViewTrainingHistory.html" class="filter-button">History</a>
+                <a href="userViewTrainingPayment.html" class="filter-button active">Payments</a>
+            </div>
+        </div>
+        <div class="container">
+            <div class="box1">
+                <table id="paymentTable">
+                    <thead>
+                        <tr> 
+                            <th onclick="sortTable(0)">Court Name<i class="sort-icon fas fa-sort"></i></th>
+                            <th onclick="sortTable(1)">Training Name<i class="sort-icon fas fa-sort"</th>
+                            <th>Account Number</th>
+                            <th onclick="sortTable(1)">Date Paid<i class="sort-icon fas fa-sort"></i></th>
+                            <th>Reservation Fee</th>
+                            <th>Reference Number</th>
+                            <th>Total Bill</th>
+                            <th onclick="sortTable(4)">Bill Status<i class="sort-icon fas fa-sort"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Court 1</td> 
+                            <td>Summer Smash Badminton Camp 2024</td>
+                            <td>0987654321</td>
+                            <td>2024-10-05</td>
+                            <td>$150.00</td>
+                            <td>REF654321</td>
+                            <td>$150.00</td>
+                            <td>Paid</td>
+                        </tr>
+                    </tbody>
+                </table>
+    
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -29,6 +29,7 @@ const pageTitles = {
   adminschedulereservation: 'Schedule',
   adminviewuserpayment: 'User Payments',
   adminviewuserpaymentet: 'User Payments',
+  adminviewuserpaymentproduct: 'User Payments',
   viewadminpost: 'View Posts',
   vieweventtournalist: 'Events and Tournaments',
   viewevent: 'View Event',
@@ -36,7 +37,9 @@ const pageTitles = {
   ownerprofile: 'Owner Profile',
   businessprofile: 'Business Profile',
   pinpointprofile: 'Pin Point Profile',
-  adminsettings: 'Settings'
+  adminsettings: 'Settings',
+  viewproduct: 'Product',
+  userviewproducts: 'Products'
 };
 
 // Page-specific stylesheets and scripts
@@ -141,6 +144,15 @@ const pageAssets = {
     hasNavbar: false,
     hasSidebar: true
   },
+  viewproduct: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
   adminschedulereservation: {
     styles: [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
@@ -169,6 +181,15 @@ const pageAssets = {
     hasSidebar: true
   },
   adminviewuserpaymentet: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+  adminviewuserpaymentproduct: {
     styles: [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
       'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
@@ -243,6 +264,12 @@ const pageAssets = {
     scripts: [],
     hasNavbar: false,
     hasSidebar: true
+  },
+  userviewproducts: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
   }
 };
 
@@ -297,6 +324,7 @@ module.exports = () => {
       adminschedulereservation: './client/js/pages/adminschedulereservation/adminScheduleReservation.js',
       adminviewuserpayment: './client/js/pages/adminviewuserpayment/adminViewUserPayment.js',
       adminviewuserpaymentet: './client/js/pages/adminviewuserpaymentet/adminViewUserPaymentET.js',
+      adminviewuserpaymentproduct: './client/js/pages/adminviewuserpaymentproduct/adminViewUserPaymentProduct.js',
       viewadminpost: './client/js/pages/createpostadmin/createPostAdmin.js',
       usercourtlist: './client/js/pages/usercourtlist/userCourtList.js',
       usercourtviewing: './client/js/pages/usercourtviewing/userCourtViewing.js',
@@ -306,11 +334,13 @@ module.exports = () => {
       viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js',
       vieweventtournalist: './client/js/pages/vieweventtournalist/viewEventTournaList.js',
       viewevent: './client/js/pages/vieweventparticipants/viewEventParticipants.js',
-      adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js',
+      adminviewmembership: './client/js/pages/adminviewmembership/adminviewmembership.js',
       ownerprofile: './client/js/pages/ownerprofile/ownerProfile.js',
       pinpointprofile: './client/js/pages/pinpointprofile/pinpointProfile.js',
       businessprofile: './client/js/pages/businessprofile/businessProfile.js',
-      adminsettings: './client/js/pages/adminsettings/adminSettings.js'
+      adminsettings: './client/js/pages/adminsettings/adminSettings.js',
+      viewproduct: './client/js/pages/viewproduct/viewProduct.js',
+      userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js'
     },
     output: {
       filename: '[name].[contenthash].js',

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <title>Membership</title>
+    <link rel="stylesheet" href="../css/userViewMembership.css">
+</head>
+<body>
+    <div id="navbar"></div>
+    <script>
+        fetch('navBarUser.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar').innerHTML = data;
+            });
+    </script>
+    <div class="main-content">
+        <h1>My Training</h1>
+        <div class="filter-actions">
+            <div class="filter-links">
+                <a href="userViewMembership.html" class="filter-button active">Schedule</a>
+                <a href="userViewTrainingHistory.html" class="filter-button">History</a>
+                <a href="userViewTrainingPayment.html" class="filter-button">Payments</a>
+            </div>
+        </div>
+        <div class="container">
+            <div class="box1">
+                <div class="dropdown-container">
+                    <div class="training-header">Court</div>
+                    <select class="dropdown-menu">
+                        <option value="court-1">Court 1</option>
+                        <option value="court-2">Court 2</option>
+                        <option value="court-3">Court 3</option>
+                        <option value="court-4">Court 4</option>
+                        <option value="court-5">Court 5</option>
+                    </select>
+                </div>
+                <div class="dropdown-container">
+                    <div class="training-header">Badminton Training</div>
+                    <select class="dropdown-menu">
+                        <option value="summer-badminton-2024">Summer Smash Badminton Camp 2024</option>
+                        <option value="elite-badminton-2024">Elite Badminton Skills Academy 2024</option>
+                        <option value="junior-badminton-2024">Junior Badminton Champions Training 2024</option>
+                        <option value="doubles-strategy-2024">Doubles Strategy and Tactics Workshop 2024</option>
+                        <option value="badminton-fitness-2024">Badminton Fitness and Agility Bootcamp 2024</option>
+                    </select>
+                </div>
+                <div class="coach-profile">
+                    <div class="profile-header">Coach Profile</div>
+                    <div class="profile-content">
+                        <img src="https://via.placeholder.com/50" alt="Profile Image" class="profile-image">
+                        <div class="profile-info">
+                            <div class="profile-name">Juan Dela Cruz</div>
+                            <div class="profile-details">
+                                <div class="contact-info">
+                                    <div class="profile-address">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        123 St, Anywhere City
+                                    </div>
+                                    <div class="profile-contact">
+                                        <i class="fas fa-phone-alt"></i>
+                                        0966 864 0995
+                                    </div>
+                                </div>
+                                <div class="specialization-info">
+                                    <div class="profile-experience">
+                                        <i class="fas fa-star"></i>
+                                        5 years coaching
+                                    </div>
+                                    <div class="profile-specialization">
+                                        <i class="fas fa-basketball-ball"></i>
+                                        Badminton
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>    
+            </div>
+            <div class="box2">
+                <div class="training-header">My Schedule</div>
+                <div class="date-nav">
+                    <span class="date">October 17, 2024</span>
+                    <button class="nav-button">Previous</button>
+                    <button class="nav-button">Next</button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Monday</th>
+                                <th>Tuesday</th>
+                                <th>Wednesday</th>
+                                <th>Thursday</th>
+                                <th>Friday</th>
+                                <th>Saturday</th>
+                                <th>Sunday</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="time-cell"><span class="hour">8</span><span class="ampm">AM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="highlight" rowspan="3">
+                                    <div class="court-info">John Doe</div>
+                                    <div class="payment-status">Paid</div>
+                                </td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">9</span><span class="ampm">AM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">10</span><span class="ampm">AM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">11</span><span class="ampm">AM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">12</span><span class="ampm">PM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">1</span><span class="ampm">PM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">2</span><span class="ampm">PM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">3</span><span class="ampm">PM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">4</span><span class="ampm">PM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">5</span><span class="ampm">PM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">7</span><span class="ampm">PM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">8</span><span class="ampm">PM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">9</span><span class="ampm">PM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="time-cell"><span class="hour">10</span><span class="ampm">PM</span></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
