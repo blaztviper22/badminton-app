@@ -334,13 +334,13 @@ module.exports = () => {
       viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js',
       vieweventtournalist: './client/js/pages/vieweventtournalist/viewEventTournaList.js',
       viewevent: './client/js/pages/vieweventparticipants/viewEventParticipants.js',
-      adminviewmembership: './client/js/pages/adminviewmembership/adminviewmembership.js',
       ownerprofile: './client/js/pages/ownerprofile/ownerProfile.js',
       pinpointprofile: './client/js/pages/pinpointprofile/pinpointProfile.js',
       businessprofile: './client/js/pages/businessprofile/businessProfile.js',
       adminsettings: './client/js/pages/adminsettings/adminSettings.js',
       viewproduct: './client/js/pages/viewproduct/viewProduct.js',
-      userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js'
+      userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js',
+      adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js'
     },
     output: {
       filename: '[name].[contenthash].js',
