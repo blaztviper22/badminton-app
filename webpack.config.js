@@ -416,7 +416,8 @@ module.exports = () => {
       roots: [path.resolve(__dirname, 'public'), path.resolve(__dirname, 'public/assets/images')],
       extensions: ['.json', '.js'],
       alias: {
-        '@': path.resolve(__dirname, 'src')
+        '@': path.resolve(__dirname, 'src'),
+        '@css': path.resolve(__dirname, 'client/css')
       }
     },
     optimization: {
