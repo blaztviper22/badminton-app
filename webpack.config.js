@@ -334,7 +334,7 @@ module.exports = () => {
       viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js',
       vieweventtournalist: './client/js/pages/vieweventtournalist/viewEventTournaList.js',
       viewevent: './client/js/pages/vieweventparticipants/viewEventParticipants.js',
-      adminviewmembership: './client/js/pages/adminViewMembership/adminViewMembership.js',
+      adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js',
       ownerprofile: './client/js/pages/ownerprofile/ownerProfile.js',
       pinpointprofile: './client/js/pages/pinpointprofile/pinpointProfile.js',
       businessprofile: './client/js/pages/businessprofile/businessProfile.js',
