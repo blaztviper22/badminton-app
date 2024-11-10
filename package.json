@@ -5,6 +5,7 @@
   "scripts": {
     "start": "npm run build && node server.js",
     "dev": "npx webpack serve --open",
+    "deploy": "git push evennode main",
     "devStart": "nodemon",
     "serverStart": "node server.js",
     "watch": "npx webpack --watch",
