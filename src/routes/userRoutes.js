@@ -297,7 +297,6 @@ let routes = (app, io) => {
 
   router.get('/products', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/userviewproducts.html');
-
     serveFile(filePath, res, next);
   });
 
