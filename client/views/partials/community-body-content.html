@@ -25,141 +25,22 @@
                     </div>
                 </div>
             </div>
-            <div class="main-box">
+
+            <div class="main-box" id="post-feed">
+                <!-- Dynamic post entries will be inserted here -->
                 <div class="create-post">
                     <div class="profile-pic">
                         <i class="fas fa-user"></i>
                     </div>
-                    <input type="text" placeholder="What's on your mind?">
-                    <button>Post</button>
-                </div>
-                <div class="post">
-                    <div class="post-header">
-                        <div class="profile-pic">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="name-date">
-                            <div class="name">Name</div>
-                            <div class="date">01/01/2023 3:00pm</div>
-                        </div>
-                        <div class="options">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </div>
-                    </div>
-                    <div class="post-content">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                    </div>
-                    <div class="post-footer">
-                        <span class="action"><i class="fas fa-thumbs-up"></i> Like</span>
-                        <span class="action"><i class="fas fa-comment"></i> Message</span>
-                    </div>
-                </div>
-                <div class="post">
-                    <div class="post-header">
-                        <div class="profile-pic">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="name-date">
-                            <div class="name">Name</div>
-                            <div class="date">01/01/2023 3:00pm</div>
-                        </div>
-                        <div class="options">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </div>
-                    </div>
-                    <div class="post-content">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                    </div>
-                    <div class="post-footer">
-                        <span class="action"><i class="fas fa-thumbs-up"></i> Like</span>
-                        <span class="action"><i class="fas fa-comment"></i> Message</span>
-                    </div>
-                </div>
-                <div class="post">
-                    <div class="post-header">
-                        <div class="profile-pic">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="name-date">
-                            <div class="name">Name</div>
-                            <div class="date">01/01/2023 3:00pm</div>
-                        </div>
-                        <div class="options">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </div>
-                    </div>
-                    <div class="post-content">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                    </div>
-                    <div class="post-footer">
-                        <span class="action"><i class="fas fa-thumbs-up"></i> Like</span>
-                        <span class="action"><i class="fas fa-comment"></i> Message</span>
-                    </div>
-                </div>
-                <div class="post">
-                    <div class="post-header">
-                        <div class="profile-pic">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="name-date">
-                            <div class="name">Name</div>
-                            <div class="date">01/01/2023 3:00pm</div>
-                        </div>
-                        <div class="options">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </div>
-                    </div>
-                    <div class="post-content">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                    </div>
-                    <div class="post-footer">
-                        <span class="action"><i class="fas fa-thumbs-up"></i> Like</span>
-                        <span class="action"><i class="fas fa-comment"></i> Message</span>
-                    </div>
-                </div>
-                <div class="post">
-                    <div class="post-header">
-                        <div class="profile-pic">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="name-date">
-                            <div class="name">Name</div>
-                            <div class="date">01/01/2023 3:00pm</div>
-                        </div>
-                        <div class="options">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </div>
-                    </div>
-                    <div class="post-content">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                    </div>
-                    <div class="post-footer">
-                        <span class="action"><i class="fas fa-thumbs-up"></i> Like</span>
-                        <span class="action"><i class="fas fa-comment"></i> Message</span>
-                    </div>
+                    <input type="text" id="post-input" placeholder="What's on your mind?">
+                    <button onclick="createPost()">Post</button>
                 </div>
             </div>
+
             <div class="side-box2">
                 <h3>Manage Posts</h3>
-                <div class="post-list">
-                    <div class="post-info">
-                        <p>01/01/2003 3:00pm</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                    </div>
-                    <div class="post-actions">
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Delete</button>
-                    </div>
-                </div>
-                <div class="post-list">
-                    <div class="post-info">
-                        <p>01/01/2003 3:00pm</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
-                    </div>
-                    <div class="post-actions">
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Delete</button>
-                    </div>
+                <div id="manage-posts">
+                    <!-- Dynamic Manage Posts entries will be inserted here -->
                 </div>
             </div>
         </div>

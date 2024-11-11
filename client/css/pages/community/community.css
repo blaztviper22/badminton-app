@@ -325,3 +325,10 @@ label {
 .post-footer .action i {
     margin-right: 5px;
 }
+
+.placeholder {
+    text-align: center;
+    font-size: 1.2em;
+    color: #999;
+    margin-top: 20px;
+}
