@@ -1,4 +1,6 @@
+import '../../../css/components/modal.css';
 import '../../../css/pages/index/style.css';
+import { openModal } from '../../../js/components/modal.js';
 
 const doc = document;
 const { log, error } = console;
@@ -25,3 +27,9 @@ for (i = 0; i < acc.length; i++) {
     }
   });
 }
+
+function onConfirmAction() {
+  alert('Action confirmed!');
+}
+
+openModal('success', 'Information', 'This is a simple information', onConfirmAction, null, 'Understood');
