@@ -1,7 +1,9 @@
 import { io } from 'socket.io-client';
+import '../../../css/components/modal.css';
 import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
 import '../../../css/pages/usercourtreservation/userCourtReservation.css';
+import { openModal } from '../../../js/components/modal.js';
 import {
   hidePreloader,
   showPreloader,
@@ -22,6 +24,10 @@ function calculateTotalAmount() {
   const totalCourts = selectedCourts.length;
   const calculatedAmount = totalHours * hourlyRate * totalCourts;
   return calculatedAmount * 100;
+}
+
+function onConfirmAction() {
+  window.location.href = '/user/announcements?tab=schedule-reservation';
 }
 
 getCurrentUserId().then((userId) => {
@@ -71,18 +77,12 @@ getCurrentUserId().then((userId) => {
     });
 
     socket.on('paymentSuccess', (data) => {
-      alert(data.message);
-      hidePreloader();
-      setTimeout(() => {
-        window.location.href = '/user/announcements?tab=schedule-reservation';
-      }, 2000);
+      openModal('success', 'Success', data.message, onConfirmAction, null);
     });
   } else {
     error('User ID could not be retrieved.');
   }
 });
-
-showPreloader();
 
 const doc = document;
 const { log, error } = console;
