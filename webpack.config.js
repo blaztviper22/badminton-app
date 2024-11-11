@@ -39,7 +39,8 @@ const pageTitles = {
   pinpointprofile: 'Pin Point Profile',
   adminsettings: 'Settings',
   viewproduct: 'Product',
-  userviewproducts: 'Products'
+  userviewproducts: 'Products',
+  community: 'Community'
 };
 
 // Page-specific stylesheets and scripts
@@ -270,6 +271,12 @@ const pageAssets = {
     scripts: [],
     hasNavbar: true,
     hasSidebar: false
+  },
+  community: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
   }
 };
 
@@ -334,13 +341,14 @@ module.exports = () => {
       viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js',
       vieweventtournalist: './client/js/pages/vieweventtournalist/viewEventTournaList.js',
       viewevent: './client/js/pages/vieweventparticipants/viewEventParticipants.js',
-      adminviewmembership: './client/js/pages/adminviewmembership/adminviewmembership.js',
       ownerprofile: './client/js/pages/ownerprofile/ownerProfile.js',
       pinpointprofile: './client/js/pages/pinpointprofile/pinpointProfile.js',
       businessprofile: './client/js/pages/businessprofile/businessProfile.js',
       adminsettings: './client/js/pages/adminsettings/adminSettings.js',
       viewproduct: './client/js/pages/viewproduct/viewProduct.js',
-      userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js'
+      userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js',
+      community: './client/js/pages/community/community.js',
+      adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js'
     },
     output: {
       filename: '[name].[contenthash].js',
@@ -416,7 +424,8 @@ module.exports = () => {
       roots: [path.resolve(__dirname, 'public'), path.resolve(__dirname, 'public/assets/images')],
       extensions: ['.json', '.js'],
       alias: {
-        '@': path.resolve(__dirname, 'src')
+        '@': path.resolve(__dirname, 'src'),
+        '@css': path.resolve(__dirname, 'client/css')
       }
     },
     optimization: {
