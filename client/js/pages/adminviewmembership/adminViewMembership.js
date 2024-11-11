@@ -12,3 +12,4 @@ const { log, error } = console;
 const getById = (id) => doc.getElementById(id);
 const getAll = (selector) => doc.querySelectorAll(selector);
 const get = (selector) => doc.querySelector(selector);
+const getElemByClassname = (selector) => doc.getElementsByClassName(selector);
