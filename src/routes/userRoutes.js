@@ -30,8 +30,12 @@ const {
   checkIfUserJoined,
   confirmEventPayment,
   getEventById,
-  postAdminMembership
-} = require('../controllers/userController');
+  postAdminMembership,
+  createPost, 
+  getPosts, 
+  getUserPosts, 
+  updatePost, 
+  deletePost } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
   validateUserId,
@@ -300,14 +304,12 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-  app.use('/user', router);
   router.get('/community', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/community.html');
     serveFile(filePath, res, next);
   });
-
+      
   app.use('/user', router);
-
 };
 
 module.exports = routes;

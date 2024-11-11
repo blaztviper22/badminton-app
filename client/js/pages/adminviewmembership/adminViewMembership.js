@@ -1,3 +1,10 @@
+import '../../../css/components/preloader.css';
+import '../../../css/components/sideNavAdmin.css';
+import '../../../css/pages/adminviewmembership/adminViewMembership.css';
+import { startSessionChecks } from '../../../utils/sessionUtils.js';
+import '../../components/sideNavAdmin.js';
+
+startSessionChecks();
 const cardContainer = document.getElementById('cardContainer');
   const modal = document.getElementById('editModal');
   const subscribersModal = document.getElementById('subscribersModal');
