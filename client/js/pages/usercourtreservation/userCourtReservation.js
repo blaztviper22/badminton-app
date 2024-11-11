@@ -68,7 +68,7 @@ getCurrentUserId().then((userId) => {
     socket.on('paymentSuccess', (data) => {
       alert(data.message);
       setTimeout(() => {
-        window.location.href = '/user/?tab=schedule-reservation';
+        window.location.href = '/user/announcements?tab=schedule-reservation';
       }, 2000);
     });
   } else {
