@@ -100,7 +100,7 @@ function populateTable(reservationDates) {
       // store user info in the map keyed by reservationId
       userInfoMap[reservation.reservationId] = user;
 
-      const courts = Math.max(6, totalCourts || 6);
+      const courts = Math.max(4, totalCourts || 4);
       const startHour = parseTime(operatingHours.from);
       const endHour = parseTime(operatingHours.to);
       const timeSlots = generateTimeSlots(startHour, endHour);

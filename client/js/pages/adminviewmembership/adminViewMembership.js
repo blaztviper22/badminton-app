@@ -1,6 +1,6 @@
 import '../../../css/components/preloader.css';
 import '../../../css/components/sideNavAdmin.css';
-import '../../../css/pages/adminviewmembership/adminviewmembership.css';
+import '../../../css/pages/adminmembership/adminMembership.css';
 import { startSessionChecks } from '../../../utils/sessionUtils.js';
 import '../../components/sideNavAdmin.js';
 
@@ -12,3 +12,4 @@ const { log, error } = console;
 const getById = (id) => doc.getElementById(id);
 const getAll = (selector) => doc.querySelectorAll(selector);
 const get = (selector) => doc.querySelector(selector);
+const getElemByClassname = (selector) => doc.getElementsByClassName(selector);

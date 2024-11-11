@@ -278,7 +278,6 @@ const pageAssets = {
     hasNavbar: true,
     hasSidebar: false
   }
-
 };
 
 const pages = Object.keys(pageTitles);
@@ -342,15 +341,14 @@ module.exports = () => {
       viewusercourtreservationsched: './client/js/pages/viewusercourtreservationsched/viewUserReservationSched.js',
       vieweventtournalist: './client/js/pages/vieweventtournalist/viewEventTournaList.js',
       viewevent: './client/js/pages/vieweventparticipants/viewEventParticipants.js',
-      adminviewmembership: './client/js/pages/adminviewmembership/adminviewmembership.js',
       ownerprofile: './client/js/pages/ownerprofile/ownerProfile.js',
       pinpointprofile: './client/js/pages/pinpointprofile/pinpointProfile.js',
       businessprofile: './client/js/pages/businessprofile/businessProfile.js',
       adminsettings: './client/js/pages/adminsettings/adminSettings.js',
       viewproduct: './client/js/pages/viewproduct/viewProduct.js',
       userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js',
-      community: './client/js/pages/community/community.js'
-
+      community: './client/js/pages/community/community.js',
+      adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js'
     },
     output: {
       filename: '[name].[contenthash].js',
@@ -426,7 +424,8 @@ module.exports = () => {
       roots: [path.resolve(__dirname, 'public'), path.resolve(__dirname, 'public/assets/images')],
       extensions: ['.json', '.js'],
       alias: {
-        '@': path.resolve(__dirname, 'src')
+        '@': path.resolve(__dirname, 'src'),
+        '@css': path.resolve(__dirname, 'client/css')
       }
     },
     optimization: {
