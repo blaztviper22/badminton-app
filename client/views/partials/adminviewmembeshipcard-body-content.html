@@ -1,0 +1,89 @@
+<body>
+    <h1>Manage Membership Cards</h1>
+    <div class="admin-container">
+      <!-- Form to Add/Update Membership Card -->
+      <div class="card-form">
+        <h2>Add New Membership Card</h2>
+        <form id="membershipForm">
+          <label for="imageUrl">Upload Image:</label>
+          <input type="file" id="imageUrl" name="imageUrl" accept="image/*" onchange="previewImage(event)" required>
+  
+          <label for="cardName">Card Name:</label>
+          <input type="text" id="cardName" name="cardName" placeholder="Enter card name" required>
+  
+          <label for="cardDescription">Card Description:</label>
+          <textarea id="cardDescription" name="cardDescription" placeholder="Enter card description" required></textarea>
+  
+          <label for="cardPrice">Price (₱):</label>
+          <input type="number" id="cardPrice" name="cardPrice" placeholder="Enter price" required>
+          <button type="submit">Save Card</button> 
+        </form>
+      </div>
+  
+      <!-- Membership Cards Display -->
+      <div class="card-container" id="cardContainer">
+        <!-- Dynamically added cards will appear here -->
+      </div>
+    </div>
+  
+    <!-- Modal for Editing Cards -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <h2>Edit Membership Card</h2>
+        <form id="editForm">
+          <label for="editImageUrl">Upload Image:</label>
+          <div class="upload-container">
+            <input type="file" id="editImageUrl" name="editImageUrl" accept="image/*" onchange="previewImage(event, true)">
+            <img id="editImagePreview" class="image-preview" />
+          </div>
+  
+          <label for="editCardName">Card Name:</label>
+          <input type="text" id="editCardName" name="cardName" required>
+  
+          <label for="editCardDescription">Card Description:</label>
+          <textarea id="editCardDescription" name="cardDescription" required></textarea>
+  
+          <label for="editCardPrice">Price (₱):</label>
+          <input type="number" id="editCardPrice" name="cardPrice" required>
+  
+          <button type="submit">Update Card</button>
+          <button type="button" class="close-btn" onclick="closeModal()">Close</button>
+        </form>
+      </div>
+    </div>
+  
+    <!-- Modal for Viewing Subscribers -->
+  <div id="subscribersModal" class="modal">
+    <div class="modal-content">
+      <h2>Subscribers</h2>
+      <!-- Table header moved outside the table container -->
+      <table id="subscriberTable">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Subscription Date</th>
+            <th>Action</th> <!-- Added Action column -->
+          </tr>
+        </thead>
+      </table>
+      <!-- Table container for body with scrolling enabled -->
+      <div class="table-container">
+        <table id="subscriberTableBody">
+          <tbody>
+            <!-- Subscriber rows will be dynamically added here -->
+          </tbody>
+        </table>
+      </div>
+      <button type="button" class="close-btn" onclick="closeSubscribersModal()">Close</button>
+    </div>
+  </div>
+  
+  <!-- Confirmation Modal -->
+  <div id="confirmationModal" class="modal">
+    <div class="modal-content">
+      <h2>Are you sure you want to revoke this subscription?</h2>
+      <button type="button" id="confirmRevokeBtn" class="modal-btn">Yes</button>
+      <button type="button" class="close-btn" onclick="closeConfirmationModal()">No</button>
+    </div>
+  </div>
+  
