@@ -1,0 +1,167 @@
+<body>
+    <div class="main-content">
+        <h1>My Community</h1>
+        <div class="container">
+            <div class="side-box">
+                <div class="box1">
+                    <div class="filter-header">Filter</div>
+                    <div class="selected-filters" id="selected-filters"></div>
+                    <div class="filter-section">
+                        <div class="filter-header">Date Posted</div>
+                        <label><input type="checkbox" value="today" onclick="toggleFilter(this)"> Today</label>
+                        <label><input type="checkbox" value="this-week" onclick="toggleFilter(this)"> This Week</label>
+                        <label><input type="checkbox" value="this-month" onclick="toggleFilter(this)"> This Month</label>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">Looking For</div>
+                        <label><input type="checkbox" value="GamePartner" onclick="toggleFilter(this)"> Game Partner</label>
+                        <label><input type="checkbox" value="Group" onclick="toggleFilter(this)"> Group</label>
+                        <label><input type="checkbox" value="Player" onclick="toggleFilter(this)"> Player</label>
+                    </div>
+                    <div class="filter-section">
+                        <div class="filter-header">Sort By</div>
+                        <label><input type="checkbox" id="sort-ascending" onclick="sortData()"> Ascending</label>
+                        <label><input type="checkbox" id="sort-descending" onclick="sortData()"> Descending</label>
+                    </div>
+                </div>
+            </div>
+            <div class="main-box">
+                <div class="create-post">
+                    <div class="profile-pic">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <input type="text" placeholder="What's on your mind?">
+                    <button>Post</button>
+                </div>
+                <div class="post">
+                    <div class="post-header">
+                        <div class="profile-pic">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="name-date">
+                            <div class="name">Name</div>
+                            <div class="date">01/01/2023 3:00pm</div>
+                        </div>
+                        <div class="options">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    </div>
+                    <div class="post-footer">
+                        <span class="action"><i class="fas fa-thumbs-up"></i> Like</span>
+                        <span class="action"><i class="fas fa-comment"></i> Message</span>
+                    </div>
+                </div>
+                <div class="post">
+                    <div class="post-header">
+                        <div class="profile-pic">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="name-date">
+                            <div class="name">Name</div>
+                            <div class="date">01/01/2023 3:00pm</div>
+                        </div>
+                        <div class="options">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    </div>
+                    <div class="post-footer">
+                        <span class="action"><i class="fas fa-thumbs-up"></i> Like</span>
+                        <span class="action"><i class="fas fa-comment"></i> Message</span>
+                    </div>
+                </div>
+                <div class="post">
+                    <div class="post-header">
+                        <div class="profile-pic">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="name-date">
+                            <div class="name">Name</div>
+                            <div class="date">01/01/2023 3:00pm</div>
+                        </div>
+                        <div class="options">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    </div>
+                    <div class="post-footer">
+                        <span class="action"><i class="fas fa-thumbs-up"></i> Like</span>
+                        <span class="action"><i class="fas fa-comment"></i> Message</span>
+                    </div>
+                </div>
+                <div class="post">
+                    <div class="post-header">
+                        <div class="profile-pic">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="name-date">
+                            <div class="name">Name</div>
+                            <div class="date">01/01/2023 3:00pm</div>
+                        </div>
+                        <div class="options">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    </div>
+                    <div class="post-footer">
+                        <span class="action"><i class="fas fa-thumbs-up"></i> Like</span>
+                        <span class="action"><i class="fas fa-comment"></i> Message</span>
+                    </div>
+                </div>
+                <div class="post">
+                    <div class="post-header">
+                        <div class="profile-pic">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="name-date">
+                            <div class="name">Name</div>
+                            <div class="date">01/01/2023 3:00pm</div>
+                        </div>
+                        <div class="options">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    </div>
+                    <div class="post-footer">
+                        <span class="action"><i class="fas fa-thumbs-up"></i> Like</span>
+                        <span class="action"><i class="fas fa-comment"></i> Message</span>
+                    </div>
+                </div>
+            </div>
+            <div class="side-box2">
+                <h3>Manage Posts</h3>
+                <div class="post-list">
+                    <div class="post-info">
+                        <p>01/01/2003 3:00pm</p>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                    </div>
+                    <div class="post-actions">
+                        <button class="edit-btn">Edit</button>
+                        <button class="delete-btn">Delete</button>
+                    </div>
+                </div>
+                <div class="post-list">
+                    <div class="post-info">
+                        <p>01/01/2003 3:00pm</p>
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit...</p>
+                    </div>
+                    <div class="post-actions">
+                        <button class="edit-btn">Edit</button>
+                        <button class="delete-btn">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>

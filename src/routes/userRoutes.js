@@ -301,6 +301,13 @@ let routes = (app, io) => {
   });
 
   app.use('/user', router);
+  router.get('/community', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/community.html');
+    serveFile(filePath, res, next);
+  });
+
+  app.use('/user', router);
+
 };
 
 module.exports = routes;
