@@ -556,6 +556,8 @@ exports.createReservation = async (req, res, io) => {
 
     await reservation.save();
 
+    const reservationId = reservation._id;
+
     const admin = await User.findOne({ court: courtId, role: 'admin' }).select('payer_id');
 
     if (!admin) {
@@ -568,7 +570,7 @@ exports.createReservation = async (req, res, io) => {
 
     const payerId = admin.payer_id;
 
-    const payment = await createPayPalPayment(hourlyRate, payerId, courtId);
+    const payment = await createPayPalPayment(hourlyRate, payerId, courtId, reservationId);
     const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
 
     log(payment);
@@ -1604,7 +1606,7 @@ exports.joinMembership = async (req, res, io) => {
 
     if (totalAmount > 0) {
       // if there is a fee, create a PayPal payment
-      const payment = await createPayPalPayment(totalAmount, null, null, returnUrl, cancelUrl);
+      const payment = await createPayPalPayment(totalAmount, null, null, null, returnUrl, cancelUrl);
       const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
 
       // respond with the approval URL to redirect the user for payment
@@ -1678,7 +1680,7 @@ exports.joinEvent = async (req, res, io) => {
 
     if (totalAmount > 0) {
       // if there is a fee, create a PayPal payment
-      const payment = await createPayPalPayment(totalAmount, null, null, returnUrl, cancelUrl);
+      const payment = await createPayPalPayment(totalAmount, null, null, null, returnUrl, cancelUrl);
       const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
 
       // respond with the approval URL to redirect the user for payment

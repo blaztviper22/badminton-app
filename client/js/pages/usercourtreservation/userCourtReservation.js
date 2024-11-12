@@ -77,7 +77,8 @@ getCurrentUserId().then((userId) => {
     });
 
     socket.on('paymentSuccess', (data) => {
-      openModal('success', 'Success', data.message, onConfirmAction, null);
+      hidePreloader();
+      openModal('success', 'Success', data.message, onConfirmAction, null, 'OK');
     });
   } else {
     error('User ID could not be retrieved.');
