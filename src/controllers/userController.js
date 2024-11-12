@@ -20,6 +20,7 @@ const moment = require('moment-timezone');
 const calculateTotalAmount = require('../utils/amountCalculator');
 const createError = require('http-errors');
 const config = require('config');
+const Post = require('../models/Post');
 const {
   createPayPalPayment,
   capturePayPalPayment,
@@ -1842,9 +1843,6 @@ exports.postAdminMembership = async (req, res) => {
   }
 };
 
-<<<<<<< Updated upstream
-const Post = require('../models/Post'); 
-
 exports.createPost = async (req, res) => {
   try {
     const { content } = req.body;
@@ -1882,7 +1880,9 @@ exports.deletePost = async (req, res) => {
     res.status(200).json({ message: 'Post deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting post', error: error.message });
-=======
+  }
+};
+
 exports.checkPaymentStatus = async (req, res, next) => {
   const { reservationId } = req.query;
 
@@ -1912,7 +1912,6 @@ exports.checkPaymentStatus = async (req, res, next) => {
     }
   } catch (err) {
     error('Error checking payment status:', err);
-    return res.status(500).json({ status: 'error', message: 'Server error. Please try again later.' });
->>>>>>> Stashed changes
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };
