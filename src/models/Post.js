@@ -1,5 +1,6 @@
+// models/Post.js
 const mongoose = require('mongoose');
-const Community = require('./Community'); 
+const Schema = mongoose.Schema;
 
 const postSchema = new Schema({
     userId: {
