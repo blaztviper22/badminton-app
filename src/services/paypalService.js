@@ -44,7 +44,7 @@ const capturePayPalPayment = async (orderId) => {
   return captureData;
 };
 
-async function createPayPalPayment(totalAmount, payerId, courtId, returnUrl, cancelUrl) {
+async function createPayPalPayment(totalAmount, payerId, courtId, reservationId, returnUrl, cancelUrl) {
   const accessToken = await getAccessToken();
   const unsignedToken = createUnsignedJWT('badminton-app', payerId);
 
@@ -80,7 +80,9 @@ async function createPayPalPayment(totalAmount, payerId, courtId, returnUrl, can
             locale: 'en-US',
             shipping_preference: 'NO_SHIPPING',
             user_action: 'PAY_NOW',
-            return_url: returnUrl || `${config.get('frontendUrl')}/user/court-reservation?id=${courtId}`,
+            return_url:
+              returnUrl ||
+              `${config.get('frontendUrl')}/user/court-reservation?id=${courtId}&reservationId=${reservationId}`,
             cancel_url: cancelUrl || `${config.get('frontendUrl')}/user/court-reservation?id=${courtId}`
           }
         }
