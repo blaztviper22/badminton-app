@@ -76,9 +76,10 @@ getCurrentUserId().then((userId) => {
         });
     });
 
-    socket.on('paymentSuccess', (data) => {
-      openModal('success', 'Success', data.message, onConfirmAction, null);
-    });
+    // socket.on('paymentSuccess', (data) => {
+    //   hidePreloader();
+    //   openModal('success', 'Success', data.message, onConfirmAction, null, 'OK');
+    // });
   } else {
     error('User ID could not be retrieved.');
   }
@@ -536,4 +537,37 @@ async function getCurrentUserId() {
     error('Error fetching user ID:', err);
     return null;
   }
+}
+
+// function to start polling
+function pollPaymentStatus(reservationId) {
+  const intervalId = setInterval(async () => {
+    try {
+      const response = await fetch(`/user/check-payment-status?reservationId=${reservationId}`, {
+        withPreloader: false
+      });
+      const data = await response.json();
+
+      if (data.success && data.paymentStatus === 'paid') {
+        clearInterval(intervalId);
+        sessionStorage.removeItem(`polling_${reservationId}`);
+        openModal('success', 'Success', data.message, onConfirmAction, null, 'OK');
+      }
+    } catch (err) {
+      error('Error polling payment status:', err);
+    }
+  }, 5000);
+}
+
+// extract reservationId from the URL
+const urlParams = new URLSearchParams(window.location.search);
+const reservationId = urlParams.get('reservationId');
+
+// start polling if there's a reservationId and it's not already polling
+if (reservationId && !sessionStorage.getItem(`polling_${reservationId}`)) {
+  pollPaymentStatus(reservationId);
+  sessionStorage.setItem(`polling_${reservationId}`, 'true');
+  const url = new URL(window.location.href);
+  url.searchParams.delete('reservationId');
+  history.replaceState({}, document.title, url);
 }

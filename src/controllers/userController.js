@@ -20,6 +20,7 @@ const moment = require('moment-timezone');
 const calculateTotalAmount = require('../utils/amountCalculator');
 const createError = require('http-errors');
 const config = require('config');
+const Post = require('../models/Post');
 const {
   createPayPalPayment,
   capturePayPalPayment,
@@ -556,6 +557,8 @@ exports.createReservation = async (req, res, io) => {
 
     await reservation.save();
 
+    const reservationId = reservation._id;
+
     const admin = await User.findOne({ court: courtId, role: 'admin' }).select('payer_id');
 
     if (!admin) {
@@ -568,7 +571,7 @@ exports.createReservation = async (req, res, io) => {
 
     const payerId = admin.payer_id;
 
-    const payment = await createPayPalPayment(hourlyRate, payerId, courtId);
+    const payment = await createPayPalPayment(hourlyRate, payerId, courtId, reservationId);
     const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
 
     log(payment);
@@ -1604,7 +1607,7 @@ exports.joinMembership = async (req, res, io) => {
 
     if (totalAmount > 0) {
       // if there is a fee, create a PayPal payment
-      const payment = await createPayPalPayment(totalAmount, null, null, returnUrl, cancelUrl);
+      const payment = await createPayPalPayment(totalAmount, null, null, null, returnUrl, cancelUrl);
       const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
 
       // respond with the approval URL to redirect the user for payment
@@ -1678,7 +1681,7 @@ exports.joinEvent = async (req, res, io) => {
 
     if (totalAmount > 0) {
       // if there is a fee, create a PayPal payment
-      const payment = await createPayPalPayment(totalAmount, null, null, returnUrl, cancelUrl);
+      const payment = await createPayPalPayment(totalAmount, null, null, null, returnUrl, cancelUrl);
       const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
 
       // respond with the approval URL to redirect the user for payment
@@ -1837,5 +1840,107 @@ exports.postAdminMembership = async (req, res) => {
   } catch (err) {
     error('Error posting membership:', err);
     res.status(500).json({ status: 'error', message: 'Server error. Please try again later.' });
+  }
+};
+
+exports.checkPaymentStatus = async (req, res, next) => {
+  const { reservationId } = req.query;
+
+  log(reservationId);
+
+  try {
+    // find the reservation by ID
+    const reservation = await Reservation.findById(reservationId);
+
+    if (!reservation) {
+      return res.status(404).json({ status: 'error', message: 'Reservation not found' });
+    }
+
+    if (reservation.paymentStatus === 'paid') {
+      return res.json({
+        success: true,
+        message: 'Payment was successful and reservation is confirmed.',
+        reservationStatus: reservation.status,
+        paymentStatus: reservation.paymentStatus
+      });
+    } else {
+      // payment not yet completed
+      return res.json({
+        success: false,
+        message: 'Payment is still pending.',
+        reservationStatus: reservation.status,
+        paymentStatus: reservation.paymentStatus
+      });
+    }
+  } catch (err) {
+    error('Error checking payment status:', err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+// Function to create a new post
+exports.createPost = async (req, res) => {
+  try {
+    const userId = req.user.id;  // Assuming the user ID is coming from the authenticated request
+
+    const { content } = req.body;  // Assuming content is the only required field for now
+
+    if (!content) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Content is required to create a post.'
+      });
+    }
+
+    // Create a new post
+    const newPost = new Post({
+      userId, // Set the userId to the currently authenticated user
+      content,
+      // likesCount and likedBy can be added later
+      // comments can also be populated later as needed
+    });
+
+    // Save the post to the database
+    await newPost.save();
+
+    // Return the post object (or a success message) with status 201
+    res.status(201).json({
+      status: 'success',
+      message: 'Post created successfully.',
+      data: {
+        post: newPost
+      }
+    });
+
+  } catch (err) {
+    console.error('Error creating post:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.retrieveAllPosts = async (req, res) => {
+  try {
+    // Fetch all posts from the database
+    const posts = await Post.find()
+      .populate('userId', 'username email role')  // Optionally populate user information (like username, email, role)
+      .sort({ createdAt: -1 });  // Optionally, sort by the most recent posts first
+
+    if (!posts.length) {
+      return res.status(404).json({ status: 'error', message: 'No posts found.' });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: { posts }
+    });
+  } catch (err) {
+    console.error('Error fetching posts:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
   }
 };

@@ -4,7 +4,7 @@ import '../../../css/pages/community/community.css';
 import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
 import { setupLogoutListener } from '../../global/logout.js';
 
-let posts = JSON.parse(localStorage.getItem('posts')) || [];  // Retrieve posts from localStorage or initialize as empty
+let posts = [];  // Array to store post data
 let filterActive = false;  // Variable to keep track of filter status
 
 // Function to render all posts in both the post feed and the manage posts section
@@ -52,7 +52,7 @@ function renderPosts() {
                 </div>
                 <div class="post-content">${post.content}</div>
                 <div class="post-footer">
-                    <span class="action ${post.liked ? 'liked' : ''}" onclick="likePost(${index})"><i class="fas fa-thumbs-up"></i> Like (${post.likes})</span>
+                    <span class="action" onclick="likePost(${index})"><i class="fas fa-thumbs-up"></i> Like (${post.likes})</span>
                     <span class="action" onclick="toggleCommentBox(${index})"><i class="fas fa-comment"></i> Comment</span>
                     <div id="comment-box-${index}" class="comment-box" style="display: none;">
                         <textarea id="comment-input-${index}" placeholder="Add a comment..."></textarea>
@@ -107,30 +107,51 @@ function renderPosts() {
 }
 
 // Function to create a new post
-function createPost() {
+async function createPost() {
     const input = document.getElementById('post-input');
     const content = input.value.trim();
     if (!content) return;
 
-    const newPost = {
+    /*const newPost = {
         name: "Your Name",  // Placeholder name, could replace with user info if available
         content: content,
         date: new Date().toLocaleString(),
         likes: 0,  // Ensure the new post starts with 0 likes
-        liked: false,  // Track whether the post is liked
         comments: []  // Initialize with an empty comment array
-    };
+    };*/
 
-    posts.unshift(newPost);  // Add new post to the beginning of the array
+    /*posts.unshift(newPost);  // Add new post to the beginning of the array
     input.value = '';  // Clear the input field
-    savePostsToLocalStorage();  // Save posts to localStorage
-    renderPosts();  // Re-render posts
+    renderPosts();  // Re-render posts*/
+
+    try {
+        // Send the new post to the backend
+        const response = await fetch('/user/post', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ content })
+        });
+  
+        console.log(response)
+        if (!response.ok) {
+          throw new Error('Failed to create post');
+        }
+  
+        // Clear the content field
+        input.value = '';
+  
+        // Fetch and update the post list after posting
+        /*fetchPosts();*/
+      } catch (error) {
+        console.error('Error:', error);
+      }
 }
 
 // Function to delete a post
 function deletePost(index) {
     posts.splice(index, 1);  // Remove post from the array
-    savePostsToLocalStorage();  // Save posts to localStorage
     renderPosts();  // Re-render posts
 }
 
@@ -139,7 +160,6 @@ function editPost(index) {
     const newContent = prompt("Edit your post:", posts[index].content);
     if (newContent) {
         posts[index].content = newContent.trim();
-        savePostsToLocalStorage();  // Save posts to localStorage
         renderPosts();  // Re-render posts
     }
 }
@@ -157,22 +177,13 @@ function sortData(criteria) {
     } else if (criteria === 'content') {
         posts.sort((a, b) => a.content.localeCompare(b.content));  // Sort alphabetically by content
     }
-    savePostsToLocalStorage();  // Save posts to localStorage
     renderPosts();  // Re-render posts with the sorted order
 }
 
 // Function to like a post
 function likePost(index) {
-    const post = posts[index];
-    if (!post.liked) {
-        post.likes += 1;  // Increment the like count for the post
-        post.liked = true;  // Mark the post as liked
-    } else {
-        post.likes -= 1;  // Decrement the like count for the post
-        post.liked = false;  // Unmark the post as liked
-    }
-    savePostsToLocalStorage();  // Save posts to localStorage
-    renderPosts();  // Re-render posts to update the like button color
+    posts[index].likes += 1;  // Increment the like count for the post
+    renderPosts();  // Re-render posts to update the like count
 }
 
 // Function to update the like count in the side-box2
@@ -197,16 +208,10 @@ function addComment(index) {
     const commentInput = document.getElementById(`comment-input-${index}`);
     const commentText = commentInput.value.trim();
     if (commentText) {
-        posts[index].comments.push(commentText);  // Add the comment to the post's comment array
-        commentInput.value = '';  // Clear the comment input field
-        savePostsToLocalStorage();  // Save posts to localStorage
+        posts[index].comments.push(commentText);  // Add the comment to the post
+        commentInput.value = '';  // Clear the input field
         renderPosts();  // Re-render posts to display the new comment
     }
-}
-
-// Function to save posts to localStorage
-function savePostsToLocalStorage() {
-    localStorage.setItem('posts', JSON.stringify(posts));  // Save posts array to localStorage
 }
 
 // Initial rendering of posts
@@ -216,4 +221,4 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPosts();
 });
 
-export { toggleFilter, sortData, createPost, deletePost, editPost };
+export { toggleFilter, sortData, createPost, deletePost, editPost, likePost, addComment };

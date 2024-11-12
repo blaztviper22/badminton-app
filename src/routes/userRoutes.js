@@ -30,7 +30,10 @@ const {
   checkIfUserJoined,
   confirmEventPayment,
   getEventById,
-  postAdminMembership
+  postAdminMembership,
+  checkPaymentStatus,
+  createPost,
+  retrieveAllPosts,
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -300,14 +303,17 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-  app.use('/user', router);
+  router.get('/check-payment-status', verifyToken, roleChecker(['player', 'coach']), checkPaymentStatus);
+
   router.get('/community', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/community.html');
     serveFile(filePath, res, next);
   });
 
-  app.use('/user', router);
+  router.post('/create-post', verifyToken, roleChecker(['player', 'coach']), createPost)
+  router.get('/post', verifyToken, roleChecker(['player', 'coach']), retrieveAllPosts)
 
+  app.use('/user', router);
 };
 
 module.exports = routes;
