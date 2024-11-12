@@ -40,7 +40,8 @@ const pageTitles = {
   adminsettings: 'Settings',
   viewproduct: 'Product',
   userviewproducts: 'Products',
-  community: 'Community'
+  community: 'Community',
+  membershipcard:'card'
 };
 
 // Page-specific stylesheets and scripts
@@ -236,6 +237,12 @@ const pageAssets = {
     hasNavbar: true,
     hasSidebar: false
   },
+  userviewmembership: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
+  },
   userschedulereservation: {
     styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
     scripts: [],
@@ -348,7 +355,8 @@ module.exports = () => {
       viewproduct: './client/js/pages/viewproduct/viewProduct.js',
       userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js',
       community: './client/js/pages/community/community.js',
-      adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js'
+      adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js',
+      userviewmembership: './client/js/pages/userviewmembership/userViewMembership.js',
     },
     output: {
       filename: '[name].[contenthash].js',

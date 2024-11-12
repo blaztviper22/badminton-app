@@ -47,7 +47,8 @@
         <input type="number" id="editCardPrice" name="cardPrice" required>
 
         <button type="submit">Update Card</button>
-        <button type="button" class="close-btn" onclick="closeModal()">Close</button>
+        <br><br>
+        <button id="closeEditModal">Close</button>
       </form>
     </div>
   </div>
@@ -74,16 +75,18 @@
         </tbody>
       </table>
     </div>
-    <button type="button" class="close-btn" onclick="closeSubscribersModal()">Close</button>
+    <button id="closeSubscribersModal">Close</button>
   </div>
 </div>
 
-<!-- Confirmation Modal -->
 <div id="confirmationModal" class="modal">
   <div class="modal-content">
-    <h2>Are you sure you want to revoke this subscription?</h2>
-    <button type="button" id="confirmRevokeBtn" class="modal-btn">Yes</button>
-    <button type="button" class="close-btn" onclick="closeConfirmationModal()">No</button>
+    <p>Are you sure you want to revoke the subscription?</p>
+    <button id="confirmRevokeBtn">Yes</button>
+    <br><br>
+    <button id="closeConfirmationModal">Close</button>
   </div>
 </div>
+
+
 </body>

@@ -3,23 +3,29 @@ import '../../../css/components/sideNavAdmin.css';
 import '../../../css/pages/adminviewMembership/adminviewMembership.css';
 import { startSessionChecks } from '../../../utils/sessionUtils.js';
 import '../../components/sideNavAdmin.js';
+
 const cardContainer = document.getElementById('cardContainer');
 const modal = document.getElementById('editModal');
 const subscribersModal = document.getElementById('subscribersModal');
 const subscriberTableBody = document.getElementById('subscriberTableBody');
+const confirmationModal = document.getElementById('confirmationModal');
+const confirmRevokeBtn = document.getElementById('confirmRevokeBtn');
+const closeSubscribersModalBtn = document.getElementById('closeSubscribersModal');
+const closeConfirmationModalBtn = document.getElementById('closeConfirmationModal');
 let editingCardIndex = null;
+let revokeDetails = null;
 const cards = [];
 
 // Initialize WebSocket connection
-const socket = new WebSocket('ws://localhost:8080'); // Replace with your WebSocket server URL
+const socket = new WebSocket('ws://localhost:8080');
 
 // Handle WebSocket connection open
-socket.onopen = function() {
+socket.onopen = () => {
   console.log('Connected to the WebSocket server');
 };
 
 // Handle incoming WebSocket messages
-socket.onmessage = function(event) {
+socket.onmessage = (event) => {
   const message = JSON.parse(event.data);
 
   switch (message.type) {
@@ -43,38 +49,52 @@ socket.onmessage = function(event) {
 };
 
 // Error handling for WebSocket
-socket.onerror = function(error) {
+socket.onerror = (error) => {
   console.error('WebSocket Error:', error);
 };
 
 // Handle WebSocket connection close
-socket.onclose = function() {
+socket.onclose = () => {
   console.log('WebSocket connection closed');
 };
 
-// Render cards
+// Render cards to the DOM
 function renderCards() {
   cardContainer.innerHTML = '';
   cards.forEach((card, index) => {
     const cardElement = document.createElement('div');
     cardElement.classList.add('membership-card');
     cardElement.innerHTML = `
-      <i class="fas fa-trash-alt delete-icon" onclick="deleteCard(${index})"></i>
+      <i class="fas fa-trash-alt delete-icon" data-index="${index}"></i>
       <img src="${card.imageUrl}" alt="Card Image">
       <div class="card-content">
         <div class="card-name">${card.cardName}</div>
         <div class="card-description">${card.cardDescription}</div>
         <div class="price">₱${card.cardPrice}</div>
-        <button class="status-btn ${card.isActive ? 'active-btn' : 'inactive-btn'}" onclick="toggleStatus(${index})">
+        <button class="status-btn ${card.isActive ? 'active-btn' : 'inactive-btn'}" data-index="${index}">
           ${card.isActive ? 'Active' : 'Inactive'}
         </button>
-        <button class="edit-btn" onclick="editCard(${index})">Edit</button>
+        <button class="edit-btn" data-index="${index}">Edit</button>
         <br><br>
-        <button class="subscriber-btn" onclick="viewSubscribers(${index})">View Subscribers</button>
+        <button class="subscriber-btn" data-index="${index}">View Subscribers</button>
       </div>
     `;
     cardContainer.appendChild(cardElement);
   });
+
+  // Attach event listeners to buttons after rendering
+  document.querySelectorAll('.delete-icon').forEach(btn =>
+    btn.addEventListener('click', (e) => deleteCard(e.target.dataset.index))
+  );
+  document.querySelectorAll('.status-btn').forEach(btn =>
+    btn.addEventListener('click', (e) => toggleStatus(e.target.dataset.index))
+  );
+  document.querySelectorAll('.edit-btn').forEach(btn =>
+    btn.addEventListener('click', (e) => editCard(e.target.dataset.index))
+  );
+  document.querySelectorAll('.subscriber-btn').forEach(btn =>
+    btn.addEventListener('click', (e) => viewSubscribers(e.target.dataset.index))
+  );
 }
 
 // Delete card and notify WebSocket server
@@ -85,7 +105,7 @@ function deleteCard(index) {
   // Send delete card request via WebSocket
   socket.send(JSON.stringify({
     type: 'deleteCard',
-    index: index
+    index: parseInt(index)
   }));
 }
 
@@ -97,7 +117,7 @@ function toggleStatus(index) {
   // Send updated status to WebSocket server
   socket.send(JSON.stringify({
     type: 'toggleStatus',
-    index: index,
+    index: parseInt(index),
     isActive: cards[index].isActive
   }));
 }
@@ -111,45 +131,43 @@ function editCard(index) {
   document.getElementById('editCardPrice').value = card.cardPrice;
   document.getElementById('editImagePreview').style.display = 'inline-block';
   document.getElementById('editImagePreview').src = card.imageUrl;
-  modal.style.display = 'flex';
+  openModal(modal);
 }
 
-// Open the modal
-function openModal() {
+// Open and close modals
+function openModal(modal) {
   document.body.classList.add('no-scroll');
   modal.style.display = 'flex';
 }
 
-// Close the modal
-function closeModal() {
+function closeModal(modal) {
   document.body.classList.remove('no-scroll');
   modal.style.display = 'none';
 }
 
-// Preview uploaded image
+// Image preview
 function previewImage(event, isEdit = false) {
   const file = event.target.files[0];
+  if (!file) return;
   const reader = new FileReader();
-
-  reader.onload = function(e) {
+  reader.onload = (e) => {
+    const imgSrc = e.target.result;
     if (isEdit) {
-      document.getElementById('editImagePreview').src = e.target.result;
+      document.getElementById('editImagePreview').src = imgSrc;
       document.getElementById('editImagePreview').style.display = 'inline-block';
     } else {
       const imagePreview = document.createElement('img');
-      imagePreview.src = e.target.result;
+      imagePreview.src = imgSrc;
       imagePreview.classList.add('image-preview');
       document.getElementById('membershipForm').appendChild(imagePreview);
     }
   };
-
   reader.readAsDataURL(file);
 }
 
-// Add new card and notify WebSocket server
+// Add new card
 document.getElementById('membershipForm').addEventListener('submit', function(e) {
   e.preventDefault();
-
   const imageUrl = document.getElementById('imageUrl').files[0];
   const cardName = document.getElementById('cardName').value;
   const cardDescription = document.getElementById('cardDescription').value;
@@ -161,9 +179,7 @@ document.getElementById('membershipForm').addEventListener('submit', function(e)
     cardDescription,
     cardPrice,
     isActive: true,
-    subscribers: [
-      { username: 'SampleUser1', date: '2024-10-01' }
-    ]
+    subscribers: [{ username: 'SampleUser1', date: '2024-10-01' }]
   };
 
   cards.push(newCard);
@@ -177,7 +193,7 @@ document.getElementById('membershipForm').addEventListener('submit', function(e)
   }));
 });
 
-// Update existing card and notify WebSocket server
+// Update existing card
 document.getElementById('editForm').addEventListener('submit', function(e) {
   e.preventDefault();
 
@@ -197,7 +213,7 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
 
   cards[editingCardIndex] = updatedCard;
   renderCards();
-  closeModal();
+  closeModal(modal);
 
   // Send updated card data via WebSocket
   socket.send(JSON.stringify({
@@ -209,61 +225,74 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
 
 // View subscribers for a card
 function viewSubscribers(index) {
-  subscriberTableBody.innerHTML = '';
-
+  subscriberTableBody.innerHTML = '';  // Clear previous subscriber rows
   cards[index].subscribers.forEach((subscriber, subIndex) => {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${subscriber.username}</td>
       <td>${subscriber.date}</td>
-      <td><button class="revoke-btn" onclick="openConfirmationModal(${index}, ${subIndex})">Revoke</button></td>
+      <td><button class="revoke-btn" data-card-index="${index}" data-subscriber-index="${subIndex}">Revoke</button></td>
     `;
     subscriberTableBody.appendChild(row);
   });
 
-  subscribersModal.style.display = 'flex';
+  // Re-attach event listeners for the "Revoke" buttons
+  document.querySelectorAll('.revoke-btn').forEach((btn) => {
+    btn.addEventListener('click', (event) => {
+      const cardIndex = event.target.getAttribute('data-card-index');
+      const subscriberIndex = event.target.getAttribute('data-subscriber-index');
+      openConfirmationModal(cardIndex, subscriberIndex);
+    });
+  });
+
+  openModal(subscribersModal);
 }
 
-// Open confirmation modal to revoke subscriber
+// Open confirmation modal to confirm the revocation
 function openConfirmationModal(cardIndex, subscriberIndex) {
-  revokeDetails = { cardIndex, subscriberIndex };
-  document.getElementById('confirmationModal').style.display = 'flex';
-  document.body.classList.add('no-scroll');
+  revokeDetails = { cardIndex, subscriberIndex };  // Set the details
+  confirmationModal.style.display = 'flex';  // Show the modal
+  document.body.classList.add('no-scroll');  // Prevent body scrolling when modal is open
 }
 
-// Close the confirmation modal
+// Close confirmation modal
 function closeConfirmationModal() {
-  document.getElementById('confirmationModal').style.display = 'none';
-  document.body.classList.remove('no-scroll');
+  const confirmationModal = document.getElementById('confirmationModal');
+  confirmationModal.style.display = 'none';  // Hide the modal
+  document.body.classList.remove('no-scroll');  // Allow scrolling again
+  revokeDetails = null;  // Clear revoke details
 }
 
-// Confirm revocation of subscriber
-document.getElementById('confirmRevokeBtn').addEventListener('click', function() {
-  if (revokeDetails.cardIndex !== undefined && revokeDetails.subscriberIndex !== undefined) {
+// Confirm the revocation action
+confirmRevokeBtn.addEventListener('click', function() {
+  if (revokeDetails) {
     const { cardIndex, subscriberIndex } = revokeDetails;
+
+    // Remove the subscriber
     cards[cardIndex].subscribers.splice(subscriberIndex, 1);
-    renderSubscribers(cardIndex);
+
+    // Re-render the cards to update the subscriber count and details
+    renderCards();
+
+    // Re-render the subscribers modal
+    viewSubscribers(cardIndex);
+
+    // Close the confirmation modal
+    closeConfirmationModal();
+
+    // Clear revoke details
+    revokeDetails = null;
   }
-  closeConfirmationModal();
 });
 
-// Render the subscriber list after revocation
-function renderSubscribers(index) {
-  subscriberTableBody.innerHTML = '';
+// Close modals
+closeSubscribersModalBtn.addEventListener('click', () => closeModal(subscribersModal));
+closeConfirmationModalBtn.addEventListener('click', () => closeConfirmationModal());
 
-  cards[index].subscribers.forEach((subscriber, subIndex) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${subscriber.username}</td>
-      <td>${subscriber.date}</td>
-      <td><button class="revoke-btn" onclick="openConfirmationModal(${index}, ${subIndex})">Revoke</button></td>
-    `;
-    subscriberTableBody.appendChild(row);
-  });
-}
 
-// Close the subscriber modal
-function closeSubscribersModal() {
-  subscribersModal.style.display = 'none';
-  document.body.classList.remove('no-scroll');
-}
+// Start session checks
+startSessionChecks();
+closeConfirmationModalBtn.addEventListener('click', () => {
+  console.log('Close button clicked');
+  closeConfirmationModal();
+});
