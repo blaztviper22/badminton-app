@@ -2114,3 +2114,105 @@ exports.removeLike = async (req, res) => {
     });
   }
 };
+
+exports.addComment = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+    const { content } = req.body;
+
+    // check if the content is provided
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Comment content cannot be empty'
+      });
+    }
+
+    // find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // create the new comment
+    const newComment = {
+      userId,
+      content,
+      date: new Date()
+    };
+
+    // add the comment to the post
+    post.comments.push(newComment);
+
+    // increment the commentCount
+    post.commentCount = post.comments.length;
+
+    // save the post with updated comment
+    await post.save();
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Comment added successfully',
+      data: { comment: newComment, commentCount: post.commentCount }
+    });
+  } catch (err) {
+    console.error('Error adding comment:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.removeComment = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const commentId = req.params.commentId;
+    const userId = req.user.id;
+
+    // find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // find the index of the comment to remove
+    const commentIndex = post.comments.findIndex(comment => comment._id.toString() === commentId);
+
+    if (commentIndex === -1) {
+      return res.status(404).json({ status: 'error', message: 'Comment not found' });
+    }
+
+    // ensure the user removing the comment is the author of the comment
+    if (post.comments[commentIndex].userId.toString() !== userId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You can only remove your own comments'
+      });
+    }
+
+    // remove the comment
+    post.comments.splice(commentIndex, 1);
+
+    // update the commentCount
+    post.commentCount = post.comments.length;
+
+    // save the post with updated comments
+    await post.save();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Comment removed successfully',
+      data: { commentCount: post.commentCount }
+    });
+  } catch (err) {
+    console.error('Error removing comment:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
