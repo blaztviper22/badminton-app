@@ -1,15 +1,10 @@
-// models/Post.js
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const Community = require('./Community'); 
 
 const postSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
-        required: true
-    },
-    title: {
-        type: String,
         required: true
     },
     content: {
@@ -28,10 +23,6 @@ const postSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     }],
-    important: {
-        type: Boolean,
-        default: false
-    },
     comments: [{
         userId: {
             type: Schema.Types.ObjectId,
