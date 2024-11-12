@@ -1886,6 +1886,8 @@ exports.deletePost = async (req, res) => {
 exports.checkPaymentStatus = async (req, res, next) => {
   const { reservationId } = req.query;
 
+  log(reservationId);
+
   try {
     // find the reservation by ID
     const reservation = await Reservation.findById(reservationId);

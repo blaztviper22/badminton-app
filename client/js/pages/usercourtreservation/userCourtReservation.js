@@ -437,11 +437,31 @@ async function submitReservation(timeSlot) {
 }
 
 // clean URL parameters on page load
+// window.addEventListener('load', () => {
+//   const url = new URL(window.location.href);
+//   url.searchParams.delete('token');
+//   url.searchParams.delete('PayerID');
+//   history.replaceState({}, document.title, url);
+// });
+
 window.addEventListener('load', () => {
   const url = new URL(window.location.href);
   url.searchParams.delete('token');
   url.searchParams.delete('PayerID');
-  history.replaceState({}, document.title, url);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const reservationId = urlParams.get('reservationId');
+
+  if (reservationId) {
+    pollPaymentStatus(reservationId);
+
+    // remove the reservationId from the URL once polling has started
+    url.searchParams.delete('reservationId');
+    history.replaceState({}, document.title, url);
+  } else {
+    // update the URL if no reservationId is present
+    history.replaceState({}, document.title, url);
+  }
 });
 
 function formatCurrency(amount) {
@@ -537,4 +557,28 @@ async function getCurrentUserId() {
     error('Error fetching user ID:', err);
     return null;
   }
+}
+
+async function pollPaymentStatus(reservationId) {
+  const pollingInterval = 3000;
+
+  const checkStatus = async () => {
+    try {
+      const response = await fetch(`/user/check-payment-status?reservationId=${reservationId}`);
+      const data = await response.json();
+
+      if (data.success && data.paymentStatus === 'paid') {
+        log('Payment was successful!');
+        openModal('success', 'Success', data.message, onConfirmAction, null, 'OK');
+        // update the UI to show confirmation to the user
+      } else {
+        // re-run after a delay if payment is still pending
+        setTimeout(checkStatus, pollingInterval);
+      }
+    } catch (err) {
+      error('Error checking payment status:', err);
+    }
+  };
+
+  checkStatus();
 }
