@@ -1,5 +1,5 @@
-import '../../../css/components/modal.css';
-import { openModal } from '../../../js/components/modal.js';
+import '../../css/components/modal.css';
+import { openModal } from '../components/modal.js';
 import { setupHelp } from './help';
 
 const doc = document;
