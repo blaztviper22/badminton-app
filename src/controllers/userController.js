@@ -1877,3 +1877,70 @@ exports.checkPaymentStatus = async (req, res, next) => {
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };
+
+// Function to create a new post
+exports.createPost = async (req, res) => {
+  try {
+    const userId = req.user.id;  // Assuming the user ID is coming from the authenticated request
+
+    const { content } = req.body;  // Assuming content is the only required field for now
+
+    if (!content) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Content is required to create a post.'
+      });
+    }
+
+    // Create a new post
+    const newPost = new Post({
+      userId, // Set the userId to the currently authenticated user
+      content,
+      // likesCount and likedBy can be added later
+      // comments can also be populated later as needed
+    });
+
+    // Save the post to the database
+    await newPost.save();
+
+    // Return the post object (or a success message) with status 201
+    res.status(201).json({
+      status: 'success',
+      message: 'Post created successfully.',
+      data: {
+        post: newPost
+      }
+    });
+
+  } catch (err) {
+    console.error('Error creating post:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.retrieveAllPosts = async (req, res) => {
+  try {
+    // Fetch all posts from the database
+    const posts = await Post.find()
+      .populate('userId', 'username email role')  // Optionally populate user information (like username, email, role)
+      .sort({ createdAt: -1 });  // Optionally, sort by the most recent posts first
+
+    if (!posts.length) {
+      return res.status(404).json({ status: 'error', message: 'No posts found.' });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: { posts }
+    });
+  } catch (err) {
+    console.error('Error fetching posts:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};

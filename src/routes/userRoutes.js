@@ -32,6 +32,8 @@ const {
   getEventById,
   postAdminMembership,
   checkPaymentStatus,
+  createPost,
+  retrieveAllPosts,
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -307,6 +309,9 @@ let routes = (app, io) => {
     const filePath = path.resolve(__dirname, '../../build/community.html');
     serveFile(filePath, res, next);
   });
+
+  router.post('/create-post', verifyToken, roleChecker(['player', 'coach']), createPost)
+  router.get('/post', verifyToken, roleChecker(['player', 'coach']), retrieveAllPosts)
 
   app.use('/user', router);
 };

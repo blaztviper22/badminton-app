@@ -107,22 +107,46 @@ function renderPosts() {
 }
 
 // Function to create a new post
-function createPost() {
+async function createPost() {
     const input = document.getElementById('post-input');
     const content = input.value.trim();
     if (!content) return;
 
-    const newPost = {
+    /*const newPost = {
         name: "Your Name",  // Placeholder name, could replace with user info if available
         content: content,
         date: new Date().toLocaleString(),
         likes: 0,  // Ensure the new post starts with 0 likes
         comments: []  // Initialize with an empty comment array
-    };
+    };*/
 
-    posts.unshift(newPost);  // Add new post to the beginning of the array
+    /*posts.unshift(newPost);  // Add new post to the beginning of the array
     input.value = '';  // Clear the input field
-    renderPosts();  // Re-render posts
+    renderPosts();  // Re-render posts*/
+
+    try {
+        // Send the new post to the backend
+        const response = await fetch('/user/post', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ content })
+        });
+  
+        console.log(response)
+        if (!response.ok) {
+          throw new Error('Failed to create post');
+        }
+  
+        // Clear the content field
+        input.value = '';
+  
+        // Fetch and update the post list after posting
+        /*fetchPosts();*/
+      } catch (error) {
+        console.error('Error:', error);
+      }
 }
 
 // Function to delete a post
