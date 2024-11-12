@@ -41,7 +41,7 @@ const pageTitles = {
   viewproduct: 'Product',
   userviewproducts: 'Products',
   community: 'Community',
-  membershipcard:'card'
+  userviewmembership:'card'
 };
 
 // Page-specific stylesheets and scripts
