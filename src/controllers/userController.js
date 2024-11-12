@@ -2032,3 +2032,85 @@ exports.removePost = async (req, res) => {
     });
   }
 };
+
+exports.addLike = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+
+    // find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // check if the user has already liked the post
+    if (post.likedBy.includes(userId)) {
+      return res.status(400).json({ status: 'error', message: 'You have already liked this post' });
+    }
+
+    // add the user to the likedBy array
+    post.likedBy.push(userId);
+
+    // increment the likesCount
+    post.likesCount = post.likedBy.length;
+
+    // save the post
+    await post.save();
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Post liked successfully',
+      data: { likesCount: post.likesCount, likedBy: post.likedBy }
+    });
+  } catch (err) {
+    console.error('Error adding like:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.removeLike = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+
+    // find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // check if the user has already liked the post
+    const likeIndex = post.likedBy.indexOf(userId);
+
+    if (likeIndex === -1) {
+      return res.status(400).json({ status: 'error', message: 'You have not liked this post' });
+    }
+
+    // remove the user from the likedBy array
+    post.likedBy.splice(likeIndex, 1);
+
+    // decrement the likesCount
+    post.likesCount = post.likedBy.length;
+
+    // aave the post
+    await post.save();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Like removed successfully',
+      data: { likesCount: post.likesCount, likedBy: post.likedBy }
+    });
+  } catch (err) {
+    console.error('Error removing like:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
