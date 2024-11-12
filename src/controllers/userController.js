@@ -1943,4 +1943,45 @@ exports.retrieveAllPosts = async (req, res) => {
       message: 'Internal Server Error'
     });
   }
+};};
+
+exports.removePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+
+    // find the post by its ID
+    const post = await Post.findById(postId);
+
+    // if the post doesn't exist, return an error
+    if (!post) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Post not found.'
+      });
+    }
+
+    // check if the current user is the one who created the post
+    if (post.userId.toString() !== userId.toString()) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You can only delete your own posts.'
+      });
+    }
+
+    // optionally: If you want to also clean up associated comments and likes
+    // removing the post (with optional associated cleanup)
+    await post.remove();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Post deleted successfully.'
+    });
+  } catch (err) {
+    error('Error deleting post:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
 };
