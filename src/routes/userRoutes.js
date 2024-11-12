@@ -31,11 +31,16 @@ const {
   confirmEventPayment,
   getEventById,
   postAdminMembership,
+<<<<<<< Updated upstream
   createPost, 
   getPosts, 
   getUserPosts, 
   updatePost, 
   deletePost } = require('../controllers/userController');
+=======
+  checkPaymentStatus
+} = require('../controllers/userController');
+>>>>>>> Stashed changes
 const serveFile = require('../utils/fileUtils');
 const {
   validateUserId,
@@ -304,6 +309,11 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
+<<<<<<< Updated upstream
+=======
+  router.get('/check-payment-status', verifyToken, roleChecker(['player', 'coach']), checkPaymentStatus);
+
+>>>>>>> Stashed changes
   router.get('/community', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/community.html');
     serveFile(filePath, res, next);

@@ -1842,6 +1842,7 @@ exports.postAdminMembership = async (req, res) => {
   }
 };
 
+<<<<<<< Updated upstream
 const Post = require('../models/Post'); 
 
 exports.createPost = async (req, res) => {
@@ -1881,5 +1882,37 @@ exports.deletePost = async (req, res) => {
     res.status(200).json({ message: 'Post deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting post', error: error.message });
+=======
+exports.checkPaymentStatus = async (req, res, next) => {
+  const { reservationId } = req.query;
+
+  try {
+    // find the reservation by ID
+    const reservation = await Reservation.findById(reservationId);
+
+    if (!reservation) {
+      return res.status(404).json({ status: 'error', message: 'Reservation not found' });
+    }
+
+    if (reservation.paymentStatus === 'paid') {
+      return res.json({
+        success: true,
+        message: 'Payment was successful and reservation is confirmed.',
+        reservationStatus: reservation.status,
+        paymentStatus: reservation.paymentStatus
+      });
+    } else {
+      // payment not yet completed
+      return res.json({
+        success: false,
+        message: 'Payment is still pending.',
+        reservationStatus: reservation.status,
+        paymentStatus: reservation.paymentStatus
+      });
+    }
+  } catch (err) {
+    error('Error checking payment status:', err);
+    return res.status(500).json({ status: 'error', message: 'Server error. Please try again later.' });
+>>>>>>> Stashed changes
   }
 };
