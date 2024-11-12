@@ -33,6 +33,7 @@ const { geocodeAddress, getAddressFromCoordinates } = require('../utils/addressU
 const { handleMultipleFileUploads, handleFileUpload } = require('../utils/fileUpload');
 const Category = require('../models/Category');
 const Membership = require('../models/Membership');
+const sanitizeHtml = require('sanitize-html');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -1878,12 +1879,11 @@ exports.checkPaymentStatus = async (req, res, next) => {
   }
 };
 
-// Function to create a new post
+// function to create a new post
 exports.createPost = async (req, res) => {
   try {
-    const userId = req.user.id;  // Assuming the user ID is coming from the authenticated request
-
-    const { content } = req.body;  // Assuming content is the only required field for now
+    const userId = req.user.id;
+    const { content } = req.body;
 
     if (!content) {
       return res.status(400).json({
@@ -1892,29 +1892,33 @@ exports.createPost = async (req, res) => {
       });
     }
 
-    // Create a new post
+    // extract hashtags from the content using a regular expression
+    const hashtagRegex = /#(\w+)/g;
+    const hashtags = (content.match(hashtagRegex) || []).map((tag) => tag.toLowerCase());
+
+    // create the new post
     const newPost = new Post({
-      userId, // Set the userId to the currently authenticated user
-      content,
-      // likesCount and likedBy can be added later
-      // comments can also be populated later as needed
+      userId, // set the userId to the currently authenticated user
+      content, // post content
+      hashtags, // set hashtags extracted from content
+      commentCount: 0, // initialize comment count to 0
+      likesCount: 0 // initialize likes count to 0
     });
 
-    // Save the post to the database
+    // save the post to the database
     await newPost.save();
 
-    // Return the post object (or a success message) with status 201
-    res.status(201).json({
+    // return the created post along with a success message
+    return res.status(201).json({
       status: 'success',
       message: 'Post created successfully.',
       data: {
         post: newPost
       }
     });
-
   } catch (err) {
     console.error('Error creating post:', err);
-    res.status(500).json({
+    return res.status(500).json({
       status: 'error',
       message: 'Internal Server Error'
     });
@@ -1923,27 +1927,70 @@ exports.createPost = async (req, res) => {
 
 exports.retrieveAllPosts = async (req, res) => {
   try {
-    // Fetch all posts from the database
-    const posts = await Post.find()
-      .populate('userId', 'username email role')  // Optionally populate user information (like username, email, role)
-      .sort({ createdAt: -1 });  // Optionally, sort by the most recent posts first
+    const { dateFilter, sort, hashtag } = req.query;
+
+    // base query object for finding posts
+    const query = {};
+
+    // date filter (Today, This Week, This Month)
+    if (dateFilter) {
+      const today = moment.tz('Asia/Manila').startOf('day');
+      let startDate;
+      let endDate;
+
+      switch (dateFilter.toLowerCase()) {
+        case 'today':
+          startDate = today;
+          endDate = today.clone().endOf('day');
+          break;
+        case 'this week':
+          startDate = today.clone().startOf('week');
+          endDate = today.clone().endOf('week');
+          break;
+        case 'this month':
+          startDate = today.clone().startOf('month');
+          endDate = today.clone().endOf('month');
+          break;
+        default:
+          return res.status(400).json({ status: 'error', message: 'Invalid date filter.' });
+      }
+      query.createdAt = { $gte: startDate.toDate(), $lte: endDate.toDate() };
+    }
+
+    //  apply Hashtag Filtering (if provided)
+    if (hashtag) {
+      const hashtagRegex = new RegExp(`#${hashtag}`, 'i'); // case-insensitive search
+      query.content = { $regex: hashtagRegex }; // assuming 'content' is the field where hashtags might appear
+    }
+
+    //  sorting Logic
+    let sortCriteria = { createdAt: -1 }; // Default: sort by createdAt in descending order
+    if (sort) {
+      const [field, order] = sort.split(':');
+      sortCriteria = {
+        [field]: order === 'asc' ? 1 : -1 // ascending if 'asc', descending if 'desc'
+      };
+    }
+
+    // fetch posts based on the constructed query
+    const posts = await Post.find(query).populate('userId', 'username email role').sort(sortCriteria);
 
     if (!posts.length) {
       return res.status(404).json({ status: 'error', message: 'No posts found.' });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       status: 'success',
       data: { posts }
     });
   } catch (err) {
     console.error('Error fetching posts:', err);
-    res.status(500).json({
+    return res.status(500).json({
       status: 'error',
       message: 'Internal Server Error'
     });
   }
-};};
+};
 
 exports.removePost = async (req, res) => {
   try {
