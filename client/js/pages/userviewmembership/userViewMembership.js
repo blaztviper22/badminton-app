@@ -9,7 +9,7 @@ let membershipToCancel = '';
 let rowToRemove = '';
 
 // Create WebSocket connection
-const socket = new WebSocket('ws://yourserveraddress:port');  // Replace with your actual WebSocket server URL
+const socket = new WebSocket('ws://localhost:8080');  // Replace with your actual WebSocket server URL
 
 // Event listeners for WebSocket messages
 socket.onopen = () => {
