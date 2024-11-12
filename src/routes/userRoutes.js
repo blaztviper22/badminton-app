@@ -32,11 +32,6 @@ const {
   getEventById,
   postAdminMembership,
   checkPaymentStatus,
-  createPost,
-  getPosts,
-  getUserPosts,
-  updatePost,
-  deletePost
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
