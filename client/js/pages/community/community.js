@@ -19,7 +19,44 @@ const get = (selector) => doc.querySelector(selector);
 doc.addEventListener('DOMContentLoaded', async () => {
   await fetchPopularHashtags();
   await fetchPosts();
+
+  // Add listener to the 'Post' button
+  const postButton = getById('create-post-container').querySelector('button');
+  postButton.addEventListener('click', createPost);
 });
+
+async function createPost() {
+  const postInput = getById('post-input');
+  const content = postInput.value.trim();
+
+  if (!content) {
+    alert('Content is required to create a post.');
+    return;
+  }
+
+  try {
+    const response = await fetch('/user/community/post', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ content })
+    });
+
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      // update the UI with the new post
+      fetchPosts();
+      postInput.value = ''; // clear the input after posting
+    } else {
+      alert(data.message || 'Failed to create the post.');
+    }
+  } catch (err) {
+    error('Error creating post:', err);
+    alert('Error creating post. Please try again later.');
+  }
+}
 
 async function fetchPopularHashtags() {
   try {
@@ -58,7 +95,7 @@ async function fetchPosts() {
     }
 
     const posts = data.data.posts;
-    renderPosts(posts); // Render posts dynamically
+    renderPosts(posts);
   } catch (err) {
     error('Error fetching posts:', err);
   }
