@@ -50,6 +50,7 @@ function setupFilters() {
     checkbox.addEventListener('change', (e) => {
       console.log('Date filter changed', e.target.value);
       handleDateFilterChange(e.target);
+      fetchPosts();
     });
   });
 
@@ -58,6 +59,7 @@ function setupFilters() {
     checkbox.addEventListener('change', (e) => {
       console.log('Sort filter changed', e.target.value);
       handleSortFilterChange(e.target);
+      fetchPosts();
     });
   });
 
@@ -189,25 +191,23 @@ function getSelectedHashtags() {
 
 function handleDateFilterChange(target) {
   if (target.checked) {
-    // Uncheck all other date filters
     getAll('input[name="date-filter"]').forEach((checkbox) => {
       if (checkbox !== target) {
         checkbox.checked = false;
       }
     });
-    fetchPosts(); // Fetch posts after filter change
+    fetchPosts();
   }
 }
 
 function handleSortFilterChange(target) {
   if (target.checked) {
-    // Uncheck all other sort filters
     getAll('input[name="sort-filter"]').forEach((checkbox) => {
       if (checkbox !== target) {
         checkbox.checked = false;
       }
     });
-    fetchPosts(); // Fetch posts after filter change
+    fetchPosts();
   }
 }
 
