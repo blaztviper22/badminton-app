@@ -1881,7 +1881,7 @@ exports.checkPaymentStatus = async (req, res, next) => {
 };
 
 // function to create a new post
-exports.createPost = async (req, res) => {
+exports.createPost = async (req, res, io) => {
   try {
     const userId = req.user.id;
     const { content } = req.body;
@@ -1929,6 +1929,12 @@ exports.createPost = async (req, res) => {
         });
       }
     }
+
+    io.emit('newPost', {
+      status: 'success',
+      message: 'A new post has been created!',
+      post: newPost
+    });
 
     // return the created post along with a success message
     return res.status(201).json({
@@ -1981,8 +1987,14 @@ exports.retrieveAllPosts = async (req, res) => {
 
     // apply Hashtag Filtering (if provided)
     if (hashtag) {
-      const hashtagRegex = new RegExp(`#${hashtag}`, 'i');
-      query.content = { $regex: hashtagRegex };
+      // Split the hashtags by comma and remove extra spaces
+      const hashtagsArray = hashtag.split(',').map(h => h.trim().replace(/^#/, ''));
+
+      // Build the regex for matching posts containing any of the hashtags
+      const hashtagRegexArray = hashtagsArray.map(h => new RegExp(`#${h}`, 'i'));
+
+      // Use the $or operator to match any of the hashtags
+      query.content = { $in: hashtagRegexArray };
     }
 
     // sorting Logic
@@ -2034,6 +2046,7 @@ exports.retrieveAllPosts = async (req, res) => {
     });
   }
 };
+
 
 exports.removePost = async (req, res) => {
   try {
