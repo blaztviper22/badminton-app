@@ -34,6 +34,7 @@ const { handleMultipleFileUploads, handleFileUpload } = require('../utils/fileUp
 const Category = require('../models/Category');
 const Membership = require('../models/Membership');
 const sanitizeHtml = require('sanitize-html');
+const Hashtag = require('../models/Hashtag');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -1885,28 +1886,49 @@ exports.createPost = async (req, res) => {
     const userId = req.user.id;
     const { content } = req.body;
 
-    if (!content) {
+    if (!content || content.trim().length === 0) {
       return res.status(400).json({
         status: 'error',
         message: 'Content is required to create a post.'
       });
     }
 
+    const sanitizedContent = sanitizeHtml(content);
     // extract hashtags from the content using a regular expression
-    const hashtagRegex = /#(\w+)/g;
-    const hashtags = (content.match(hashtagRegex) || []).map((tag) => tag.toLowerCase());
+    // const hashtags = (content.match(/#(\w+)/g) || []).map((tag) => tag.toLowerCase());
+
+    const hashtags = content.match(/#\w+/g) || [];
+
+    // normalize hashtags (convert to lowercase, remove #)
+    const normalizedHashtags = hashtags.map((tag) => tag.toLowerCase().substring(1));
 
     // create the new post
     const newPost = new Post({
       userId, // set the userId to the currently authenticated user
-      content, // post content
-      hashtags, // set hashtags extracted from content
-      commentCount: 0, // initialize comment count to 0
-      likesCount: 0 // initialize likes count to 0
+      content: sanitizedContent,
+      hashtags: normalizedHashtags
     });
 
     // save the post to the database
     await newPost.save();
+
+    // update the Hashtag collection
+    for (let hashtag of normalizedHashtags) {
+      let hashtagEntry = await Hashtag.findOne({ hashtag });
+
+      if (hashtagEntry) {
+        // if hashtag already exists, increment count
+        hashtagEntry.count += 1;
+        hashtagEntry.lastUsed = new Date();
+        await hashtagEntry.save();
+      } else {
+        // if hashtag doesn't exist, create a new entry
+        await Hashtag.create({
+          hashtag,
+          count: 1
+        });
+      }
+    }
 
     // return the created post along with a success message
     return res.status(201).json({
@@ -2018,7 +2040,7 @@ exports.removePost = async (req, res) => {
 
     // optionally: If you want to also clean up associated comments and likes
     // removing the post (with optional associated cleanup)
-    await post.remove();
+   await Post.deleteOne({ _id: postId });
 
     return res.status(200).json({
       status: 'success',
@@ -2180,7 +2202,7 @@ exports.removeComment = async (req, res) => {
     }
 
     // find the index of the comment to remove
-    const commentIndex = post.comments.findIndex(comment => comment._id.toString() === commentId);
+    const commentIndex = post.comments.findIndex((comment) => comment._id.toString() === commentId);
 
     if (commentIndex === -1) {
       return res.status(404).json({ status: 'error', message: 'Comment not found' });
@@ -2210,6 +2232,108 @@ exports.removeComment = async (req, res) => {
     });
   } catch (err) {
     console.error('Error removing comment:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.editPost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+    const { content } = req.body;
+
+    // check if content is provided
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Post content cannot be empty'
+      });
+    }
+
+    // find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // check if the user is the one who created the post
+    if (post.userId.toString() !== userId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You can only edit your own posts'
+      });
+    }
+
+    // update the post content
+    post.content = content;
+    post.date = new Date();
+
+    // save the updated post
+    await post.save();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Post updated successfully',
+      data: { post }
+    });
+  } catch (err) {
+    console.error('Error editing post:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.getPopularHashtags = async (req, res) => {
+  try {
+    // fetch top 10 most popular hashtags
+    const hashtags = await Hashtag.find().sort({ count: -1 }).limit(10).exec();
+
+    if (hashtags.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'No popular hashtags found'
+      });
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: { hashtags }
+    });
+  } catch (err) {
+    console.error('Error fetching popular hashtags:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.getPostsByHashtag = async (req, res) => {
+  try {
+    const { hashtag } = req.params;
+
+    // find posts containing the hashtag (normalized to lowercase)
+    const posts = await Post.find({ hashtags: hashtag.toLowerCase() }).sort({ date: -1 });
+
+    if (posts.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: `No posts found with hashtag #${hashtag}`
+      });
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: { posts }
+    });
+  } catch (err) {
+    console.error('Error fetching posts by hashtag:', err);
     return res.status(500).json({
       status: 'error',
       message: 'Internal Server Error'

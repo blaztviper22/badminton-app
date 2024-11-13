@@ -77,6 +77,10 @@ const postSchema = new Schema(
   { timestamps: true }
 );
 
+// postSchema.virtual('commentCount').get(function () {
+//   return this.comments.length;
+// });
+
 const Post = mongoose.model('Post', postSchema);
 
 module.exports = Post;

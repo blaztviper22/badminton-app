@@ -34,6 +34,8 @@ const {
   checkPaymentStatus,
   createPost,
   retrieveAllPosts,
+  removePost,
+  addLike
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -310,8 +312,13 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-  router.post('/create-post', verifyToken, roleChecker(['player', 'coach']), createPost)
-  router.get('/post', verifyToken, roleChecker(['player', 'coach']), retrieveAllPosts)
+  router.post('/community/post', verifyToken, roleChecker(['player', 'coach']), createPost);
+
+  router.get('/community/posts', verifyToken, roleChecker(['player', 'coach']), retrieveAllPosts);
+
+  router.delete('/community/posts/:postId', verifyToken, roleChecker(['player', 'coach']), removePost);
+
+  router.post('/community/posts/:postId/like', verifyToken, roleChecker(['player', 'coach']), addLike);
 
   app.use('/user', router);
 };
