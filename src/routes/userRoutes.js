@@ -35,7 +35,12 @@ const {
   createPost,
   retrieveAllPosts,
   removePost,
-  addLike
+  addLike,
+  removeLike,
+  addComment,
+  removeComment,
+  getPopularHashtags,
+  getPostsByHashtag
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -319,6 +324,21 @@ let routes = (app, io) => {
   router.delete('/community/posts/:postId', verifyToken, roleChecker(['player', 'coach']), removePost);
 
   router.post('/community/posts/:postId/like', verifyToken, roleChecker(['player', 'coach']), addLike);
+
+  router.delete('/community/posts/:postId/like', verifyToken, roleChecker(['player', 'coach']), removeLike);
+
+  router.post('/community/posts/:postId/comment', verifyToken, roleChecker(['player', 'coach']), addComment);
+
+  router.delete(
+    '/community/posts/:postId/:commentId/comment',
+    verifyToken,
+    roleChecker(['player', 'coach']),
+    removeComment
+  );
+
+  router.get('/community/posts/popular', verifyToken, roleChecker(['player', 'coach']), getPopularHashtags);
+
+  router.get('/community/posts/:hashtag', verifyToken, roleChecker(['player', 'coach']), getPostsByHashtag);
 
   app.use('/user', router);
 };
