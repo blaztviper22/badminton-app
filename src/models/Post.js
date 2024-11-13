@@ -26,6 +26,14 @@ const postSchema = new Schema(
       type: Date,
       default: Date.now
     },
+    edited: {
+      type: Boolean,
+      default: false
+    },
+    lastEdited: {
+      type: Date,
+      default: null
+    },
     likesCount: {
       type: Number,
       default: 0
