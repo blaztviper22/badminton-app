@@ -1949,7 +1949,7 @@ exports.createPost = async (req, res) => {
 
 exports.retrieveAllPosts = async (req, res) => {
   try {
-    const { dateFilter, sort, hashtag } = req.query;
+    const { dateFilter, sort, hashtag, page = 1, limit = 10 } = req.query;
 
     // base query object for finding posts
     const query = {};
@@ -1979,13 +1979,13 @@ exports.retrieveAllPosts = async (req, res) => {
       query.createdAt = { $gte: startDate.toDate(), $lte: endDate.toDate() };
     }
 
-    //  apply Hashtag Filtering (if provided)
+    // apply Hashtag Filtering (if provided)
     if (hashtag) {
-      const hashtagRegex = new RegExp(`#${hashtag}`, 'i'); // case-insensitive search
-      query.content = { $regex: hashtagRegex }; // assuming 'content' is the field where hashtags might appear
+      const hashtagRegex = new RegExp(`#${hashtag}`, 'i');
+      query.content = { $regex: hashtagRegex };
     }
 
-    //  sorting Logic
+    // sorting Logic
     let sortCriteria = { createdAt: -1 }; // Default: sort by createdAt in descending order
     if (sort) {
       const [field, order] = sort.split(':');
@@ -1994,16 +1994,37 @@ exports.retrieveAllPosts = async (req, res) => {
       };
     }
 
-    // fetch posts based on the constructed query
-    const posts = await Post.find(query).populate('userId', 'username email role').sort(sortCriteria);
+    // pagination Logic
+    const skip = (page - 1) * limit;
+    const limitNumber = Number(limit);
 
+    // fetch posts based on the constructed query with pagination and sorting
+    const posts = await Post.find(query)
+      .populate('userId', 'username email role')
+      .sort(sortCriteria)
+      .skip(skip) // skip the calculated number of posts
+      .limit(limitNumber); // limit the number of posts returned
+
+    // Get the total count of posts for pagination metadata
+    const totalPosts = await Post.countDocuments(query);
+
+    // If no posts are found, return a 404 error
     if (!posts.length) {
       return res.status(404).json({ status: 'error', message: 'No posts found.' });
     }
 
+    // Return posts along with pagination metadata
     return res.status(200).json({
       status: 'success',
-      data: { posts }
+      data: {
+        posts,
+        pagination: {
+          page: Number(page),
+          limit: limitNumber,
+          totalPosts,
+          totalPages: Math.ceil(totalPosts / limitNumber)
+        }
+      }
     });
   } catch (err) {
     console.error('Error fetching posts:', err);
@@ -2040,7 +2061,7 @@ exports.removePost = async (req, res) => {
 
     // optionally: If you want to also clean up associated comments and likes
     // removing the post (with optional associated cleanup)
-   await Post.deleteOne({ _id: postId });
+    await Post.deleteOne({ _id: postId });
 
     return res.status(200).json({
       status: 'success',
