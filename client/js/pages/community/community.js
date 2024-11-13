@@ -1,3 +1,4 @@
+import { io } from 'socket.io-client';
 import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
 import '../../../css/pages/community/community.css';
@@ -16,6 +17,21 @@ const getById = (id) => doc.getElementById(id);
 const getAll = (selector) => doc.querySelectorAll(selector);
 const get = (selector) => doc.querySelector(selector);
 
+getCurrentUserId().then((userId) => {
+  if (userId) {
+    const socket = io({ query: { userId } });
+
+    socket.on('newPost', (data) => {
+      if (data.status === 'success') {
+        fetchPosts(false);
+        fetchPopularHashtags(false);
+      }
+    });
+  } else {
+    error('User ID could not be retrieved.');
+  }
+});
+
 doc.addEventListener('DOMContentLoaded', async () => {
   await fetchPopularHashtags();
   await fetchPosts();
@@ -23,7 +39,36 @@ doc.addEventListener('DOMContentLoaded', async () => {
   // Add listener to the 'Post' button
   const postButton = getById('create-post-container').querySelector('button');
   postButton.addEventListener('click', createPost);
+
+  // Add listeners for filters
+  setupFilters();
 });
+
+function setupFilters() {
+  // date filter listeners
+  getAll('input[name="date-filter"]').forEach((checkbox) => {
+    checkbox.addEventListener('change', (e) => {
+      console.log('Date filter changed', e.target.value);
+      handleDateFilterChange(e.target);
+    });
+  });
+
+  // sort filter listeners
+  getAll('input[name="sort-filter"]').forEach((checkbox) => {
+    checkbox.addEventListener('change', (e) => {
+      console.log('Sort filter changed', e.target.value);
+      handleSortFilterChange(e.target);
+    });
+  });
+
+  // hashtag filter listeners
+  getAll('.hashtag-filter').forEach((checkbox) => {
+    checkbox.addEventListener('change', () => {
+      console.log('Hashtag filter changed');
+      fetchPosts(); // re-fetch posts when hashtags change
+    });
+  });
+}
 
 async function createPost() {
   const postInput = getById('post-input');
@@ -48,6 +93,7 @@ async function createPost() {
     if (data.status === 'success') {
       // update the UI with the new post
       fetchPosts();
+      fetchPopularHashtags();
       postInput.value = ''; // clear the input after posting
     } else {
       alert(data.message || 'Failed to create the post.');
@@ -58,9 +104,11 @@ async function createPost() {
   }
 }
 
-async function fetchPopularHashtags() {
+async function fetchPopularHashtags(withPreloader = true) {
   try {
-    const response = await fetch('/user/community/posts/popular');
+    const response = await fetch('/user/community/posts/popular', {
+      withPreloader
+    });
     const data = await response.json();
     log(data);
 
@@ -74,10 +122,8 @@ async function fetchPopularHashtags() {
 
     popularHashtags.forEach((hashtag) => {
       const label = doc.createElement('label');
-      label.innerHTML = `
-        <input type="checkbox" class="hashtag-filter" value="${hashtag.hashtag}" />
-        #${hashtag.hashtag} (${hashtag.count})
-      `;
+      label.innerHTML = `<input type="checkbox" class="hashtag-filter" value="${hashtag.hashtag}" />
+        #${hashtag.hashtag} (${hashtag.count})`;
       hashtagsContainer.appendChild(label);
     });
   } catch (err) {
@@ -85,9 +131,25 @@ async function fetchPopularHashtags() {
   }
 }
 
-async function fetchPosts() {
+async function fetchPosts(withPreloader = true) {
   try {
-    const response = await fetch('/user/community/posts'); // Request posts without any filter
+    const selectedDateFilter = getSelectedDateFilter();
+    const selectedSort = getSelectedSort();
+    const selectedHashtags = getSelectedHashtags();
+
+    // Build the query params dynamically based on selected filters
+    const params = new URLSearchParams();
+    if (selectedDateFilter) {
+      params.append('dateFilter', selectedDateFilter);
+    }
+    if (selectedSort) {
+      params.append('sort', selectedSort);
+    }
+    if (selectedHashtags.length > 0) {
+      params.append('hashtag', selectedHashtags.join(','));
+    }
+
+    const response = await fetch(`/user/community/posts?${params.toString()}`, { withPreloader });
     const data = await response.json();
 
     if (data.status !== 'success') {
@@ -98,6 +160,54 @@ async function fetchPosts() {
     renderPosts(posts);
   } catch (err) {
     error('Error fetching posts:', err);
+  }
+}
+
+function getSelectedDateFilter() {
+  const selectedDateFilter = Array.from(getAll('input[name="date-filter"]:checked')).map((checkbox) => checkbox.value);
+
+  if (selectedDateFilter.length === 1) {
+    return selectedDateFilter[0];
+  }
+
+  return null;
+}
+
+function getSelectedSort() {
+  const selectedSort = Array.from(getAll('input[name="sort-filter"]:checked')).map((checkbox) => checkbox.value);
+
+  if (selectedSort.length === 1) {
+    return selectedSort[0];
+  }
+
+  return null;
+}
+
+function getSelectedHashtags() {
+  return Array.from(getAll('.hashtag-filter:checked')).map((checkbox) => checkbox.value);
+}
+
+function handleDateFilterChange(target) {
+  if (target.checked) {
+    // Uncheck all other date filters
+    getAll('input[name="date-filter"]').forEach((checkbox) => {
+      if (checkbox !== target) {
+        checkbox.checked = false;
+      }
+    });
+    fetchPosts(); // Fetch posts after filter change
+  }
+}
+
+function handleSortFilterChange(target) {
+  if (target.checked) {
+    // Uncheck all other sort filters
+    getAll('input[name="sort-filter"]').forEach((checkbox) => {
+      if (checkbox !== target) {
+        checkbox.checked = false;
+      }
+    });
+    fetchPosts(); // Fetch posts after filter change
   }
 }
 
@@ -116,8 +226,7 @@ function renderPosts(posts) {
   posts.forEach((post) => {
     const postElement = doc.createElement('div');
     postElement.classList.add('post');
-    postElement.innerHTML = `
-      <div class="post-header">
+    postElement.innerHTML = `<div class="post-header">
         <div class="profile-pic"><i class="fas fa-user"></i></div>
         <div class="name-date">
           <div class="name">${post.userId.username}</div>
@@ -139,18 +248,7 @@ function renderPosts(posts) {
         </div>
       </div>
     `;
-
-    // Append the post element to the feed
     postFeed.appendChild(postElement);
-
-    // Attach event listeners
-    // const likeButton = postElement.querySelector('.like-action');
-    // const commentButton = postElement.querySelector('.comment-action');
-    // const postCommentButton = postElement.querySelector('.post-comment');
-
-    // likeButton.addEventListener('click', handleLikePost);
-    // commentButton.addEventListener('click', toggleCommentBox);
-    // postCommentButton.addEventListener('click', addComment);
   });
 }
 
@@ -158,4 +256,23 @@ function formatDate(dateString) {
   const date = new Date(dateString);
   const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
   return date.toLocaleDateString('en-US', options);
+}
+
+async function getCurrentUserId() {
+  try {
+    const response = await fetch('/user/me', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user info');
+    }
+
+    const userData = await response.json();
+    return userData.id;
+  } catch (err) {
+    error('Error fetching user ID:', err);
+    return null;
+  }
 }

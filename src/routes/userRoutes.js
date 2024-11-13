@@ -317,7 +317,9 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-  router.post('/community/post', verifyToken, roleChecker(['player', 'coach']), createPost);
+  router.post('/community/post', verifyToken, roleChecker(['player', 'coach']), (req, res) => {
+    createPost(req, res, io);
+  });
 
   router.get('/community/posts', verifyToken, roleChecker(['player', 'coach']), retrieveAllPosts);
 
