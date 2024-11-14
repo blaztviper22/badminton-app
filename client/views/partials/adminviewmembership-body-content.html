@@ -1,12 +1,15 @@
 <body>
   <h1>Manage Membership Cards</h1>
   <div class="admin-container">
-    <!-- Form to Add/Update Membership Card -->
+    <!-- Form to Add New Membership Card -->
     <div class="card-form">
       <h2>Add New Membership Card</h2>
       <form id="membershipForm">
         <label for="imageUrl">Upload Image:</label>
-        <input type="file" id="imageUrl" name="imageUrl" accept="image/*" onchange="previewImage(event)" required>
+        <input type="file" id="imageUrl" name="imageUrl" accept="image/*" required>
+        
+        <!-- Placeholder for New Card Image Preview -->
+        <img id="newImagePreview" class="image-preview" style="display: none;"/>
 
         <label for="cardName">Card Name:</label>
         <input type="text" id="cardName" name="cardName" placeholder="Enter card name" required>
@@ -16,7 +19,8 @@
 
         <label for="cardPrice">Price (₱):</label>
         <input type="number" id="cardPrice" name="cardPrice" placeholder="Enter price" required>
-        <button type="submit">Save Card</button> 
+
+        <button type="submit">Save Card</button>
       </form>
     </div>
 
@@ -33,8 +37,8 @@
       <form id="editForm">
         <label for="editImageUrl">Upload Image:</label>
         <div class="upload-container">
-          <input type="file" id="editImageUrl" name="editImageUrl" accept="image/*" onchange="previewImage(event, true)">
-          <img id="editImagePreview" class="image-preview" />
+          <input type="file" id="editImageUrl" name="editImageUrl" accept="image/*">
+          <img id="editImagePreview" class="image-preview" style="display: none;"/>
         </div>
 
         <label for="editCardName">Card Name:</label>
@@ -47,46 +51,12 @@
         <input type="number" id="editCardPrice" name="cardPrice" required>
 
         <button type="submit">Update Card</button>
-        <br><br>
         <button id="closeEditModal">Close</button>
       </form>
     </div>
   </div>
 
-  <!-- Modal for Viewing Subscribers -->
-<div id="subscribersModal" class="modal">
-  <div class="modal-content">
-    <h2>Subscribers</h2>
-    <!-- Table header moved outside the table container -->
-    <table id="subscriberTable">
-      <thead>
-        <tr>
-          <th>Username</th>
-          <th>Subscription Date</th>
-          <th>Action</th> <!-- Added Action column -->
-        </tr>
-      </thead>
-    </table>
-    <!-- Table container for body with scrolling enabled -->
-    <div class="table-container">
-      <table id="subscriberTableBody">
-        <tbody>
-          <!-- Subscriber rows will be dynamically added here -->
-        </tbody>
-      </table>
-    </div>
-    <button id="closeSubscribersModal">Close</button>
-  </div>
-</div>
-
-<div id="confirmationModal" class="modal">
-  <div class="modal-content">
-    <p>Are you sure you want to revoke the subscription?</p>
-    <button id="confirmRevokeBtn">Yes</button>
-    <br><br>
-    <button id="closeConfirmationModal">Close</button>
-  </div>
-</div>
-
-
+  <!-- Additional Modals and Script includes -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
 </body>
