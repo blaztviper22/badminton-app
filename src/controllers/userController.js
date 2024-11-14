@@ -1988,10 +1988,10 @@ exports.retrieveAllPosts = async (req, res) => {
     // apply Hashtag Filtering (if provided)
     if (hashtag) {
       // Split the hashtags by comma and remove extra spaces
-      const hashtagsArray = hashtag.split(',').map(h => h.trim().replace(/^#/, ''));
+      const hashtagsArray = hashtag.split(',').map((h) => h.trim().replace(/^#/, ''));
 
       // Build the regex for matching posts containing any of the hashtags
-      const hashtagRegexArray = hashtagsArray.map(h => new RegExp(`#${h}`, 'i'));
+      const hashtagRegexArray = hashtagsArray.map((h) => new RegExp(`#${h}`, 'i'));
 
       // Use the $or operator to match any of the hashtags
       query.content = { $in: hashtagRegexArray };
@@ -2047,7 +2047,6 @@ exports.retrieveAllPosts = async (req, res) => {
   }
 };
 
-
 exports.removePost = async (req, res) => {
   try {
     const postId = req.params.postId;
@@ -2089,7 +2088,7 @@ exports.removePost = async (req, res) => {
   }
 };
 
-exports.addLike = async (req, res) => {
+exports.addLike = async (req, res, io) => {
   try {
     const postId = req.params.postId;
     const userId = req.user.id;
@@ -2115,6 +2114,10 @@ exports.addLike = async (req, res) => {
     // save the post
     await post.save();
 
+    io.emit('newLike', {
+      status: 'success'
+    });
+
     return res.status(201).json({
       status: 'success',
       message: 'Post liked successfully',
@@ -2129,7 +2132,7 @@ exports.addLike = async (req, res) => {
   }
 };
 
-exports.removeLike = async (req, res) => {
+exports.removeLike = async (req, res, io) => {
   try {
     const postId = req.params.postId;
     const userId = req.user.id;
@@ -2154,8 +2157,12 @@ exports.removeLike = async (req, res) => {
     // decrement the likesCount
     post.likesCount = post.likedBy.length;
 
-    // aave the post
+    // save the post
     await post.save();
+
+    io.emit('removeLike', {
+      status: 'success'
+    });
 
     return res.status(200).json({
       status: 'success',

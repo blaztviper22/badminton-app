@@ -17,11 +17,26 @@ const getById = (id) => doc.getElementById(id);
 const getAll = (selector) => doc.querySelectorAll(selector);
 const get = (selector) => doc.querySelector(selector);
 
+let currentUserId = null;
+
 getCurrentUserId().then((userId) => {
   if (userId) {
     const socket = io({ query: { userId } });
 
     socket.on('newPost', (data) => {
+      if (data.status === 'success') {
+        fetchPosts(false);
+        fetchPopularHashtags(false);
+      }
+    });
+
+    socket.on('newLike', (data) => {
+      if (data.status === 'success') {
+        fetchPosts(false);
+        fetchPopularHashtags(false);
+      }
+    });
+    socket.on('removeLike', (data) => {
       if (data.status === 'success') {
         fetchPosts(false);
         fetchPopularHashtags(false);
@@ -223,7 +238,7 @@ function renderPosts(posts) {
     return;
   }
 
-  posts.forEach((post) => {
+  posts.forEach(async (post) => {
     const postElement = doc.createElement('div');
     postElement.classList.add('post');
     postElement.innerHTML = `<div class="post-header">
@@ -236,20 +251,26 @@ function renderPosts(posts) {
       </div>
       <div class="post-content">${post.content}</div>
       <div class="post-footer">
-        <span class="action" data-post-id="${post._id}" class="like-action"><i class="fas fa-thumbs-up"></i> Like (${
-      post.likesCount
-    })</span>
-        <span class="action" data-post-id="${
-          post._id
-        }" class="comment-action"><i class="fas fa-comment"></i> Comment</span>
-        <div id="comment-box-${post._id}" class="comment-box" style="display: none;">
-          <textarea id="comment-input-${post._id}" placeholder="Add a comment..."></textarea>
-          <button class="post-comment" data-post-id="${post._id}">Post Comment</button>
-        </div>
+        <span id="like-button-${post._id}" class="action like-action" data-post-id="${post._id}">
+          <i class="fas fa-thumbs-up"></i> Like <span id="like-count-${post._id}">(${post.likesCount})</span>
+        </span>
+        <span class="action comment-action" data-post-id="${post._id}">
+          <i class="fas fa-comment"></i> Comment
+        </span>
       </div>
     `;
     postFeed.appendChild(postElement);
+
+    // check if the current user has liked the post, and apply the appropriate color
+    const currentUserId = await getCurrentUserId();
+    const isLiked = post.likedBy.includes(currentUserId);
+
+    const likeButton = getById(`like-button-${post._id}`);
+    if (isLiked) {
+      likeButton.style.color = '#0093ff';
+    }
   });
+  setupLikeListeners();
 }
 
 function formatDate(dateString) {
@@ -259,6 +280,11 @@ function formatDate(dateString) {
 }
 
 async function getCurrentUserId() {
+  // if the userId is already in memory, return it directly
+  if (currentUserId) {
+    return currentUserId;
+  }
+
   try {
     const response = await fetch('/user/me', {
       method: 'GET',
@@ -270,9 +296,62 @@ async function getCurrentUserId() {
     }
 
     const userData = await response.json();
-    return userData.id;
+    currentUserId = userData.id; // Store user ID in memory
+    return currentUserId;
   } catch (err) {
     error('Error fetching user ID:', err);
     return null;
+  }
+}
+
+function setupLikeListeners() {
+  getAll('.like-action').forEach((button) => {
+    button.addEventListener('click', (e) => {
+      const postId = e.target.dataset.postId;
+      toggleLike(postId);
+    });
+  });
+}
+async function toggleLike(postId) {
+  try {
+    const likeButton = getById(`like-button-${postId}`);
+    const likeCount = getById(`like-count-${postId}`);
+
+    // check if the current user has already liked the post
+    const isLiked = likeButton.style.color === 'rgb(0, 147, 255)';
+    log(isLiked);
+
+    let response;
+
+    if (isLiked) {
+      // if liked, send a DELETE request to remove the like
+      response = await fetch(`/user/community/posts/${postId}/like`, { method: 'DELETE', withPreloader: false });
+    } else {
+      // otherwise, send a POST request to like the post
+      response = await fetch(`/user/community/posts/${postId}/like`, { method: 'POST', withPreloader: false });
+    }
+
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      const isLikedNow = data.data.likedBy.includes(currentUserId);
+      log(isLikedNow);
+
+      if (isLikedNow) {
+        likeButton.style.color = '#0093ff';
+      } else {
+        likeButton.style.color = '';
+      }
+
+      // update the like count
+      likeCount.textContent = `(${data.data.likesCount})`;
+    } else if (data.status === 'error' && data.message === 'You have already liked this post') {
+      // Handle case where the user tries to like a post they've already liked
+      alert('You have already liked this post.');
+    } else {
+      alert('Failed to toggle like');
+    }
+  } catch (err) {
+    error('Error toggling like:', err);
   }
 }
