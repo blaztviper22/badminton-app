@@ -33,7 +33,6 @@ const pageTitles = {
   viewadminpost: 'View Posts',
   vieweventtournalist: 'Events and Tournaments',
   viewevent: 'View Event',
-  adminviewmembership: 'Membership',
   ownerprofile: 'Owner Profile',
   businessprofile: 'Business Profile',
   pinpointprofile: 'Pin Point Profile',
@@ -41,7 +40,8 @@ const pageTitles = {
   viewproduct: 'Product',
   userviewproducts: 'Products',
   community: 'Community',
-  userviewmembership:'card'
+  userviewmembership:'card',
+  adminviewmembership: 'Membership'
 };
 
 // Page-specific stylesheets and scripts
@@ -129,15 +129,6 @@ const pageAssets = {
     hasSidebar: true
   },
   pinpointprofile: {
-    styles: [
-      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
-      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
-    ],
-    scripts: [],
-    hasNavbar: false,
-    hasSidebar: true
-  },
-  adminviewmembership: {
     styles: [
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
       'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
@@ -284,7 +275,23 @@ const pageAssets = {
     scripts: [],
     hasNavbar: true,
     hasSidebar: false
-  }
+  },
+  userviewmembership: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
+  },
+  adminviewmembership: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
+
 };
 
 const pages = Object.keys(pageTitles);

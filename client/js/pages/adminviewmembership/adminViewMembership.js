@@ -39,7 +39,7 @@ function renderCards() {
       </div>
     `;
     cardContainer.appendChild(cardElement);
-  });
+  }); 
 
   document.querySelectorAll('.delete-icon').forEach(btn =>
     btn.addEventListener('click', (e) => deleteCard(e.target.dataset.index))

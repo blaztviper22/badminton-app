@@ -1,7 +1,7 @@
 <body>
     <div class="header-container">
       <h1>Membership</h1>
-      <span class="list-icon" onclick="openModalList()">☰</span>
+      <span class="list-icon">☰</span>
     </div>
   
     <div class="card-container">
@@ -31,17 +31,17 @@
             <tr id="basicMembershipRow">
               <td>Basic Membership</td>
               <td>₱200</td>
-              <td><button class="cancel-btn" onclick="openConfirmationModal('Basic Membership', 'basicMembershipRow')">Cancel</button></td>
+              <td><button class="cancel-btn">Cancel</button></td>
             </tr>
             <tr id="standardMembershipRow">
               <td>Standard Membership</td>
               <td>₱500</td>
-              <td><button class="cancel-btn" onclick="openConfirmationModal('Standard Membership', 'standardMembershipRow')">Cancel</button></td>
+              <td><button class="cancel-btn">Cancel</button></td>
             </tr>
           </tbody>
         </table>
         <br><br>
-        <button class="close-btn" onclick="closeModalList()">Close</button>
+        <button class="close-btn">Close</button>
       </div>
     </div>
   
@@ -51,7 +51,7 @@
         <p>Do you really want to cancel your subscription?</p>
         <div class="confirmation-buttons">
           <button class="confirm-btn" id="confirmCancelBtn">Yes, Cancel</button>
-          <button class="cancel-btn" onclick="closeConfirmationModal()">No, Keep</button>
+          <button class="cancel-btn">No, Keep</button>
         </div>
       </div>
     </div>

@@ -271,11 +271,6 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-  router.get('/admin/membership', verifyToken, roleChecker(['admin']), (req, res, next) => {
-    const filePath = path.resolve(__dirname, '../../build/adminviewmembership.html');
-    serveFile(filePath, res, next);
-  });
-
   router.get('/admin/profile', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const tab = req.query.tab; // get the page from the query parameter
     let filePath;
@@ -345,6 +340,16 @@ let routes = (app, io) => {
   router.get('/community/posts/popular', verifyToken, roleChecker(['player', 'coach']), getPopularHashtags);
 
   router.get('/community/posts/:hashtag', verifyToken, roleChecker(['player', 'coach']), getPostsByHashtag);
+
+  router.get('/userviewmembership', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/userviewmembership.html');
+    serveFile(filePath, res, next);
+  });
+
+  router.get('/admin/adminviewmembership', verifyToken, roleChecker(['admin']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/adminviewmembership.html');
+    serveFile(filePath, res, next);
+  });
 
   app.use('/user', router);
 };

@@ -12,7 +12,7 @@ setupLogoutListener();  // Assuming this handles user logout when necessary
 // Initialize Socket.io for real-time updates
 const socket = io();  // Establish WebSocket connection
 
-let membershipToCancel = '';
+let membershipToCancel = ''; 
 let rowToRemove = '';
 const doc = document;
 
