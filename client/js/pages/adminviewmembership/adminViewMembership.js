@@ -1,62 +1,22 @@
+// Import necessary CSS (assuming a modular environment)
 import '../../../css/components/preloader.css';
 import '../../../css/components/sideNavAdmin.css';
 import '../../../css/pages/adminviewMembership/adminviewMembership.css';
 import { startSessionChecks } from '../../../utils/sessionUtils.js';
 import '../../components/sideNavAdmin.js';
 
+// Variables
 const cardContainer = document.getElementById('cardContainer');
 const modal = document.getElementById('editModal');
 const subscribersModal = document.getElementById('subscribersModal');
-const subscriberTableBody = document.getElementById('subscriberTableBody');
 const confirmationModal = document.getElementById('confirmationModal');
+const subscriberTableBody = document.getElementById('subscriberTableBody');
 const confirmRevokeBtn = document.getElementById('confirmRevokeBtn');
-const closeSubscribersModalBtn = document.getElementById('closeSubscribersModal');
-const closeConfirmationModalBtn = document.getElementById('closeConfirmationModal');
+
+// For tracking the editing card
 let editingCardIndex = null;
 let revokeDetails = null;
 const cards = [];
-
-// Initialize WebSocket connection
-const socket = new WebSocket('ws://localhost:8080');
-
-// Handle WebSocket connection open
-socket.onopen = () => {
-  console.log('Connected to the WebSocket server');
-};
-
-// Handle incoming WebSocket messages
-socket.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-
-  switch (message.type) {
-    case 'addCard':
-      cards.push(message.card);
-      renderCards();
-      break;
-    case 'updateCard':
-      cards[message.index] = message.card;
-      renderCards();
-      break;
-    case 'deleteCard':
-      cards.splice(message.index, 1);
-      renderCards();
-      break;
-    case 'toggleStatus':
-      cards[message.index].isActive = message.isActive;
-      renderCards();
-      break;
-  }
-};
-
-// Error handling for WebSocket
-socket.onerror = (error) => {
-  console.error('WebSocket Error:', error);
-};
-
-// Handle WebSocket connection close
-socket.onclose = () => {
-  console.log('WebSocket connection closed');
-};
 
 // Render cards to the DOM
 function renderCards() {
@@ -75,14 +35,12 @@ function renderCards() {
           ${card.isActive ? 'Active' : 'Inactive'}
         </button>
         <button class="edit-btn" data-index="${index}">Edit</button>
-        <br><br>
         <button class="subscriber-btn" data-index="${index}">View Subscribers</button>
       </div>
     `;
     cardContainer.appendChild(cardElement);
   });
 
-  // Attach event listeners to buttons after rendering
   document.querySelectorAll('.delete-icon').forEach(btn =>
     btn.addEventListener('click', (e) => deleteCard(e.target.dataset.index))
   );
@@ -97,29 +55,16 @@ function renderCards() {
   );
 }
 
-// Delete card and notify WebSocket server
+// Delete card
 function deleteCard(index) {
   cards.splice(index, 1);
   renderCards();
-
-  // Send delete card request via WebSocket
-  socket.send(JSON.stringify({
-    type: 'deleteCard',
-    index: parseInt(index)
-  }));
 }
 
-// Toggle card status and notify WebSocket server
+// Toggle card status
 function toggleStatus(index) {
   cards[index].isActive = !cards[index].isActive;
   renderCards();
-
-  // Send updated status to WebSocket server
-  socket.send(JSON.stringify({
-    type: 'toggleStatus',
-    index: parseInt(index),
-    isActive: cards[index].isActive
-  }));
 }
 
 // Open edit modal for selected card
@@ -185,12 +130,6 @@ document.getElementById('membershipForm').addEventListener('submit', function(e)
   cards.push(newCard);
   renderCards();
   document.getElementById('membershipForm').reset();
-
-  // Send new card data via WebSocket
-  socket.send(JSON.stringify({
-    type: 'addCard',
-    card: newCard
-  }));
 });
 
 // Update existing card
@@ -214,18 +153,11 @@ document.getElementById('editForm').addEventListener('submit', function(e) {
   cards[editingCardIndex] = updatedCard;
   renderCards();
   closeModal(modal);
-
-  // Send updated card data via WebSocket
-  socket.send(JSON.stringify({
-    type: 'updateCard',
-    index: editingCardIndex,
-    card: updatedCard
-  }));
 });
 
 // View subscribers for a card
 function viewSubscribers(index) {
-  subscriberTableBody.innerHTML = '';  // Clear previous subscriber rows
+  subscriberTableBody.innerHTML = '';  
   cards[index].subscribers.forEach((subscriber, subIndex) => {
     const row = document.createElement('tr');
     row.innerHTML = `
@@ -236,7 +168,6 @@ function viewSubscribers(index) {
     subscriberTableBody.appendChild(row);
   });
 
-  // Re-attach event listeners for the "Revoke" buttons
   document.querySelectorAll('.revoke-btn').forEach((btn) => {
     btn.addEventListener('click', (event) => {
       const cardIndex = event.target.getAttribute('data-card-index');
@@ -250,49 +181,30 @@ function viewSubscribers(index) {
 
 // Open confirmation modal to confirm the revocation
 function openConfirmationModal(cardIndex, subscriberIndex) {
-  revokeDetails = { cardIndex, subscriberIndex };  // Set the details
-  confirmationModal.style.display = 'flex';  // Show the modal
-  document.body.classList.add('no-scroll');  // Prevent body scrolling when modal is open
+  revokeDetails = { cardIndex, subscriberIndex };
+  openModal(confirmationModal);
 }
 
 // Close confirmation modal
 function closeConfirmationModal() {
-  const confirmationModal = document.getElementById('confirmationModal');
-  confirmationModal.style.display = 'none';  // Hide the modal
-  document.body.classList.remove('no-scroll');  // Allow scrolling again
-  revokeDetails = null;  // Clear revoke details
+  closeModal(confirmationModal);
+  revokeDetails = null;
 }
 
 // Confirm the revocation action
 confirmRevokeBtn.addEventListener('click', function() {
   if (revokeDetails) {
     const { cardIndex, subscriberIndex } = revokeDetails;
-
-    // Remove the subscriber
     cards[cardIndex].subscribers.splice(subscriberIndex, 1);
-
-    // Re-render the cards to update the subscriber count and details
     renderCards();
-
-    // Re-render the subscribers modal
     viewSubscribers(cardIndex);
-
-    // Close the confirmation modal
     closeConfirmationModal();
-
-    // Clear revoke details
-    revokeDetails = null;
   }
 });
 
-// Close modals
-closeSubscribersModalBtn.addEventListener('click', () => closeModal(subscribersModal));
-closeConfirmationModalBtn.addEventListener('click', () => closeConfirmationModal());
+// Attach event listeners to the close buttons in modals
+document.querySelector('#editModal .close-btn').addEventListener('click', () => closeModal(modal));
+document.querySelector('#subscribersModal .close-btn').addEventListener('click', () => closeModal(subscribersModal));
+document.querySelector('#confirmationModal .close-btn').addEventListener('click', () => closeConfirmationModal());
 
-
-// Start session checks
 startSessionChecks();
-closeConfirmationModalBtn.addEventListener('click', () => {
-  console.log('Close button clicked');
-  closeConfirmationModal();
-});

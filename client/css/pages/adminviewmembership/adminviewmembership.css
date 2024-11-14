@@ -199,7 +199,7 @@ transition: transform 0.3s ease;
   }
 
   .modal {
-    display: none;
+    display: flex;
     position: fixed; /* Keep modal fixed on the screen */
     top: 0;
     left: 0;
@@ -318,4 +318,7 @@ cursor: pointer;
 
 .revoke-btn:hover {
 background-color: #bd2130;
+}
+.edit-btn, .subscriber-btn {
+  margin-bottom: 10px; /* Adds space between buttons */
 }

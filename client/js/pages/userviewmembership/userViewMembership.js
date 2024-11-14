@@ -1,15 +1,19 @@
-import { fileTypeFromBlob } from 'file-type';
+// Import necessary modules and CSS
+import { io } from 'socket.io-client';
+import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
-import '../../../css/components/sideNavAdmin.css';
-import '../../../css/pages/viewadminpost/viewAdminPost.css';
-import { startSessionChecks } from '../../../utils/sessionUtils.js';
-import '../../components/sideNavAdmin.js';
+import '../../../css/pages/userviewmembership/userViewMembership.css';
+import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
+import { setupLogoutListener } from '../../global/logout.js';
 
 startSessionChecks();
+setupLogoutListener();  // Assuming this handles user logout when necessary
+
+// Initialize Socket.io for real-time updates
+const socket = io();  // Establish WebSocket connection
 
 let membershipToCancel = '';
 let rowToRemove = '';
-
 const doc = document;
 
 // Open the subscription list modal
@@ -46,21 +50,12 @@ doc.getElementById('confirmCancelBtn').addEventListener('click', function() {
 // Add event listener to close the list modal when cancel button is clicked
 doc.getElementById('cancelListBtn').addEventListener('click', closeModalList);
 
-// Client-side listener for real-time updates when a new membership card is added
-socket.on('newMembershipCard', (data) => {
-  if (data.status === 'success') {
-    fetchMembershipCards(); // Function to fetch and display the updated membership cards
-  }
-});
-
 // Function to fetch and display the updated list of membership cards
 async function fetchMembershipCards() {
   try {
-    const response = await fetch('/user/memberships'); // Assuming this is the API endpoint
+    const response = await fetch('/user/memberships');  // Fetch existing memberships
     const memberships = await response.json();
-    
-    // Render the new membership cards in the UI
-    displayMembershipCards(memberships);
+    displayMembershipCards(memberships);  // Render the membership cards
   } catch (error) {
     console.error('Error fetching membership cards:', error);
   }
@@ -69,17 +64,25 @@ async function fetchMembershipCards() {
 // Function to display membership cards in the UI
 function displayMembershipCards(memberships) {
   const cardContainer = doc.getElementById('membershipCardContainer');
-  cardContainer.innerHTML = ''; // Clear the current cards
+  cardContainer.innerHTML = '';  // Clear existing cards
 
   memberships.forEach((membership) => {
     const card = document.createElement('div');
     card.className = 'membership-card';
     card.innerHTML = `
-      <h3>${membership.name}</h3>
-      <p>${membership.description}</p>
-      <p>Fee: ${membership.fee}</p>
+      <h3>${membership.name || membership.cardName}</h3>
+      <p>${membership.description || membership.cardDescription}</p>
+      <p>Fee: ${membership.fee || membership.cardPrice}</p>
     `;
     cardContainer.appendChild(card);
   });
 }
-a
+
+// Real-time listener for new membership card events from the admin
+socket.on('newMembershipCard', (newCard) => {
+  // When a new membership card is added, refetch and display the updated list
+  fetchMembershipCards();
+});
+
+// Initial fetch of membership cards on page load
+fetchMembershipCards();
