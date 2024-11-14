@@ -325,9 +325,13 @@ let routes = (app, io) => {
 
   router.delete('/community/posts/:postId', verifyToken, roleChecker(['player', 'coach']), removePost);
 
-  router.post('/community/posts/:postId/like', verifyToken, roleChecker(['player', 'coach']), addLike);
+  router.post('/community/posts/:postId/like', verifyToken, roleChecker(['player', 'coach']), (req, res) => {
+    addLike(req, res, io);
+  });
 
-  router.delete('/community/posts/:postId/like', verifyToken, roleChecker(['player', 'coach']), removeLike);
+  router.delete('/community/posts/:postId/like', verifyToken, roleChecker(['player', 'coach']), (req, res) => {
+    removeLike(req, res, io);
+  });
 
   router.post('/community/posts/:postId/comment', verifyToken, roleChecker(['player', 'coach']), addComment);
 
