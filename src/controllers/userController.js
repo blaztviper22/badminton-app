@@ -33,6 +33,8 @@ const { geocodeAddress, getAddressFromCoordinates } = require('../utils/addressU
 const { handleMultipleFileUploads, handleFileUpload } = require('../utils/fileUpload');
 const Category = require('../models/Category');
 const Membership = require('../models/Membership');
+const sanitizeHtml = require('sanitize-html');
+const Hashtag = require('../models/Hashtag');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -1878,43 +1880,73 @@ exports.checkPaymentStatus = async (req, res, next) => {
   }
 };
 
-// Function to create a new post
-exports.createPost = async (req, res) => {
+// function to create a new post
+exports.createPost = async (req, res, io) => {
   try {
-    const userId = req.user.id;  // Assuming the user ID is coming from the authenticated request
+    const userId = req.user.id;
+    const { content } = req.body;
 
-    const { content } = req.body;  // Assuming content is the only required field for now
-
-    if (!content) {
+    if (!content || content.trim().length === 0) {
       return res.status(400).json({
         status: 'error',
         message: 'Content is required to create a post.'
       });
     }
 
-    // Create a new post
+    const sanitizedContent = sanitizeHtml(content);
+    // extract hashtags from the content using a regular expression
+    // const hashtags = (content.match(/#(\w+)/g) || []).map((tag) => tag.toLowerCase());
+
+    const hashtags = content.match(/#\w+/g) || [];
+
+    // normalize hashtags (convert to lowercase, remove #)
+    const normalizedHashtags = hashtags.map((tag) => tag.toLowerCase().substring(1));
+
+    // create the new post
     const newPost = new Post({
-      userId, // Set the userId to the currently authenticated user
-      content,
-      // likesCount and likedBy can be added later
-      // comments can also be populated later as needed
+      userId, // set the userId to the currently authenticated user
+      content: sanitizedContent,
+      hashtags: normalizedHashtags
     });
 
-    // Save the post to the database
+    // save the post to the database
     await newPost.save();
 
-    // Return the post object (or a success message) with status 201
-    res.status(201).json({
+    // update the Hashtag collection
+    for (let hashtag of normalizedHashtags) {
+      let hashtagEntry = await Hashtag.findOne({ hashtag });
+
+      if (hashtagEntry) {
+        // if hashtag already exists, increment count
+        hashtagEntry.count += 1;
+        hashtagEntry.lastUsed = new Date();
+        await hashtagEntry.save();
+      } else {
+        // if hashtag doesn't exist, create a new entry
+        await Hashtag.create({
+          hashtag,
+          count: 1
+        });
+      }
+    }
+
+    io.emit('newPost', {
+      status: 'success',
+      message: 'A new post has been created!',
+      post: newPost
+    });
+
+    // return the created post along with a success message
+    return res.status(201).json({
       status: 'success',
       message: 'Post created successfully.',
       data: {
         post: newPost
       }
     });
-
   } catch (err) {
     console.error('Error creating post:', err);
-    res.status(500).json({
+    return res.status(500).json({
       status: 'error',
       message: 'Internal Server Error'
     });
@@ -1923,22 +1955,420 @@ exports.createPost = async (req, res) => {
 
 exports.retrieveAllPosts = async (req, res) => {
   try {
-    // Fetch all posts from the database
-    const posts = await Post.find()
-      .populate('userId', 'username email role')  // Optionally populate user information (like username, email, role)
-      .sort({ createdAt: -1 });  // Optionally, sort by the most recent posts first
+    const { dateFilter, sort, hashtag, page = 1, limit = 10 } = req.query;
 
+    // base query object for finding posts
+    const query = {};
+
+    // date filter (Today, This Week, This Month)
+    if (dateFilter) {
+      const today = moment.tz('Asia/Manila').startOf('day');
+      let startDate;
+      let endDate;
+
+      switch (dateFilter.toLowerCase()) {
+        case 'today':
+          startDate = today;
+          endDate = today.clone().endOf('day');
+          break;
+        case 'this week':
+          startDate = today.clone().startOf('week');
+          endDate = today.clone().endOf('week');
+          break;
+        case 'this month':
+          startDate = today.clone().startOf('month');
+          endDate = today.clone().endOf('month');
+          break;
+        default:
+          return res.status(400).json({ status: 'error', message: 'Invalid date filter.' });
+      }
+      query.createdAt = { $gte: startDate.toDate(), $lte: endDate.toDate() };
+    }
+
+    // apply Hashtag Filtering (if provided)
+    if (hashtag) {
+      // Split the hashtags by comma and remove extra spaces
+      const hashtagsArray = hashtag.split(',').map(h => h.trim().replace(/^#/, ''));
+
+      // Build the regex for matching posts containing any of the hashtags
+      const hashtagRegexArray = hashtagsArray.map(h => new RegExp(`#${h}`, 'i'));
+
+      // Use the $or operator to match any of the hashtags
+      query.content = { $in: hashtagRegexArray };
+    }
+
+    // sorting Logic
+    let sortCriteria = { createdAt: -1 }; // Default: sort by createdAt in descending order
+    if (sort) {
+      const [field, order] = sort.split(':');
+      sortCriteria = {
+        [field]: order === 'asc' ? 1 : -1 // ascending if 'asc', descending if 'desc'
+      };
+    }
+
+    // pagination Logic
+    const skip = (page - 1) * limit;
+    const limitNumber = Number(limit);
+
+    // fetch posts based on the constructed query with pagination and sorting
+    const posts = await Post.find(query)
+      .populate('userId', 'username email role')
+      .sort(sortCriteria)
+      .skip(skip) // skip the calculated number of posts
+      .limit(limitNumber); // limit the number of posts returned
+
+    // Get the total count of posts for pagination metadata
+    const totalPosts = await Post.countDocuments(query);
+
+    // If no posts are found, return a 404 error
     if (!posts.length) {
       return res.status(404).json({ status: 'error', message: 'No posts found.' });
     }
 
-    res.status(200).json({
+    // Return posts along with pagination metadata
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        posts,
+        pagination: {
+          page: Number(page),
+          limit: limitNumber,
+          totalPosts,
+          totalPages: Math.ceil(totalPosts / limitNumber)
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching posts:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+
+exports.removePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+
+    // find the post by its ID
+    const post = await Post.findById(postId);
+
+    // if the post doesn't exist, return an error
+    if (!post) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Post not found.'
+      });
+    }
+
+    // check if the current user is the one who created the post
+    if (post.userId.toString() !== userId.toString()) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You can only delete your own posts.'
+      });
+    }
+
+    // optionally: If you want to also clean up associated comments and likes
+    // removing the post (with optional associated cleanup)
+    await Post.deleteOne({ _id: postId });
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Post deleted successfully.'
+    });
+  } catch (err) {
+    error('Error deleting post:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.addLike = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+
+    // find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // check if the user has already liked the post
+    if (post.likedBy.includes(userId)) {
+      return res.status(400).json({ status: 'error', message: 'You have already liked this post' });
+    }
+
+    // add the user to the likedBy array
+    post.likedBy.push(userId);
+
+    // increment the likesCount
+    post.likesCount = post.likedBy.length;
+
+    // save the post
+    await post.save();
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Post liked successfully',
+      data: { likesCount: post.likesCount, likedBy: post.likedBy }
+    });
+  } catch (err) {
+    console.error('Error adding like:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.removeLike = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+
+    // find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // check if the user has already liked the post
+    const likeIndex = post.likedBy.indexOf(userId);
+
+    if (likeIndex === -1) {
+      return res.status(400).json({ status: 'error', message: 'You have not liked this post' });
+    }
+
+    // remove the user from the likedBy array
+    post.likedBy.splice(likeIndex, 1);
+
+    // decrement the likesCount
+    post.likesCount = post.likedBy.length;
+
+    // aave the post
+    await post.save();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Like removed successfully',
+      data: { likesCount: post.likesCount, likedBy: post.likedBy }
+    });
+  } catch (err) {
+    console.error('Error removing like:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.addComment = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+    const { content } = req.body;
+
+    // check if the content is provided
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Comment content cannot be empty'
+      });
+    }
+
+    // find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // create the new comment
+    const newComment = {
+      userId,
+      content,
+      date: new Date()
+    };
+
+    // add the comment to the post
+    post.comments.push(newComment);
+
+    // increment the commentCount
+    post.commentCount = post.comments.length;
+
+    // save the post with updated comment
+    await post.save();
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Comment added successfully',
+      data: { comment: newComment, commentCount: post.commentCount }
+    });
+  } catch (err) {
+    console.error('Error adding comment:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.removeComment = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const commentId = req.params.commentId;
+    const userId = req.user.id;
+
+    // find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // find the index of the comment to remove
+    const commentIndex = post.comments.findIndex((comment) => comment._id.toString() === commentId);
+
+    if (commentIndex === -1) {
+      return res.status(404).json({ status: 'error', message: 'Comment not found' });
+    }
+
+    // ensure the user removing the comment is the author of the comment
+    if (post.comments[commentIndex].userId.toString() !== userId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You can only remove your own comments'
+      });
+    }
+
+    // remove the comment
+    post.comments.splice(commentIndex, 1);
+
+    // update the commentCount
+    post.commentCount = post.comments.length;
+
+    // save the post with updated comments
+    await post.save();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Comment removed successfully',
+      data: { commentCount: post.commentCount }
+    });
+  } catch (err) {
+    console.error('Error removing comment:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.editPost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id;
+    const { content } = req.body;
+
+    // check if content is provided
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Post content cannot be empty'
+      });
+    }
+
+    // find the post by ID
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // check if the user is the one who created the post
+    if (post.userId.toString() !== userId) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You can only edit your own posts'
+      });
+    }
+
+    // update the post content
+    post.content = content;
+    post.date = new Date();
+
+    // save the updated post
+    await post.save();
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Post updated successfully',
+      data: { post }
+    });
+  } catch (err) {
+    console.error('Error editing post:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.getPopularHashtags = async (req, res) => {
+  try {
+    // fetch top 10 most popular hashtags
+    const hashtags = await Hashtag.find().sort({ count: -1 }).limit(10).exec();
+
+    if (hashtags.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'No popular hashtags found'
+      });
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: { hashtags }
+    });
+  } catch (err) {
+    console.error('Error fetching popular hashtags:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.getPostsByHashtag = async (req, res) => {
+  try {
+    const { hashtag } = req.params;
+
+    // find posts containing the hashtag (normalized to lowercase)
+    const posts = await Post.find({ hashtags: hashtag.toLowerCase() }).sort({ date: -1 });
+
+    if (posts.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: `No posts found with hashtag #${hashtag}`
+      });
+    }
+
+    return res.status(200).json({
       status: 'success',
       data: { posts }
     });
   } catch (err) {
-    console.error('Error fetching posts:', err);
-    res.status(500).json({
+    console.error('Error fetching posts by hashtag:', err);
+    return res.status(500).json({
       status: 'error',
       message: 'Internal Server Error'
     });

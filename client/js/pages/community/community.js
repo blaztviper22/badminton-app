@@ -1,224 +1,278 @@
+import { io } from 'socket.io-client';
 import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
 import '../../../css/pages/community/community.css';
 import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
 import { setupLogoutListener } from '../../global/logout.js';
 
-let posts = [];  // Array to store post data
-let filterActive = false;  // Variable to keep track of filter status
+setupLogoutListener();
 
-// Function to render all posts in both the post feed and the manage posts section
-function renderPosts() {
-    const postFeed = document.getElementById('post-feed');
-    const managePosts = document.getElementById('manage-posts');
-    const sideBox2 = document.getElementById('side-box2');
+// start session checks on page load
+startSessionChecks();
 
-    // Clear current content
-    postFeed.innerHTML = `<div class="create-post">
-        <div class="profile-pic"><i class="fas fa-user"></i></div>
-        <input type="text" id="post-input" placeholder="What's on your mind?">
-        <button id="create-post-button">Post</button>
-    </div>`;
-    managePosts.innerHTML = '';
+const doc = document;
+const { log, error } = console;
 
-    // Filter posts if the filter is active
-    const displayedPosts = filterActive ? posts.filter(post => post.content.includes("filterKeyword")) : posts;
+const getById = (id) => doc.getElementById(id);
+const getAll = (selector) => doc.querySelectorAll(selector);
+const get = (selector) => doc.querySelector(selector);
 
-    if (displayedPosts.length === 0) {
-        // Display placeholder if there are no posts
-        const placeholderPostFeed = document.createElement('div');
-        placeholderPostFeed.classList.add('placeholder');
-        placeholderPostFeed.textContent = "No posts to display.";
-        postFeed.appendChild(placeholderPostFeed);
+getCurrentUserId().then((userId) => {
+  if (userId) {
+    const socket = io({ query: { userId } });
 
-        const placeholderManagePosts = document.createElement('div');
-        placeholderManagePosts.classList.add('placeholder');
-        placeholderManagePosts.textContent = "No posts to manage.";
-        managePosts.appendChild(placeholderManagePosts);
-    } else {
-        // Loop through displayed posts array to create elements for each post
-        displayedPosts.forEach((post, index) => {
-            // Main post feed entry
-            const postElement = document.createElement('div');
-            postElement.classList.add('post');
-            postElement.innerHTML = `
-                <div class="post-header">
-                    <div class="profile-pic"><i class="fas fa-user"></i></div>
-                    <div class="name-date">
-                        <div class="name">${post.name}</div>
-                        <div class="date">${post.date}</div>
-                    </div>
-                    <div class="options"><i class="fas fa-ellipsis-v"></i></div>
-                </div>
-                <div class="post-content">${post.content}</div>
-                <div class="post-footer">
-                    <span class="action" onclick="likePost(${index})"><i class="fas fa-thumbs-up"></i> Like (${post.likes})</span>
-                    <span class="action" onclick="toggleCommentBox(${index})"><i class="fas fa-comment"></i> Comment</span>
-                    <div id="comment-box-${index}" class="comment-box" style="display: none;">
-                        <textarea id="comment-input-${index}" placeholder="Add a comment..."></textarea>
-                        <button onclick="addComment(${index})">Post Comment</button>
-                    </div>
-                </div>
-            `;
-            postFeed.appendChild(postElement);
-
-            // Manage posts entry
-            const managePostElement = document.createElement('div');
-            managePostElement.classList.add('post-list');
-            managePostElement.innerHTML = `
-                <div class="post-info">
-                    <p>${post.date}</p>
-                    <p>${post.content.slice(0, 50)}...</p>
-                    <p>Likes: ${post.likes}</p>
-                </div>
-                <div class="post-actions">
-                    <button class="edit-btn" data-index="${index}">Edit</button>
-                    <button class="delete-btn" data-index="${index}">Delete</button>
-                </div>
-            `;
-            managePosts.appendChild(managePostElement);
-        });
-
-        // Attach event listeners to buttons after rendering
-        const editButtons = document.querySelectorAll('.edit-btn');
-        const deleteButtons = document.querySelectorAll('.delete-btn');
-
-        editButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const index = button.getAttribute('data-index');
-                editPost(index);
-            });
-        });
-
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const index = button.getAttribute('data-index');
-                deletePost(index);
-            });
-        });
-    }
-
-    // Update the total like count in the side-box2 dynamically
-    updateLikeCountDisplay();
-
-    // Add event listener for the create post button
-    const createPostButton = document.getElementById('create-post-button');
-    createPostButton.addEventListener('click', createPost);
-}
-
-// Function to create a new post
-async function createPost() {
-    const input = document.getElementById('post-input');
-    const content = input.value.trim();
-    if (!content) return;
-
-    /*const newPost = {
-        name: "Your Name",  // Placeholder name, could replace with user info if available
-        content: content,
-        date: new Date().toLocaleString(),
-        likes: 0,  // Ensure the new post starts with 0 likes
-        comments: []  // Initialize with an empty comment array
-    };*/
-
-    /*posts.unshift(newPost);  // Add new post to the beginning of the array
-    input.value = '';  // Clear the input field
-    renderPosts();  // Re-render posts*/
-
-    try {
-        // Send the new post to the backend
-        const response = await fetch('/user/post', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ content })
-        });
-  
-        console.log(response)
-        if (!response.ok) {
-          throw new Error('Failed to create post');
-        }
-  
-        // Clear the content field
-        input.value = '';
-  
-        // Fetch and update the post list after posting
-        /*fetchPosts();*/
-      } catch (error) {
-        console.error('Error:', error);
+    socket.on('newPost', (data) => {
+      if (data.status === 'success') {
+        fetchPosts(false);
+        fetchPopularHashtags(false);
       }
-}
-
-// Function to delete a post
-function deletePost(index) {
-    posts.splice(index, 1);  // Remove post from the array
-    renderPosts();  // Re-render posts
-}
-
-// Function to edit a post (simple content change, could be enhanced)
-function editPost(index) {
-    const newContent = prompt("Edit your post:", posts[index].content);
-    if (newContent) {
-        posts[index].content = newContent.trim();
-        renderPosts();  // Re-render posts
-    }
-}
-
-// Function to toggle filter (e.g., show posts containing a specific keyword)
-function toggleFilter() {
-    filterActive = !filterActive;  // Toggle filter status
-    renderPosts();  // Re-render posts with the filter applied
-}
-
-// Function to sort posts (e.g., by date or content)
-function sortData(criteria) {
-    if (criteria === 'date') {
-        posts.sort((a, b) => new Date(b.date) - new Date(a.date));  // Sort by date (newest first)
-    } else if (criteria === 'content') {
-        posts.sort((a, b) => a.content.localeCompare(b.content));  // Sort alphabetically by content
-    }
-    renderPosts();  // Re-render posts with the sorted order
-}
-
-// Function to like a post
-function likePost(index) {
-    posts[index].likes += 1;  // Increment the like count for the post
-    renderPosts();  // Re-render posts to update the like count
-}
-
-// Function to update the like count in the side-box2
-function updateLikeCountDisplay() {
-    const totalLikes = posts.reduce((total, post) => total + post.likes, 0);  // Sum up all likes
-    const likeCountElement = document.getElementById('like-count');
-    if (likeCountElement) {
-        likeCountElement.textContent = `Total Likes: ${totalLikes}`;  // Update the display
-    }
-}
-
-// Function to show/hide comment box for a post
-function toggleCommentBox(index) {
-    const commentBox = document.getElementById(`comment-box-${index}`);
-    if (commentBox) {
-        commentBox.style.display = commentBox.style.display === 'none' ? 'block' : 'none';
-    }
-}
-
-// Function to add a comment to a post
-function addComment(index) {
-    const commentInput = document.getElementById(`comment-input-${index}`);
-    const commentText = commentInput.value.trim();
-    if (commentText) {
-        posts[index].comments.push(commentText);  // Add the comment to the post
-        commentInput.value = '';  // Clear the input field
-        renderPosts();  // Re-render posts to display the new comment
-    }
-}
-
-// Initial rendering of posts
-document.addEventListener('DOMContentLoaded', () => {
-    startSessionChecks();
-    setupLogoutListener();
-    renderPosts();
+    });
+  } else {
+    error('User ID could not be retrieved.');
+  }
 });
 
-export { toggleFilter, sortData, createPost, deletePost, editPost, likePost, addComment };
+doc.addEventListener('DOMContentLoaded', async () => {
+  await fetchPopularHashtags();
+  await fetchPosts();
+
+  // Add listener to the 'Post' button
+  const postButton = getById('create-post-container').querySelector('button');
+  postButton.addEventListener('click', createPost);
+
+  // Add listeners for filters
+  setupFilters();
+});
+
+function setupFilters() {
+  // date filter listeners
+  getAll('input[name="date-filter"]').forEach((checkbox) => {
+    checkbox.addEventListener('change', (e) => {
+      console.log('Date filter changed', e.target.value);
+      handleDateFilterChange(e.target);
+      fetchPosts();
+    });
+  });
+
+  // sort filter listeners
+  getAll('input[name="sort-filter"]').forEach((checkbox) => {
+    checkbox.addEventListener('change', (e) => {
+      console.log('Sort filter changed', e.target.value);
+      handleSortFilterChange(e.target);
+      fetchPosts();
+    });
+  });
+
+  // hashtag filter listeners
+  getAll('.hashtag-filter').forEach((checkbox) => {
+    checkbox.addEventListener('change', () => {
+      console.log('Hashtag filter changed');
+      fetchPosts(); // re-fetch posts when hashtags change
+    });
+  });
+}
+
+async function createPost() {
+  const postInput = getById('post-input');
+  const content = postInput.value.trim();
+
+  if (!content) {
+    alert('Content is required to create a post.');
+    return;
+  }
+
+  try {
+    const response = await fetch('/user/community/post', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ content })
+    });
+
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      // update the UI with the new post
+      fetchPosts();
+      fetchPopularHashtags();
+      postInput.value = ''; // clear the input after posting
+    } else {
+      alert(data.message || 'Failed to create the post.');
+    }
+  } catch (err) {
+    error('Error creating post:', err);
+    alert('Error creating post. Please try again later.');
+  }
+}
+
+async function fetchPopularHashtags(withPreloader = true) {
+  try {
+    const response = await fetch('/user/community/posts/popular', {
+      withPreloader
+    });
+    const data = await response.json();
+    log(data);
+
+    if (data.status !== 'success') {
+      throw new Error('Failed to fetch popular hashtags');
+    }
+
+    const popularHashtags = data.data.hashtags;
+    const hashtagsContainer = getById('popular-hashtags');
+    hashtagsContainer.innerHTML = ''; // Clear any existing content
+
+    popularHashtags.forEach((hashtag) => {
+      const label = doc.createElement('label');
+      label.innerHTML = `<input type="checkbox" class="hashtag-filter" value="${hashtag.hashtag}" />
+        #${hashtag.hashtag} (${hashtag.count})`;
+      hashtagsContainer.appendChild(label);
+    });
+  } catch (err) {
+    error('Error fetching popular hashtags:', err);
+  }
+}
+
+async function fetchPosts(withPreloader = true) {
+  try {
+    const selectedDateFilter = getSelectedDateFilter();
+    const selectedSort = getSelectedSort();
+    const selectedHashtags = getSelectedHashtags();
+
+    // Build the query params dynamically based on selected filters
+    const params = new URLSearchParams();
+    if (selectedDateFilter) {
+      params.append('dateFilter', selectedDateFilter);
+    }
+    if (selectedSort) {
+      params.append('sort', selectedSort);
+    }
+    if (selectedHashtags.length > 0) {
+      params.append('hashtag', selectedHashtags.join(','));
+    }
+
+    const response = await fetch(`/user/community/posts?${params.toString()}`, { withPreloader });
+    const data = await response.json();
+
+    if (data.status !== 'success') {
+      throw new Error('Failed to fetch posts');
+    }
+
+    const posts = data.data.posts;
+    renderPosts(posts);
+  } catch (err) {
+    error('Error fetching posts:', err);
+  }
+}
+
+function getSelectedDateFilter() {
+  const selectedDateFilter = Array.from(getAll('input[name="date-filter"]:checked')).map((checkbox) => checkbox.value);
+
+  if (selectedDateFilter.length === 1) {
+    return selectedDateFilter[0];
+  }
+
+  return null;
+}
+
+function getSelectedSort() {
+  const selectedSort = Array.from(getAll('input[name="sort-filter"]:checked')).map((checkbox) => checkbox.value);
+
+  if (selectedSort.length === 1) {
+    return selectedSort[0];
+  }
+
+  return null;
+}
+
+function getSelectedHashtags() {
+  return Array.from(getAll('.hashtag-filter:checked')).map((checkbox) => checkbox.value);
+}
+
+function handleDateFilterChange(target) {
+  if (target.checked) {
+    getAll('input[name="date-filter"]').forEach((checkbox) => {
+      if (checkbox !== target) {
+        checkbox.checked = false;
+      }
+    });
+    fetchPosts();
+  }
+}
+
+function handleSortFilterChange(target) {
+  if (target.checked) {
+    getAll('input[name="sort-filter"]').forEach((checkbox) => {
+      if (checkbox !== target) {
+        checkbox.checked = false;
+      }
+    });
+    fetchPosts();
+  }
+}
+
+function renderPosts(posts) {
+  const postFeed = getById('post-feed');
+  const createPostContainer = getById('create-post-container');
+  postFeed.innerHTML = ''; // Clear existing posts
+
+  if (posts.length === 0) {
+    postFeed.innerHTML = '<div class="placeholder">No posts to display</div>';
+    return;
+  }
+
+  postFeed.appendChild(createPostContainer);
+
+  posts.forEach((post) => {
+    const postElement = doc.createElement('div');
+    postElement.classList.add('post');
+    postElement.innerHTML = `<div class="post-header">
+        <div class="profile-pic"><i class="fas fa-user"></i></div>
+        <div class="name-date">
+          <div class="name">${post.userId.username}</div>
+          <div class="date">${formatDate(post.createdAt)}</div>
+        </div>
+        <div class="options"><i class="fas fa-ellipsis-v"></i></div>
+      </div>
+      <div class="post-content">${post.content}</div>
+      <div class="post-footer">
+        <span class="action" data-post-id="${post._id}" class="like-action"><i class="fas fa-thumbs-up"></i> Like (${
+      post.likesCount
+    })</span>
+        <span class="action" data-post-id="${
+          post._id
+        }" class="comment-action"><i class="fas fa-comment"></i> Comment</span>
+        <div id="comment-box-${post._id}" class="comment-box" style="display: none;">
+          <textarea id="comment-input-${post._id}" placeholder="Add a comment..."></textarea>
+          <button class="post-comment" data-post-id="${post._id}">Post Comment</button>
+        </div>
+      </div>
+    `;
+    postFeed.appendChild(postElement);
+  });
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  return date.toLocaleDateString('en-US', options);
+}
+
+async function getCurrentUserId() {
+  try {
+    const response = await fetch('/user/me', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user info');
+    }
+
+    const userData = await response.json();
+    return userData.id;
+  } catch (err) {
+    error('Error fetching user ID:', err);
+    return null;
+  }
+}
