@@ -14,7 +14,7 @@ body {
   position: fixed;
   width: 100%;
   height: 5%;
-  background-color: #142850;
+  background-color: #fff;
   padding: 10px 24px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   z-index: 1000;
