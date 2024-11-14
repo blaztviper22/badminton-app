@@ -153,7 +153,6 @@ async function fetchPosts(withPreloader = true) {
 
     const response = await fetch(`/user/community/posts?${params.toString()}`, { withPreloader });
     const data = await response.json();
-
     if (data.status !== 'success') {
       throw new Error('Failed to fetch posts');
     }
@@ -162,6 +161,7 @@ async function fetchPosts(withPreloader = true) {
     renderPosts(posts);
   } catch (err) {
     error('Error fetching posts:', err);
+    renderPosts(null);
   }
 }
 
@@ -216,12 +216,12 @@ function renderPosts(posts) {
   const createPostContainer = getById('create-post-container');
   postFeed.innerHTML = ''; // Clear existing posts
 
-  if (posts.length === 0) {
-    postFeed.innerHTML = '<div class="placeholder">No posts to display</div>';
+  postFeed.appendChild(createPostContainer);
+
+  if (!posts || posts.length === 0) {
+    postFeed.innerHTML += '<div class="placeholder">No posts to display</div>';
     return;
   }
-
-  postFeed.appendChild(createPostContainer);
 
   posts.forEach((post) => {
     const postElement = doc.createElement('div');
