@@ -16,6 +16,52 @@ exports.loginUser = async (req, res, next) => {
   try {
     const { username, password, role } = req.body;
 
+    // check if the role is 'superadmin'
+    if (role.toLowerCase() === 'superadmin') {
+      const superAdmin = await SuperAdmin.findOne({ email: username }).select('+password');
+      if (!superAdmin) {
+        return res.status(401).json({
+          success: false,
+          code: 401,
+          message: 'Superadmin not found.'
+        });
+      }
+
+      // validate password
+      const isMatch = await superAdmin.comparePassword(password);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          code: 401,
+          message: 'Invalid email or password for superadmin'
+        });
+      }
+
+      // generate access and refresh tokens for superadmin
+      const accessToken = superAdmin.generateToken('access');
+      const refreshToken = superAdmin.generateToken('refresh');
+
+      // define cookie options
+      const cookieOptions = config.get('cookieOptions');
+      const accessCookieOptions = { ...cookieOptions, maxAge: 60 * 60 * 1000 }; // 1 hour
+      const refreshCookieOptions = { ...cookieOptions, maxAge: 14 * 24 * 60 * 60 * 1000 }; // 14 days
+
+      // redirect URL for superadmin
+      const redirectUrl = '/superadmin/dashboard';
+
+      return res
+        .status(200)
+        .cookie('accessToken', accessToken, accessCookieOptions)
+        .cookie('refreshToken', refreshToken, refreshCookieOptions)
+        .json({
+          success: true,
+          action: 'redirect',
+          code: 200,
+          message: 'Superadmin logged in successfully.',
+          redirectUrl
+        });
+    }
+
     // find the user by username
     const user = await User.findOne({ username }).select('+password');
 
