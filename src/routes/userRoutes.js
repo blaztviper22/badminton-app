@@ -40,7 +40,8 @@ const {
   addComment,
   removeComment,
   getPopularHashtags,
-  getPostsByHashtag
+  getPostsByHashtag,
+  fetchComments
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -341,6 +342,8 @@ let routes = (app, io) => {
     roleChecker(['player', 'coach']),
     removeComment
   );
+
+  router.get('/community/posts/:postId/comments', verifyToken, roleChecker(['player', 'coach']), fetchComments);
 
   router.get('/community/posts/popular', verifyToken, roleChecker(['player', 'coach']), getPopularHashtags);
 
