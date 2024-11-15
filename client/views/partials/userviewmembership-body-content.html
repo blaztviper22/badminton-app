@@ -1,58 +1,58 @@
 <body>
-  <div class="header-container">
-    <h1>Membership</h1>
-    <button id="openListBtn" class="list-icon">☰</button>
-  </div>
-
-  <div class="card-container">
-    <div class="membership-card">
-      <img src="public/assets/images/Pamana.jpeg" alt="Membership 1">
-      <div class="card-content">
-        <div class="card-description">Basic Membership: Enjoy limited access to our services.</div>
-        <div class="price">₱200</div>
-      </div>
-      <button class="subscribe-btn" id="subscribeBtn">Subscribe</button>
+    <div class="header-container">
+      <h1>Membership</h1>
+      <span class="list-icon" onclick="openModalList()">☰</span>
     </div>
-  </div>
-
-  <!-- List Modal -->
-  <div id="listModal" class="modal-list" style="display: none;">
-    <div class="modal-list-content">
-      <div class="modal-list-header">Your Subscriptions</div>
-      <table class="membership-table" id="membershipTable">
-        <thead>
-          <tr>
-            <th>Membership</th>
-            <th>Price</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr id="basicMembershipRow">
-            <td>Basic Membership</td>
-            <td>₱200</td>
-            <td><button class="cancel-btn">Cancel</button></td>
-          </tr>
-          <tr id="standardMembershipRow">
-            <td>Standard Membership</td>
-            <td>₱500</td>
-            <td><button class="cancel-btn">Cancel</button></td>
-          </tr>
-        </tbody>
-      </table>
-      <button id="cancelListBtn" class="close-btn">Close</button>
-    </div>
-  </div>
-
-  <!-- Confirmation Modal -->
-  <div id="confirmationModal" class="modal-confirmation" style="display: none;">
-    <div class="modal-confirmation-content">
-      <div class="modal-confirmation-header">Are you sure?</div>
-      <p>Do you really want to cancel your subscription?</p>
-      <div class="confirmation-buttons">
-        <button class="confirm-btn" id="confirmCancelBtn">Yes, Cancel</button>
-        <button class="cancel-btn">No, Keep</button>
+  
+    <div class="card-container">
+      <div class="membership-card">
+        <img src="public/assets/images/Pamana.jpeg" alt="Membership 1">
+        <div class="card-content">
+          <div class="card-description">Basic Membership: Enjoy limited access to our services.</div>
+          <div class="price">₱200</div>
+        </div>
+        <button class="subscribe-btn" id="subscribeBtn">Subscribe</button>
       </div>
     </div>
-  </div>
-</body>
+    
+  
+    <div id="listModal" class="modal-list">
+      <div class="modal-list-content">
+        <div class="modal-list-header">Your Subscriptions</div>
+        <table class="membership-table" id="membershipTable">
+          <thead>
+            <tr>
+              <th>Membership</th>
+              <th>Price</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="basicMembershipRow">
+              <td>Basic Membership</td>
+              <td>₱200</td>
+              <td><button class="cancel-btn" onclick="openConfirmationModal('Basic Membership', 'basicMembershipRow')">Cancel</button></td>
+            </tr>
+            <tr id="standardMembershipRow">
+              <td>Standard Membership</td>
+              <td>₱500</td>
+              <td><button class="cancel-btn" onclick="openConfirmationModal('Standard Membership', 'standardMembershipRow')">Cancel</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <br><br>
+        <button class="close-btn" onclick="closeModalList()">Close</button>
+      </div>
+    </div>
+  
+    <div id="confirmationModal" class="modal-confirmation">
+      <div class="modal-confirmation-content">
+        <div class="modal-confirmation-header">Are you sure?</div>
+        <p>Do you really want to cancel your subscription?</p>
+        <div class="confirmation-buttons">
+          <button class="confirm-btn" id="confirmCancelBtn">Yes, Cancel</button>
+          <button class="cancel-btn" onclick="closeConfirmationModal()">No, Keep</button>
+        </div>
+      </div>
+    </div>
+  </body>

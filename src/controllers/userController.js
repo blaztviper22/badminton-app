@@ -2280,6 +2280,33 @@ exports.removeComment = async (req, res) => {
   }
 };
 
+exports.fetchComments = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+
+    // find the post by ID
+    const post = await Post.findById(postId).populate('comments.userId', 'username');
+
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // return the comments for the post
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        comments: post.comments
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching comments:', err);
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
+};
+
 exports.editPost = async (req, res) => {
   try {
     const postId = req.params.postId;
