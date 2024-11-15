@@ -16,39 +16,55 @@ let membershipToCancel = '';
 let rowToRemove = '';
 const doc = document;
 
-// Open the subscription list modal
+// Function to open and close the subscription list modal
 function openModalList() {
   doc.getElementById('listModal').style.display = 'flex';
 }
 
-// Close the subscription list modal
 function closeModalList() {
   doc.getElementById('listModal').style.display = 'none';
 }
 
-// Open the confirmation modal with details for canceling a specific membership
+// Open and close the confirmation modal with details for canceling a specific membership
 function openConfirmationModal(membershipName, rowId) {
   membershipToCancel = membershipName;
   rowToRemove = rowId;
   doc.getElementById('confirmationModal').style.display = 'flex';
 }
 
-// Close the confirmation modal
 function closeConfirmationModal() {
   doc.getElementById('confirmationModal').style.display = 'none';
 }
 
-// Handle the cancel confirmation
+// Handle the cancel confirmation by removing the specified row
 doc.getElementById('confirmCancelBtn').addEventListener('click', function() {
-  // Remove the row from the table
-  doc.getElementById(rowToRemove).remove();
-  
-  // Close the confirmation modal
-  closeConfirmationModal();
+  if (rowToRemove) {
+    doc.getElementById(rowToRemove).remove();  // Remove the row from the table
+  }
+  closeConfirmationModal();  // Close the confirmation modal
 });
 
-// Add event listener to close the list modal when cancel button is clicked
+// Add event listeners to the list and close buttons
+doc.getElementById('openListBtn').addEventListener('click', openModalList);
+
+// Close the list modal
 doc.getElementById('cancelListBtn').addEventListener('click', closeModalList);
+
+// Add event listeners to cancel buttons in each row of the membership table
+const cancelButtons = doc.querySelectorAll('.cancel-btn');
+cancelButtons.forEach(button => {
+  button.addEventListener('click', function(event) {
+    const row = event.target.closest('tr');  // Get the parent row of the clicked cancel button
+    const membershipName = row.querySelector('td:first-child').innerText;  // Get the membership name
+    openConfirmationModal(membershipName, row.id);  // Open the confirmation modal
+  });
+});
+
+// Close the confirmation modal if "No, Keep" button is clicked
+const cancelConfirmationBtn = doc.querySelector('.modal-confirmation .cancel-btn');
+cancelConfirmationBtn.addEventListener('click', function() {
+  closeConfirmationModal();  // Close the confirmation modal
+});
 
 // Function to fetch and display the updated list of membership cards
 async function fetchMembershipCards() {
@@ -80,9 +96,8 @@ function displayMembershipCards(memberships) {
 
 // Real-time listener for new membership card events from the admin
 socket.on('newMembershipCard', (newCard) => {
-  // When a new membership card is added, refetch and display the updated list
-  fetchMembershipCards();
+  fetchMembershipCards();  // Refetch and display the updated list
 });
 
 // Initial fetch of membership cards on page load
-fetchMembershipCards();
+fetchMembershipCards();  

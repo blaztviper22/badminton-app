@@ -1,3 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Membership Cards</title>
+  <link rel="stylesheet" href="path/to/your/styles.css">
+  <script defer src="path/to/your/script.js"></script>
+</head>
 <body>
   <h1>Manage Membership Cards</h1>
   <div class="admin-container">
@@ -8,7 +17,6 @@
         <label for="imageUrl">Upload Image:</label>
         <input type="file" id="imageUrl" name="imageUrl" accept="image/*" required>
         
-        <!-- Placeholder for New Card Image Preview -->
         <img id="newImagePreview" class="image-preview" style="display: none;"/>
 
         <label for="cardName">Card Name:</label>
@@ -52,9 +60,41 @@
 
         <div class="modal-btn-container">
           <button type="submit" class="modal-btn">Update Card</button>
-          <button type="button" class="close-btn" onclick="closeModal()">Close</button>
+          <button type="button" class="close-btn" id="closeEditModal">Close</button>
         </div>
       </form>
     </div>
   </div>
+
+  <!-- Subscriber Modal -->
+  <div id="subscribersModal" class="modal">
+    <div class="modal-content">
+      <h2>Subscribers</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Date Subscribed</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="subscriberTableBody">
+          <!-- Subscribers will be displayed here -->
+        </tbody>
+      </table>
+      <button type="button" class="close-btn" id="closeSubscribersModal">Close</button>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmationModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <p>Are you sure you want to revoke this subscriber?</p>
+      <button id="confirmRevokeBtn">Yes, Revoke</button>
+      <br>
+      <button id="closeConfirmationModal">Cancel</button>
+    </div>
+  </div>
+
 </body>
+</html>
