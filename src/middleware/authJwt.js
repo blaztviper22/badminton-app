@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Superadmin = require('../models/Superadmin');
 const createError = require('http-errors');
 const config = require('config');
 const { isTokenBlacklisted } = require('../utils/blackListUtils');
@@ -44,7 +45,16 @@ const verifyToken = async (req, res, next) => {
         return next(createError(404, 'User not found.'));
       }
 
-      req.user = user.toJSON();
+      const superAdmin = await Superadmin.findOne({ userId: id });
+
+      if (superAdmin) {
+        // user is a super admin, attach that info to the request object
+        req.user = { ...user.toJSON(), isSuperAdmin: true };
+      } else {
+        // user is not a super admin
+        req.user = { ...user.toJSON(), isSuperAdmin: false };
+      }
+
       next();
     });
   } catch (err) {
