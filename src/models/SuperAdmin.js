@@ -66,6 +66,6 @@ superAdminSchema.methods.generateToken = function (type) {
   throw new Error('Invalid token type');
 };
 
-const SuperAdmin = mongoose.model('SuperAdmin', superAdminSchema);
+const Superadmin = mongoose.model('Superadmin', superAdminSchema);
 
-module.exports = SuperAdmin;
+module.exports = Superadmin;

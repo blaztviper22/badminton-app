@@ -11,6 +11,7 @@ const { sendOTP, sendForgotPasswordEmail } = require('../services/emailService')
 const { deleteUserFilesAndProfilePhoto } = require('../utils/fileCleanup');
 const Reservation = require('../models/Reservation');
 const { getUserSocket } = require('../utils/userSocketManager');
+const Superadmin = require('../models/Superadmin');
 
 exports.loginUser = async (req, res, next) => {
   try {
@@ -18,7 +19,7 @@ exports.loginUser = async (req, res, next) => {
 
     // check if the role is 'superadmin'
     if (role.toLowerCase() === 'superadmin') {
-      const superAdmin = await SuperAdmin.findOne({ email: username }).select('+password');
+      const superAdmin = await Superadmin.findOne({ username }).select('+password');
       if (!superAdmin) {
         return res.status(401).json({
           success: false,
