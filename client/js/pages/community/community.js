@@ -154,7 +154,7 @@ async function fetchPosts(withPreloader = true) {
     const selectedSort = getSelectedSort();
     const selectedHashtags = getSelectedHashtags();
 
-    // Build the query params dynamically based on selected filters
+    // build the query params dynamically based on selected filters
     const params = new URLSearchParams();
     if (selectedDateFilter) {
       params.append('dateFilter', selectedDateFilter);
@@ -374,11 +374,6 @@ function openCommentModal(postId, postTitle) {
   const postTitleElement = getById('post-modal-title');
   postTitleElement.textContent = postTitle;
 
-  log(postId);
-
-  // fetch and render comments for the post
-  // fetchComments(postId);
-
   // show the modal
   modal.style.display = 'flex';
 
@@ -388,67 +383,30 @@ function openCommentModal(postId, postTitle) {
     modal.style.display = 'none';
   });
 
-  // add event listener for posting a comment
-  const submitButton = getById('submit-comment');
   submitButton.addEventListener('click', async () => {
     const commentContent = getById('comment-textarea').value.trim();
+
     if (!commentContent) {
       alert('Please write a comment.');
       return;
     }
 
     try {
-      //   const response = await fetch(`/user/community/posts/${postId}/comment`, {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify({ content: commentContent })
-      //   });
-      //   const data = await response.json();
-      //   if (data.status === 'success') {
-      //     // add the new comment to the list
-      //     const commentCountElement = getById(`comment-count-${postId}`);
-      //     if (commentCountElement) {
-      //       commentCountElement.textContent = `(${data.data.commentCount})`;
-      //     }
-      //     fetchComments(postId);
-      //     getById('comment-textarea').value = '';
-      //   } else {
-      //     alert('Failed to post comment.');
-      // }
-    } catch (err) {
-      error('Error posting comment:', err);
+      // assuming you have a function to post the comment, e.g., postComment
+      const response = await postComment(postId, commentContent);
+
+      if (response.success) {
+        getById('comment-textarea').value = '';
+
+        modal.style.display = 'none';
+
+        // fetchComments(postId);
+      } else {
+        alert('Failed to post comment. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Error posting comment:', error);
+      alert('Something went wrong. Please try again later.');
     }
   });
 }
-
-// async function fetchComments(postId) {
-//   try {
-//     const response = await fetch(`/user/community/posts/${postId}/comments`);
-//     const data = await response.json();
-
-//     log(data);
-
-//     if (data.status !== 'success') {
-//       throw new Error('Failed to fetch comments');
-//     }
-
-//     const comments = data.data.comments;
-//     const commentList = getById('comment-list');
-//     commentList.innerHTML = '';
-
-//     comments.forEach((comment) => {
-//       const commentElement = doc.createElement('div');
-//       commentElement.classList.add('comment');
-//       commentElement.innerHTML = `
-//         <div class="profile-pic"></div>
-//         <div class="comment-content">
-//           <span class="name">${comment.userId.username}</span>
-//           <p>${comment.content}</p>
-//         </div>
-//       `;
-//       commentList.appendChild(commentElement);
-//     });
-//   } catch (err) {
-//     error('Error fetching comments:', err);
-//   }
-// }
