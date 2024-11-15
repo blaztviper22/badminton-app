@@ -10,25 +10,11 @@ const superAdminSchema = new mongoose.Schema(
       required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
-      validate: {
-        validator: function (value) {
-          const validDomains = ['gmail.com', 'yahoo.com', 'googlemail.com'];
-          const domain = value.split('@')[1];
-          return validDomains.includes(domain);
-        },
-        message: 'Email must be from Gmail, Yahoo, or Googlemail.'
-      }
+      trim: true
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
-      minlength: [8, 'Password must be at least 8 characters long'],
-      validate: {
-        validator: function (value) {
-          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/.test(value);
-        },
-        message: 'Password must be stronger (contain upper/lower case letters, numbers, and special characters).'
-      },
+      required: true,
       select: false // prevents password from being returned in queries
     },
     role: {
