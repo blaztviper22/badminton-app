@@ -125,3 +125,34 @@ exports.getCourtOwners = async (req, res) => {
     });
   }
 };
+
+// add the new endpoint to get court details by courtId
+exports.getCourtById = async (req, res) => {
+  const { courtId } = req.params;
+
+  try {
+    // find the court by its ID
+    const court = await Court.findById(courtId).populate('user');
+
+    if (!court) {
+      return res.status(404).json({
+        success: false,
+        code: 404,
+        message: 'Court not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      code: 200,
+      data: court
+    });
+  } catch (err) {
+    console.error('Error fetching court details:', err);
+    return res.status(500).json({
+      success: false,
+      code: 500,
+      message: 'Internal Server Error'
+    });
+  }
+};
