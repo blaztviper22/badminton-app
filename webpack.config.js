@@ -47,7 +47,7 @@ const pageTitles = {
 // Page-specific stylesheets and scripts
 const pageAssets = {
   index: {
-    styles: [],
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
     scripts: [],
     hasNavbar: false,
     hasSidebar: false
