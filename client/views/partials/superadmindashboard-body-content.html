@@ -1,5 +1,5 @@
 <body>
-    <div class="transaction-history-btn" onclick="viewTransactionHistory()">
+    <div class="transaction-history-btn">
         <i class="fas fa-history"></i>
     </div>
 
@@ -25,9 +25,9 @@
                     <td>2024-11-06</td>
                     <td>Pending</td>
                     <td>
-                        <button class="btn btn-view" onclick="viewCourtOwnerDetails(1)">View Details</button>
-                        <button class="btn btn-approve" onclick="approveCourtOwner(1)">Approve</button>
-                        <button class="btn btn-reject" onclick="rejectCourtOwner(1)">Reject</button>
+                        <button class="btn btn-view">View Details</button>
+                        <button class="btn btn-approve">Approve</button>
+                        <button class="btn btn-reject">Reject</button>
                     </td>
                 </tr>
                 <tr>
@@ -37,9 +37,9 @@
                     <td>2024-11-05</td>
                     <td>Pending</td>
                     <td>
-                        <button class="btn btn-view" onclick="viewCourtOwnerDetails(2)">View Details</button>
-                        <button class="btn btn-approve" onclick="approveCourtOwner(2)">Approve</button>
-                        <button class="btn btn-reject" onclick="rejectCourtOwner(2)">Reject</button>
+                        <button class="btn btn-view">View Details</button>
+                        <button class="btn btn-approve">Approve</button>
+                        <button class="btn btn-reject">Reject</button>
                     </td>
                 </tr>
             </tbody>
@@ -64,7 +64,7 @@
                     <!-- Transaction history rows will be added here dynamically -->
                 </tbody>
             </table>
-            <button onclick="closeTransactionHistory()">Close</button>
+            <button>Close</button>
         </div>
     </div>
 
@@ -96,9 +96,8 @@
                     </div>
                 </div>
             </form>
-            <button onclick="closeDetailsModal()">Close</button>
+            <button>Close</button>
         </div>
     </div>
-
 
 </body>

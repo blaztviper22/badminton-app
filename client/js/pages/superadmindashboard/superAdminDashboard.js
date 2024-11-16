@@ -3,40 +3,52 @@ import '../../../css/pages/superadmindashboard/superAdminDashboard.css';
 import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
 import { setupLogoutListener } from '../../global/logout.js';
 
-// Data for court owners
-const courtOwners = [
-    { 
-        id: 1, 
-        name: 'John Doe', 
-        contactInfo: 'johndoe@email.com', 
-        registrationDate: '2024-11-06',
-        courtDetails: {
-            courtName: 'Doe Sports Complex',
-            courtAddress: '123 Main St, City Center',
-            files: [
-                { name: 'file1.pdf', url: 'https://www.example.com/file1.pdf' },
-                { name: 'file2.jpg', url: 'https://www.example.com/file2.jpg' }
-            ]
-        },
-        status: 'Pending'
-    },
-    { 
-        id: 2, 
-        name: 'Jane Smith', 
-        contactInfo: 'janesmith@email.com', 
-        registrationDate: '2024-11-05',
-        courtDetails: {
-            courtName: 'Smith Court',
-            courtAddress: '456 Park Ave, Midtown',
-            files: [
-                { name: 'file3.pdf', url: 'https://www.example.com/file3.pdf' }
-            ]
-        },
-        status: 'Pending'
-    }
-];
+// Add event listeners for the buttons
+document.addEventListener('DOMContentLoaded', () => {
+    // Transaction History Button
+    document.querySelector('.transaction-history-btn').addEventListener('click', viewTransactionHistory);
 
-const transactionHistory = [];
+    // Court Owner Details, Approve, Reject Buttons
+    const approveButtons = document.querySelectorAll('.btn-approve');
+    approveButtons.forEach(button => {
+        button.addEventListener('click', () => approveCourtOwner(getOwnerId(button)));
+    });
+
+    const rejectButtons = document.querySelectorAll('.btn-reject');
+    rejectButtons.forEach(button => {
+        button.addEventListener('click', () => rejectCourtOwner(getOwnerId(button)));
+    });
+
+    const viewButtons = document.querySelectorAll('.btn-view');
+    viewButtons.forEach(button => {
+        button.addEventListener('click', () => viewCourtOwnerDetails(getOwnerId(button)));
+    });
+
+    // Close buttons for modals
+    document.querySelectorAll('#transactionHistoryModal button').forEach(button => {
+        button.addEventListener('click', closeTransactionHistory);
+    });
+
+    document.querySelectorAll('#detailsModal button').forEach(button => {
+        button.addEventListener('click', closeDetailsModal);
+    });
+
+    // Click outside modal to close
+    window.addEventListener('click', (event) => {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Helper function to get owner ID from button's parent row
+function getOwnerId(button) {
+    const row = button.closest('tr');
+    return parseInt(row.querySelector('td').textContent); // Assumes the first column contains the ID
+}
 
 function approveCourtOwner(id) {
     const courtOwner = courtOwners.find(owner => owner.id === id);
@@ -117,13 +129,4 @@ function closeTransactionHistory() {
 
 function closeDetailsModal() {
     document.getElementById('detailsModal').style.display = 'none';
-}
-
-window.onclick = function(event) {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
 }
