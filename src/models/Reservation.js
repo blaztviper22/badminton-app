@@ -49,6 +49,11 @@ const reservationSchema = new mongoose.Schema(
       enum: ['cancelled', 'paid', 'unpaid', 'pending'],
       default: 'unpaid'
     },
+    billStatus: {
+      type: String,
+      enum: ['unpaid', 'paid'],
+      default: 'unpaid'
+    },
     totalAmount: {
       type: Number,
       required: true
