@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const courtRegistrationSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
     business_name: {
       type: String,
       trim: true,

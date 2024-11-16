@@ -1062,7 +1062,8 @@ exports.registerCourt = async (req, res) => {
       business_logo: businessLogoUrl,
       court_images: courtImageUrls,
       facilities: facilityData,
-      documents: documentUrls // Store all document URLs directly
+      documents: documentUrls, // Store all document URLs directly
+      user: user._id
     });
 
     const savedCourt = await newCourt.save();
