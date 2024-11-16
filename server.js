@@ -141,6 +141,7 @@ io.on('connection', (socket) => {
 // initialize and register all the application routes
 require('./src/routes/indexRoutes')(app);
 require('./src/routes/authRoutes')(app);
+require('./src/routes/superadminRoutes')(app);
 require('./src/routes/userRoutes')(app, io);
 
 //  handle unregistered route for all HTTP Methods

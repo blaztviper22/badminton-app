@@ -3,6 +3,7 @@ const User = require('../models/User');
 const createError = require('http-errors');
 const config = require('config');
 const { isTokenBlacklisted } = require('../utils/blackListUtils');
+const Superadmin = require('../models/Superadmin');
 
 const verifyToken = async (req, res, next) => {
   try {
@@ -37,14 +38,32 @@ const verifyToken = async (req, res, next) => {
         return next(createError(401, 'This session has expired. Please Login.'));
       }
 
-      const { id } = decoded; // Get user id from the decoded token
-      const user = await User.findById(id); // Find user by that `id`
+      const { id, role } = decoded;
+
+      console.log(id);
+
+      // if the user is a superadmin, check the Superadmin model
+      if (role === 'superadmin') {
+        const superAdmin = await Superadmin.findById(id);
+
+        if (!superAdmin) {
+          return next(createError(404, 'Superadmin not found.'));
+        }
+
+        // if superadmin is found, attach their info to the request
+        req.user = { ...superAdmin.toJSON(), isSuperAdmin: true };
+        return next(); // Continue to next middleware or route handler
+      }
+
+      // if the user is not a superadmin, check the User model
+      const user = await User.findById(id);
 
       if (!user) {
         return next(createError(404, 'User not found.'));
       }
 
-      req.user = user.toJSON();
+      // attach user info to the request object
+      req.user = { ...user.toJSON(), isSuperAdmin: false };
       next();
     });
   } catch (err) {

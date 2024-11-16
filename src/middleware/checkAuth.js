@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const { isTokenBlacklisted } = require('../utils/blackListUtils');
+const createError = require('http-errors');
 
 const checkAuth = async (req, res, next) => {
   const token = req.cookies.accessToken;
@@ -16,24 +17,29 @@ const checkAuth = async (req, res, next) => {
       return res.redirect('/login'); // Redirect to login if token is blacklisted
     }
 
-    // Verify the token
+    // verify the token
     const decoded = jwt.verify(token, config.get('jwtSecret'));
     req.user = decoded; // Store user information in the request object
 
-    // Redirect based on user role
-    if (decoded.role === 'player') {
-      return res.redirect('/user/dashboard');
-    } else if (decoded.role === 'coach') {
-      return res.redirect('/user/dashboard');
-    } else if (decoded.role === 'admin') {
-      return res.redirect('/user/admin/view-post');
+    // redirect based on user role
+    switch (decoded.role) {
+      case 'player':
+        return res.redirect('/user/dashboard');
+      case 'coach':
+        return res.redirect('/user/dashboard');
+      case 'admin':
+        return res.redirect('/user/admin/view-post');
+      case 'superadmin':
+        return res.redirect('/superadmin/dashboard');
+      default:
+        // Handle the case where the role is unknown or invalid
+        return next(createError(403, 'Role not authorized'));
     }
   } catch (err) {
-    // If token is invalid, proceed to next middleware (public route)
+    // if token is invalid, proceed to next middleware (public route)
     console.error('JWT verification failed:', err);
   }
-
-  // Proceed to next middleware if no redirection occurred
+  // proceed to the next middleware if no redirection occurred
   next();
 };
 

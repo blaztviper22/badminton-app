@@ -5,9 +5,9 @@ const jwt = require('jsonwebtoken');
 
 const superAdminSchema = new mongoose.Schema(
   {
-    email: {
+    username: {
       type: String,
-      required: [true, 'Email is required'],
+      required: true,
       unique: true,
       lowercase: true,
       trim: true
@@ -66,6 +66,6 @@ superAdminSchema.methods.generateToken = function (type) {
   throw new Error('Invalid token type');
 };
 
-const SuperAdmin = mongoose.model('SuperAdmin', superAdminSchema);
+const Superadmin = mongoose.model('Superadmin', superAdminSchema);
 
-module.exports = SuperAdmin;
+module.exports = Superadmin;
