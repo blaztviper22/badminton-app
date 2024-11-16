@@ -1,6 +1,8 @@
-exports.getSuperadminDashboard = (req, res) => {
-  res.json({
-    message: 'Welcome to the Superadmin Dashboard!',
-    user: req.user // sending user data for testing purposes
-  });
+const path = require('path');
+const serveFile = require('../utils/fileUtils');
+
+exports.getSuperadminDashboard = (req, res, next) => {
+  const filePath = path.resolve(__dirname, '../../build/superadmindashboard.html');
+  serveFile(filePath, res, next);
 };
+
