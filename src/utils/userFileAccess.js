@@ -12,23 +12,23 @@ const assignFileToAdmin = async (file, adminId, category) => {
 
   switch (category) {
     case 'businessLogo':
-      roleBasedAccess = ['admin', 'coach', 'player'];
+      roleBasedAccess = ['admin', 'coach', 'player', 'superadmin'];
       file.isPublic = true;
       break;
     case 'courtImage':
-      roleBasedAccess = ['admin', 'coach', 'player'];
+      roleBasedAccess = ['admin', 'coach', 'player', 'superadmin'];
       file.isPublic = false;
       break;
     case 'facilityImage':
-      roleBasedAccess = ['admin', 'coach', 'player'];
+      roleBasedAccess = ['admin', 'coach', 'player', 'superadmin'];
       file.isPublic = false;
       break;
     case 'announcementImage':
-      roleBasedAccess = ['admin', 'coach', 'player'];
+      roleBasedAccess = ['admin', 'coach', 'player', 'superadmin'];
       file.isPublic = false;
       break;
     case 'eventImage':
-      roleBasedAccess = ['admin', 'coach', 'player'];
+      roleBasedAccess = ['admin', 'coach', 'player', 'superadmin'];
       file.isPublic = false;
       break;
     default:
