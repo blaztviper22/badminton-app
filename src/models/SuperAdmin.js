@@ -66,6 +66,18 @@ superAdminSchema.methods.generateToken = function (type) {
   throw new Error('Invalid token type');
 };
 
+superAdminSchema.set('toJSON', {
+  transform: function (doc, ret, options) {
+    // remove password field and any other unwanted field
+    delete ret.password;
+
+    ret.fullName = `${ret.firstName} ${ret.lastName}`;
+    ret.id = ret._id;
+    delete ret._id;
+    return ret;
+  }
+});
+
 const Superadmin = mongoose.model('Superadmin', superAdminSchema);
 
 module.exports = Superadmin;
