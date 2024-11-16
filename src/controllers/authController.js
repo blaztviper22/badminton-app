@@ -254,7 +254,6 @@ exports.registerUser = async (req, res, next) => {
       date_of_birth,
       municipality,
       contact_number,
-      status_owner,
       role
     } = req.body;
 
@@ -281,12 +280,10 @@ exports.registerUser = async (req, res, next) => {
       date_of_birth,
       municipality,
       contact_number,
-      status_owner,
       isVerified: false,
       otp: null, // initialize OTP as null
       otpExpires: null, // initialize OTP expiration
-      role,
-      ...(role === 'admin' && { status_owner })
+      role
     });
 
     // save the user to the database

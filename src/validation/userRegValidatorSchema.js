@@ -101,19 +101,7 @@ const registrationSchema = Joi.object({
   role: Joi.string().valid('admin', 'player', 'coach').required().lowercase().messages({
     'string.empty': 'Role is required.',
     'any.only': 'Role must be either Admin, Player, or Coach.'
-  }),
-  status_owner: Joi.string()
-    .valid('single', 'married', 'widowed/er', 'separated', 'cohabitant')
-    .lowercase()
-    .when('role', {
-      is: 'admin', // Lowercase 'admin' for comparison
-      then: Joi.required(),
-      otherwise: Joi.forbidden() // disallow for non-Admin roles
-    })
-    .messages({
-      'string.empty': 'Status is required for Admins.',
-      'any.only': 'Status must be one of the valid options: Single, Married, Widowed/er, Separated, or Cohabitant.'
-    })
+  })
 });
 
 module.exports = {

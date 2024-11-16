@@ -114,19 +114,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '/assets/images/blank-profile.png'
     },
-    status_owner: {
-      type: String,
-      enum: ['single', 'married', 'widowed/er', 'separated', 'cohabitant'],
-      validate: {
-        validator: function (value) {
-          if (this.role !== 'admin' && value) {
-            return false; // Only allow status_owner for Admin role
-          }
-          return true;
-        },
-        message: 'Status is only allowed for Admins.'
-      }
-    },
     court: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Court',
