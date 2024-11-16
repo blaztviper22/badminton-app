@@ -67,6 +67,7 @@ const courtRegistrationSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    isApproved: { type: Boolean, default: false },
     documents: {
       business_permit: {
         type: [String],
