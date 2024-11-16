@@ -93,3 +93,35 @@ exports.getAllUsers = async (req, res) => {
     });
   }
 };
+
+exports.getCourtOwners = async (req, res) => {
+  const { status } = req.query; // status can be "approved", "rejected", "pending", or undefined (for all)
+
+  try {
+    // validate the status if provided
+    if (status && !['approved', 'rejected', 'pending'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        code: 400,
+        message: 'Invalid status. Please use "approved", "rejected", "pending", or leave it empty to fetch all.'
+      });
+    }
+
+    // query the database based on status, or fetch all if status is not provided
+    const query = status ? { status } : {};
+    const courts = await Court.find(query).populate('user');
+
+    return res.status(200).json({
+      success: true,
+      code: 200,
+      data: courts
+    });
+  } catch (err) {
+    console.error('Error fetching court owners:', err);
+    return res.status(500).json({
+      success: false,
+      code: 500,
+      message: 'Internal Server Error'
+    });
+  }
+};
