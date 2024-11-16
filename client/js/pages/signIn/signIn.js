@@ -136,32 +136,26 @@ const sendLoginRequest = async (username, password, role) => {
       if (result.message && result.message === 'User not found.') {
         loginError.innerText = 'User not found';
         loginError.classList.add('show');
-
-        setTimeout(() => {
-          loginError.classList.remove('show');
-        }, 2000);
       } else if (result.message && result.message === 'Invalid username or password') {
         loginError.innerText = 'Invalid username or password';
         loginError.classList.add('show');
-
-        setTimeout(() => {
-          loginError.classList.remove('show');
-        }, 2000);
       } else if (result.message && result.message === 'User role does not match the specified role') {
         loginError.innerText = 'User role does not match the specified role';
         loginError.classList.add('show');
-
-        setTimeout(() => {
-          loginError.classList.remove('show');
-        }, 2000);
-      } else {
-        loginError.innerText = 'An error occured while logging in.';
+      } else if (response.status === 403 && result.message === 'Court registration is still pending approval.') {
+        loginError.innerText = 'Your court registration is still pending approval.';
         loginError.classList.add('show');
-
-        setTimeout(() => {
-          loginError.classList.remove('show');
-        }, 2000);
+      } else if (response.status === 409 && result.message === 'Your court registration has been rejected.') {
+        loginError.innerText = 'Your court registration has been rejected.';
+        loginError.classList.add('show');
+      } else {
+        loginError.innerText = 'An error occurred while logging in.';
+        loginError.classList.add('show');
       }
+
+      setTimeout(() => {
+        loginError.classList.remove('show');
+      }, 2000);
 
       loginBtn.disabled = false;
     }

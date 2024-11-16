@@ -156,20 +156,20 @@ exports.loginUser = async (req, res, next) => {
 
       // if court registration is neither approved nor rejected
       if (court.status === 'pending') {
-        return res.status(200).json({
+        return res.status(403).json({
           success: true,
           action: 'pending',
-          code: 200,
+          code: 403,
           message: 'Court registration is still pending approval.'
         });
       }
 
       // if the court is rejected
       if (court.status === 'rejected') {
-        return res.status(200).json({
+        return res.status(409).json({
           success: false,
           action: 'rejected',
-          code: 200,
+          code: 409,
           message: 'Your court registration has been rejected.'
         });
       }
