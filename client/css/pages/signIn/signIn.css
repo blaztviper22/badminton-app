@@ -10,7 +10,7 @@ body {
 .login-form-container {
   position: absolute;
   left: 100px;
-  top: 54%;
+  top: 56%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;

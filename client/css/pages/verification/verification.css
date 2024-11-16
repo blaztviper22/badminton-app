@@ -1,18 +1,17 @@
-@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
-
 body {
   margin: 0;
   padding: 0;
-  background-image: url('/assets/images/vbg.png'); 
-  background-size: cover; 
-  background-position: center; 
-  background-repeat: no-repeat; 
+  background-image: url('/assets/images/vbg.jpg'); /* Ensure the correct relative path */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   font-family: 'Poppins', sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
 }
+
 
 .container {
   background-color: #ffffff;

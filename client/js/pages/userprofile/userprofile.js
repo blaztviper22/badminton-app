@@ -15,7 +15,7 @@ const get = (selector) => doc.querySelector(selector);
 
 // Start session checks on page load
 startSessionChecks();
-
+   
 // Initialize input fields and store them in a variable
 const userProfileFields = {
   username: getById('username'),
