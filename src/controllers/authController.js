@@ -149,6 +149,30 @@ exports.loginUser = async (req, res, next) => {
           redirectUrl: `/register/courts?token=${adminToken}`
         });
       }
+
+      // if the user has registered a court, check court status
+      const userWithCourt = await User.findOne({ _id: user._id }).populate('court');
+      const court = userWithCourt.court;
+
+      // if court registration is neither approved nor rejected
+      if (court.status === 'pending') {
+        return res.status(200).json({
+          success: true,
+          action: 'pending',
+          code: 200,
+          message: 'Court registration is still pending approval.'
+        });
+      }
+
+      // if the court is rejected
+      if (court.status === 'rejected') {
+        return res.status(200).json({
+          success: false,
+          action: 'rejected',
+          code: 200,
+          message: 'Your court registration has been rejected.'
+        });
+      }
     }
 
     // If the user is not an admin
