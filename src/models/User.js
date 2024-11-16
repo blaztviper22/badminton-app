@@ -127,6 +127,12 @@ const userSchema = new mongoose.Schema(
         return this.role === 'admin' ? false : undefined; // Allow empty for admin
       }
     },
+    isCourtApproved: {
+      type: Boolean,
+      default: function () {
+        return this.role === 'admin' ? false : undefined; // Allow empty for admin
+      }
+    },
     courtRegistrationNonce: {
       type: String,
       default: function () {
