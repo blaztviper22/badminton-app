@@ -1,32 +1,35 @@
 const mongoose = require('mongoose');
-const Announcement = require('./Announcement');
 
 const membershipSchema = new mongoose.Schema(
   {
-    reservationFee: {
-      type: Number,
-      required: false,
-      default: null
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User', 
+    },
+    court: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Court', 
+      required: true, 
+    },
+    image: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
     },
     membershipFee: {
       type: Number,
-      required: false,
-      default: null
+      required: true,
     },
-    participants: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-      }
-    ]
   },
   {
     timestamps: true,
-    strict: 'throw'
+    strict: 'throw',
   }
 );
 
-// membership model using the announcement model as a base
-const Membership = Announcement.discriminator('Membership', membershipSchema);
+const Membership = mongoose.model('Membership', membershipSchema);
 
 module.exports = Membership;
