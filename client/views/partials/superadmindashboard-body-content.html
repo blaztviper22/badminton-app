@@ -1,103 +1,116 @@
 <body>
-    <div class="transaction-history-btn">
-        <i class="fas fa-history"></i>
-    </div>
+    <header class="navbar">
+        <div class="nav-items">
+            <a href="#" class="nav-link active" data-tab="approval-page">Approval Page</a>
+            <a href="#" class="nav-link" data-tab="court-list">Court List</a>
+            <a href="#" class="nav-link" data-tab="user-list">User List</a>
+        </div>
+        <button id="logout-btn" class="logout-btn">Logout</button>
+    </header>
 
-    <h1>Admin - Court Owner Approvals</h1>
-
-    <div class="container">
-        <table id="courtOwnersTable">
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Owner Name</th>
-                    <th>Contact Info</th>
-                    <th>Registration Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>John Doe</td>
-                    <td>johndoe@email.com</td>
-                    <td>2024-11-06</td>
-                    <td>Pending</td>
-                    <td>
-                        <button class="btn btn-view">View Details</button>
-                        <button class="btn btn-approve">Approve</button>
-                        <button class="btn btn-reject">Reject</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>Jane Smith</td>
-                    <td>janesmith@email.com</td>
-                    <td>2024-11-05</td>
-                    <td>Pending</td>
-                    <td>
-                        <button class="btn btn-view">View Details</button>
-                        <button class="btn btn-approve">Approve</button>
-                        <button class="btn btn-reject">Reject</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Transaction History Modal -->
-    <div id="transactionHistoryModal" class="modal">
-        <div class="modal-content">
-            <h2>Transaction History</h2>
-            <table id="transactionHistoryTable">
+    <div class="content-container">
+        <section id="approval-page" class="tab-content active">
+            <table id="courtOwnersTable">
                 <thead>
                     <tr>
                         <th>No.</th>
                         <th>Owner Name</th>
-                        <th>Action</th>
-                        <th>Date</th>
-                        <th>Details</th>
+                        <th>Address</th>
+                        <th>Email</th>
+                        <th>Number</th>
+                        <th>Registration Date</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Transaction history rows will be added here dynamically -->
+                    <tr>
+                        <td>1</td>
+                        <td>John Doe</td>
+                        <td>123 Main St, Cityville</td>
+                        <td>johndoe@email.com</td>
+                        <td>+1234567890</td>
+                        <td>2024-11-06</td>
+                        <td>
+                            <button class="btn btn-view" data-name="John Doe">View Details</button>
+                            <button class="btn btn-approve" data-name="John Doe">Approve</button>
+                            <button class="btn btn-reject" data-name="John Doe">Reject</button>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
-            <button>Close</button>
-        </div>
+        </section>
+
+        <section id="court-list" class="tab-content">
+            <p>Here you can manage courts.</p>
+        </section>
+
+        <section id="user-list" class="tab-content">
+            <p>Here you can manage users.</p>
+        </section>
     </div>
 
-    <!-- Court Owner Details Modal -->
-    <div id="detailsModal" class="modal">
+    <!-- View Details Modal -->
+    <div id="viewDetailsModal" class="modal">
         <div class="modal-content">
-            <h2>Court Owner Details</h2>
-            <form>
-                <div class="form-group">
-                    <label for="owner-name">Owner Name:</label>
-                    <input type="text" id="owner-name" disabled>
+            <span class="close">&times;</span>
+            <h2>Details</h2>
+
+            <!-- Logo -->
+            <div class="modal-logo-container">
+                <img id="logoImage" alt="Logo">
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <div class="column">
+                    <label>Business Name:</label>
+                    <input type="text" id="businessName" readonly>
+
+                    <label>Operating Hours:</label>
+                    <input type="text" id="operatingHours" readonly>
+
+                    <label>Rate:</label>
+                    <input type="text" id="rate" readonly>
                 </div>
-                <div class="form-group">
-                    <label for="contact-info">Contact Info:</label>
-                    <input type="email" id="contact-info" disabled>
+
+                <div class="column">
+                    <label>Location:</label>
+                    <input type="text" id="location" readonly>
+
+                    <label>Available Courts:</label>
+                    <input type="text" id="availableCourts" readonly>
+
+                    <label>Available Facilities:</label>
+                    <input type="text" id="availableFacilities" readonly>
                 </div>
-                <div class="form-group">
-                    <label for="court-name">Court Name:</label>
-                    <input type="text" id="court-name" disabled>
+            </div>
+
+            <!-- Uploaded Files -->
+            <div class="file-uploads">
+                <label>Uploaded Files:</label>
+                <div class="file-areas">
+                    <div class="file-area" id="file1"></div>
+                    <div class="file-area" id="file2"></div>
+                    <div class="file-area" id="file3"></div>
+                    <div class="file-area" id="file4"></div>
+                    <div class="file-area" id="file5"></div>
+                    <div class="file-area" id="file6"></div>
+                    <div class="file-area" id="file7"></div>
                 </div>
-                <div class="form-group">
-                    <label for="court-address">Court Address:</label>
-                    <textarea id="court-address" rows="4" disabled></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="uploaded-files">Uploaded Files:</label>
-                    <div class="file-box">
-                        <ul id="uploaded-files" class="file-list"></ul>
-                    </div>
-                </div>
-            </form>
-            <button>Close</button>
+            </div>
         </div>
     </div>
 
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-message"></p>
+            <div class="modal-buttons">
+                <button id="confirm-btn" class="btn btn-confirm">Confirm</button>
+                <button id="close-btn" class="btn btn-close">Close</button>
+            </div>
+        </div>
+    </div>
 </body>
+
