@@ -9,6 +9,7 @@ exports.getSuperadminDashboard = (req, res, next) => {
   serveFile(filePath, res, next);
 };
 
+
 // handle court approval or rejection and update the associated user's isCourtApproved field
 exports.handleCourtApproval = async (req, res, next) => {
   const courtId = req.params.courtId;
@@ -16,7 +17,7 @@ exports.handleCourtApproval = async (req, res, next) => {
 
   try {
     // find the court by ID
-    const court = await Court.findById(courtId).populate('user');
+    const court = await Court.findById(courtId);
 
     if (!court) {
       return res.status(404).json({
@@ -31,10 +32,11 @@ exports.handleCourtApproval = async (req, res, next) => {
       court.status = 'approved';
       await court.save();
 
-      // if the court is approved, update the user's isCourtApproved field
-      if (court.user) {
-        court.user.isCourtApproved = true;
-        await court.user.save();
+      // find the associated user and update the isCourtApproved field
+      const user = await User.findById(court.user); // assuming court has a user field with the user ID
+      if (user) {
+        user.isCourtApproved = true;
+        await user.save();
       }
 
       return res.status(200).json({
@@ -46,10 +48,11 @@ exports.handleCourtApproval = async (req, res, next) => {
       court.status = 'rejected';
       await court.save();
 
-      // if the court is rejected, update the user's isCourtApproved field
-      if (court.user) {
-        court.user.isCourtApproved = false;
-        await court.user.save();
+      // find the associated user and update the isCourtApproved field
+      const user = await User.findById(court.user); // assuming court has a user field with the user ID
+      if (user) {
+        user.isCourtApproved = false;
+        await user.save();
       }
 
       return res.status(200).json({
