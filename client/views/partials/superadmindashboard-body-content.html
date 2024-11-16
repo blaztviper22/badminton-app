@@ -1,195 +1,195 @@
 <body>
-    <header class="navbar">
-        <div class="nav-items">
-            <a href="#" class="nav-link active" data-tab="approval-page">Pending Approval</a>
-            <a href="#" class="nav-link" data-tab="court-list">Court Owner List</a>
-            <a href="#" class="nav-link" data-tab="user-list">User List</a>
-        </div>
-        <button id="logout-btn" class="logout-btn">Logout</button>
-    </header>
-
-    <div class="content-container">
-        <section id="approval-page" class="tab-content active">
-            <table id="courtOwnersTable">
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Owner Name</th>
-                        <th>Address</th>
-                        <th>Email</th>
-                        <th>Number</th>
-                        <th>Registration Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>John Doe</td>
-                        <td>123 Main St, Cityville</td>
-                        <td>johndoe@email.com</td>
-                        <td>+1234567890</td>
-                        <td>2024-11-06</td>
-                        <td>
-                            <button class="btn btn-view" data-name="John Doe">View Details</button>
-                            <button class="btn btn-approve" data-name="John Doe">Approve</button>
-                            <button class="btn btn-reject" data-name="John Doe">Reject</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section id="court-list" class="tab-content">
-            <h4>Approved Court Owners</h4>
-            <table id="courtListTable">
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Owner Name</th>
-                        <th>Address</th>
-                        <th>Email</th>
-                        <th>Contact Number</th>
-                        <th>Registration Date</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>John Doe</td>
-                        <td>123 Main St, Cityville</td>
-                        <td>johndoe@email.com</td>
-                        <td>+1234567890</td>
-                        <td>2024-11-06</td>
-                        <td>
-                            <button class="btn btn-view" data-name="John Doe">View Details</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        
-            <h4>Denied Court Owners</h4>
-            <table id="courtListTable">
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Owner Name</th>
-                        <th>Address</th>
-                        <th>Email</th>
-                        <th>Contact Number</th>
-                        <th>Registration Date</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>John Doe</td>
-                        <td>123 Main St, Cityville</td>
-                        <td>johndoe@email.com</td>
-                        <td>+1234567890</td>
-                        <td>2024-11-06</td>
-                        <td>
-                            <button class="btn btn-view" data-name="John Doe">View Details</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-        
-        <section id="user-list" class="tab-content">
-            <table id="userListTable">
-                <thead>
-                    <tr>
-                        <th>No.</th>
-                        <th>Name</th>
-                        <th>Address</th>
-                        <th>Contact Number</th>
-                        <th>Email</th>
-                        <th>Gender</th>
-                        <th>User Type</th>
-                        <th>Registration Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>John Doe</td>
-                        <td>123 Main St, Cityville</td>
-                        <td>+1234567890</td>
-                        <td>johndoe@email.com</td>
-                        <td>Male</td>
-                        <td>Court Owner</td>
-                        <td>2024-11-06</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-    -</div>
-
-    <!-- View Details Modal -->
-    <div id="viewDetailsModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Details</h2>
-
-            <!-- Logo -->
-            <div class="modal-logo-container">
-                <img id="logoImage" alt="Logo">
-            </div>
-
-            <!-- Modal Body -->
-            <div class="modal-body">
-                <div class="column">
-                    <label>Business Name:</label>
-                    <input type="text" id="businessName" readonly>
-
-                    <label>Operating Hours:</label>
-                    <input type="text" id="operatingHours" readonly>
-
-                    <label>Rate:</label>
-                    <input type="text" id="rate" readonly>
-                </div>
-
-                <div class="column">
-                    <label>Location:</label>
-                    <input type="text" id="location" readonly>
-
-                    <label>Available Courts:</label>
-                    <input type="text" id="availableCourts" readonly>
-
-                    <label>Available Facilities:</label>
-                    <input type="text" id="availableFacilities" readonly>
-                </div>
-            </div>
-
-            <!-- Uploaded Files -->
-            <div class="file-uploads">
-                <label>Uploaded Files:</label>
-                <div class="file-areas">
-                    <div class="file-area" id="file1"></div>
-                    <div class="file-area" id="file2"></div>
-                    <div class="file-area" id="file3"></div>
-                    <div class="file-area" id="file4"></div>
-                    <div class="file-area" id="file5"></div>
-                    <div class="file-area" id="file6"></div>
-                    <div class="file-area" id="file7"></div>
-                </div>
-            </div>
-        </div>
+  <header class="navbar">
+    <div class="nav-items">
+      <a href="#" class="nav-link active" data-tab="approval-page">Pending Approval</a>
+      <a href="#" class="nav-link" data-tab="court-list">Court Owner List</a>
+      <a href="#" class="nav-link" data-tab="user-list">User List</a>
     </div>
+    <button id="logoutBtn" class="logout-btn">Logout</button>
+  </header>
 
-    <!-- Modal -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <h2 id="modal-title"></h2>
-            <p id="modal-message"></p>
-            <div class="modal-buttons">
-                <button id="confirm-btn" class="btn btn-confirm">Confirm</button>
-                <button id="close-btn" class="btn btn-close">Close</button>
-            </div>
+  <div class="content-container">
+    <section id="approval-page" class="tab-content active">
+      <table id="courtOwnersTable">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Owner Name</th>
+            <th>Address</th>
+            <th>Email</th>
+            <th>Number</th>
+            <th>Registration Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>John Doe</td>
+            <td>123 Main St, Cityville</td>
+            <td>johndoe@email.com</td>
+            <td>+1234567890</td>
+            <td>2024-11-06</td>
+            <td>
+              <button class="btn btn-view" data-name="John Doe">View Details</button>
+              <button class="btn btn-approve" data-name="John Doe">Approve</button>
+              <button class="btn btn-reject" data-name="John Doe">Reject</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="court-list" class="tab-content">
+      <h4>Approved Court Owners</h4>
+      <table id="courtListTable">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Owner Name</th>
+            <th>Address</th>
+            <th>Email</th>
+            <th>Contact Number</th>
+            <th>Registration Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>John Doe</td>
+            <td>123 Main St, Cityville</td>
+            <td>johndoe@email.com</td>
+            <td>+1234567890</td>
+            <td>2024-11-06</td>
+            <td>
+              <button class="btn btn-view" data-name="John Doe">View Details</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>Denied Court Owners</h4>
+      <table id="courtListTable">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Owner Name</th>
+            <th>Address</th>
+            <th>Email</th>
+            <th>Contact Number</th>
+            <th>Registration Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>John Doe</td>
+            <td>123 Main St, Cityville</td>
+            <td>johndoe@email.com</td>
+            <td>+1234567890</td>
+            <td>2024-11-06</td>
+            <td>
+              <button class="btn btn-view" data-name="John Doe">View Details</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="user-list" class="tab-content">
+      <table id="userListTable">
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Contact Number</th>
+            <th>Email</th>
+            <th>Gender</th>
+            <th>User Type</th>
+            <th>Registration Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>John Doe</td>
+            <td>123 Main St, Cityville</td>
+            <td>+1234567890</td>
+            <td>johndoe@email.com</td>
+            <td>Male</td>
+            <td>Court Owner</td>
+            <td>2024-11-06</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    -
+  </div>
+
+  <!-- View Details Modal -->
+  <div id="viewDetailsModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Details</h2>
+
+      <!-- Logo -->
+      <div class="modal-logo-container">
+        <img id="logoImage" alt="Logo" />
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div class="column">
+          <label>Business Name:</label>
+          <input type="text" id="businessName" readonly />
+
+          <label>Operating Hours:</label>
+          <input type="text" id="operatingHours" readonly />
+
+          <label>Rate:</label>
+          <input type="text" id="rate" readonly />
         </div>
+
+        <div class="column">
+          <label>Location:</label>
+          <input type="text" id="location" readonly />
+
+          <label>Available Courts:</label>
+          <input type="text" id="availableCourts" readonly />
+
+          <label>Available Facilities:</label>
+          <input type="text" id="availableFacilities" readonly />
+        </div>
+      </div>
+
+      <!-- Uploaded Files -->
+      <div class="file-uploads">
+        <label>Uploaded Files:</label>
+        <div class="file-areas">
+          <div class="file-area" id="file1"></div>
+          <div class="file-area" id="file2"></div>
+          <div class="file-area" id="file3"></div>
+          <div class="file-area" id="file4"></div>
+          <div class="file-area" id="file5"></div>
+          <div class="file-area" id="file6"></div>
+          <div class="file-area" id="file7"></div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2 id="modal-title"></h2>
+      <p id="modal-message"></p>
+      <div class="modal-buttons">
+        <button id="confirm-btn" class="btn btn-confirm">Confirm</button>
+        <button id="close-btn" class="btn btn-close">Close</button>
+      </div>
+    </div>
+  </div>
 </body>
-
