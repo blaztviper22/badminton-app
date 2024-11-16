@@ -2,6 +2,7 @@ import '../../../css/components/preloader.css';
 import '../../../css/pages/superadmindashboard/superAdminDashboard.css';
 import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
 import { setupLogoutListener } from '../../global/logout.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const tabs = document.querySelectorAll('.nav-link');
     const tabContents = document.querySelectorAll('.tab-content');

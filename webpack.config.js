@@ -42,7 +42,7 @@ const pageTitles = {
   community: 'Community',
   userviewmembership:'card',
   adminviewmembership: 'Membership',
-  superadmindashboard: 'Court Approval'
+  superadmindashboard: 'Admin'
 };
 
 // Page-specific stylesheets and scripts

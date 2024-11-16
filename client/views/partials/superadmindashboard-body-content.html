@@ -1,8 +1,8 @@
 <body>
     <header class="navbar">
         <div class="nav-items">
-            <a href="#" class="nav-link active" data-tab="approval-page">Approval Page</a>
-            <a href="#" class="nav-link" data-tab="court-list">Court List</a>
+            <a href="#" class="nav-link active" data-tab="approval-page">Pending Approval</a>
+            <a href="#" class="nav-link" data-tab="court-list">Court Owner List</a>
             <a href="#" class="nav-link" data-tab="user-list">User List</a>
         </div>
         <button id="logout-btn" class="logout-btn">Logout</button>
@@ -99,9 +99,34 @@
         </section>
         
         <section id="user-list" class="tab-content">
-            <p>Here you can manage users.</p>
+            <table id="userListTable">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Contact Number</th>
+                        <th>Email</th>
+                        <th>Gender</th>
+                        <th>User Type</th>
+                        <th>Registration Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>John Doe</td>
+                        <td>123 Main St, Cityville</td>
+                        <td>+1234567890</td>
+                        <td>johndoe@email.com</td>
+                        <td>Male</td>
+                        <td>Court Owner</td>
+                        <td>2024-11-06</td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
-    </div>
+    -</div>
 
     <!-- View Details Modal -->
     <div id="viewDetailsModal" class="modal">
