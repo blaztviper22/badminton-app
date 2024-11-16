@@ -22,7 +22,7 @@ let routes = (app) => {
 
   router.get('/courts', verifyToken, roleChecker(['superadmin']), getCourtOwners);
 
-  router.get('/court/:courtId', roleChecker(['superadmin']), getCourtById);
+  router.get('/court-details/:courtId', verifyToken, roleChecker(['superadmin']), getCourtById);
 
   app.use('/superadmin', router);
 };
