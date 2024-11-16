@@ -9,7 +9,8 @@ const {
   getSuperadminDashboard,
   handleCourtApproval,
   getAllUsers,
-  getCourtOwners
+  getCourtOwners,
+  getCourtById
 } = require('../controllers/superadminController');
 
 let routes = (app) => {
@@ -20,6 +21,8 @@ let routes = (app) => {
   router.get('/users', verifyToken, roleChecker(['superadmin']), getAllUsers);
 
   router.get('/courts', verifyToken, roleChecker(['superadmin']), getCourtOwners);
+
+  router.get('/court/:courtId', roleChecker(['superadmin']), getCourtById);
 
   app.use('/superadmin', router);
 };
