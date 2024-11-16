@@ -313,17 +313,24 @@ function setupLikeListeners() {
     });
   });
 }
-
 function setupCommentListeners() {
+  // Add a unique event listener for each comment action, ensuring no duplicates
   getAll('.comment-action').forEach((button) => {
-    button.addEventListener('click', (e) => {
-      const postId = e.target.dataset.postId;
-      const username = e.target.closest('.post').querySelector('.name').textContent;
-      const postTitle = `${username}'s post`;
-      openCommentModal(postId, postTitle);
-    });
+    if (!button.hasAttribute('data-listener')) {
+      // Check if the listener is already added
+      button.addEventListener('click', commentListener);
+      button.setAttribute('data-listener', 'true'); // Mark the listener as added
+    }
   });
 }
+
+function commentListener(e) {
+  const postId = e.target.dataset.postId;
+  const username = e.target.closest('.post').querySelector('.name').textContent;
+  const postTitle = `${username}'s post`;
+  openCommentModal(postId, postTitle);
+}
+
 async function toggleLike(postId) {
   try {
     const likeButton = getById(`like-button-${postId}`);
@@ -372,7 +379,17 @@ async function toggleLike(postId) {
 function openCommentModal(postId, postTitle) {
   const modal = getById('comment-modal');
   const postTitleElement = getById('post-modal-title');
+
+  const commentsList = getById('comment-list');
+  const commentTextarea = getById('comment-textarea');
+
+  // clear the previous comments and input field
+  commentsList.innerHTML = '';
+  commentTextarea.value = '';
+
   postTitleElement.textContent = postTitle;
+
+  fetchComments(postId);
 
   // show the modal
   modal.style.display = 'flex';
@@ -383,7 +400,9 @@ function openCommentModal(postId, postTitle) {
     modal.style.display = 'none';
   });
 
-  submitButton.addEventListener('click', async () => {
+  const submitButton = getById('submit-comment');
+  submitButton.addEventListener('click', async (e) => {
+    e.stopImmediatePropagation();
     const commentContent = getById('comment-textarea').value.trim();
 
     if (!commentContent) {
@@ -392,21 +411,70 @@ function openCommentModal(postId, postTitle) {
     }
 
     try {
-      // assuming you have a function to post the comment, e.g., postComment
+      const submitButton = getById('submit-comment');
+      submitButton.disabled = true;
       const response = await postComment(postId, commentContent);
 
-      if (response.success) {
-        getById('comment-textarea').value = '';
+      log(response);
 
+      if (response.status === 'success') {
+        commentTextarea.value = '';
+        const commentCountElement = getById(`comment-count-${postId}`);
+        if (commentCountElement) {
+          commentCountElement.textContent = `(${response.data.commentCount})`;
+        }
         modal.style.display = 'none';
-
-        // fetchComments(postId);
+        fetchComments(postId);
       } else {
         alert('Failed to post comment. Please try again later.');
       }
     } catch (error) {
       console.error('Error posting comment:', error);
       alert('Something went wrong. Please try again later.');
+    } finally {
+      submitButton.disabled = false;
     }
   });
+}
+
+async function postComment(postId, content) {
+  const response = await fetch(`/user/community/posts/${postId}/comment`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ content })
+  });
+
+  return await response.json();
+}
+
+async function fetchComments(postId) {
+  try {
+    const response = await fetch(`/user/community/posts/${postId}/comments`);
+    const data = await response.json();
+
+    if (data.status !== 'success') {
+      throw new Error('Failed to fetch comments');
+    }
+
+    const comments = data.data.comments;
+    const commentList = getById('comment-list');
+    commentList.innerHTML = '';
+
+    comments.forEach((comment) => {
+      const commentElement = doc.createElement('div');
+      commentElement.classList.add('comment');
+      commentElement.innerHTML = ` 
+        <div class="profile-pic"></div>
+        <div class="comment-content">
+          <span class="name">${comment.userId.username}</span>
+          <p>${comment.content}</p>
+        </div>
+      `;
+      commentList.appendChild(commentElement);
+    });
+  } catch (err) {
+    error('Error fetching comments:', err);
+  }
 }
