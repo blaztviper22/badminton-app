@@ -5,12 +5,14 @@ const config = require('config');
 const roleChecker = require('../middleware/roleChecker');
 const verifyToken = require('../middleware/authJwt');
 const serveFile = require('../utils/fileUtils');
-const { getSuperadminDashboard, handleCourtApproval } = require('../controllers/superadminController');
+const { getSuperadminDashboard, handleCourtApproval, getAllUsers } = require('../controllers/superadminController');
 
 let routes = (app) => {
   router.get('/dashboard', verifyToken, roleChecker(['superadmin']), getSuperadminDashboard);
 
   router.patch('/court/:action/:courtId', verifyToken, roleChecker(['superadmin']), handleCourtApproval);
+
+  router.get('/users', verifyToken, roleChecker(['superadmin']), getAllUsers);
 
   app.use('/superadmin', router);
 };

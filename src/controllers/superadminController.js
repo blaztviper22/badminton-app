@@ -9,7 +9,6 @@ exports.getSuperadminDashboard = (req, res, next) => {
   serveFile(filePath, res, next);
 };
 
-
 // handle court approval or rejection and update the associated user's isCourtApproved field
 exports.handleCourtApproval = async (req, res, next) => {
   const courtId = req.params.courtId;
@@ -69,6 +68,24 @@ exports.handleCourtApproval = async (req, res, next) => {
     }
   } catch (err) {
     error('Error handling court approval/rejection:', err);
+    return res.status(500).json({
+      success: false,
+      code: 500,
+      message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().populate('court');
+    return res.status(200).json({
+      success: true,
+      code: 200,
+      data: users
+    });
+  } catch (err) {
+    console.error('Error fetching users:', err);
     return res.status(500).json({
       success: false,
       code: 500,
