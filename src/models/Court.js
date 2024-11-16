@@ -67,7 +67,11 @@ const courtRegistrationSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
-    isApproved: { type: Boolean, default: false },
+    status: {
+      type: String,
+      enum: ['approved', 'rejected', 'pending'],
+      default: 'pending' // Default to 'pending' when the court registration is neither approved nor rejected
+    },
     documents: {
       business_permit: {
         type: [String],
