@@ -1039,10 +1039,12 @@ exports.registerCourt = async (req, res) => {
 
       if (Array.isArray(file)) {
         // Handle multiple files
-        documentUrls[key] = await Promise.all(file.map((f) => handleFileUpload(f, decoded.id, null, allowedDocs)));
+        documentUrls[key] = await Promise.all(
+          file.map((f) => handleFileUpload(f, decoded.id, 'businessDocuments', allowedDocs))
+        );
       } else {
         // Handle single file
-        documentUrls[key] = await handleFileUpload(file, decoded.id, null, allowedDocs);
+        documentUrls[key] = await handleFileUpload(file, decoded.id, 'businessDocuments', allowedDocs);
       }
     }
 
