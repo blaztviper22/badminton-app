@@ -14,12 +14,31 @@ const getById = (id) => doc.getElementById(id);
 const getAll = (selector) => doc.querySelectorAll(selector);
 const get = (selector) => doc.querySelector(selector);
 
-document.addEventListener('DOMContentLoaded', () => {
+doc.addEventListener('DOMContentLoaded', () => {
   const tabs = getAll('.nav-link');
   const tabContents = getAll('.tab-content');
-  const viewDetailsModal = getById('viewDetailsModal');
-  const closeViewModalBtn = get('#viewDetailsModal .close');
-  const courtOwnersTableBody = get('#courtOwnersTable tbody');
+
+  const courtOwnersTableBody = get('#approvalTableBody');
+  const approvedTableBody = get('#approvedTableBody');
+  const deniedTableBody = get('#deniedTableBody');
+  const userListTableBody = get('#userListTableBody');
+
+  const fetchDataForTab = (tabId) => {
+    switch (tabId) {
+      case 'approval-page':
+        fetchCourtData('/superadmin/courts?status=pending', courtOwnersTableBody);
+        break;
+      case 'court-list':
+        fetchApprovedAndDenied('/superadmin/courts?status=approved', approvedTableBody, 'approve');
+        fetchApprovedAndDenied('/superadmin/courts?status=rejected', deniedTableBody, 'deny');
+        break;
+      case 'user-list':
+        fetchUserData('/superadmin/users', userListTableBody);
+        break;
+      default:
+        break;
+    }
+  };
 
   // Handle tab switching
   tabs.forEach((tab) => {
@@ -30,11 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
       tab.classList.add('active');
       const target = getById(tab.dataset.tab);
       target.classList.add('active');
+      fetchDataForTab(tab.dataset.tab);
     });
   });
 
   // handle actions (View Details, Approve, Reject)
   doc.body.addEventListener('click', (e) => {
+    const activeTab = Array.from(tabs).find((tab) => tab.classList.contains('active')).dataset.tab;
+
     if (e.target.classList.contains('btn-view')) {
       const courtId = e.target.dataset.id;
       showViewDetailsModal(courtId);
@@ -44,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'confirm',
         'Approve Court Owner',
         'Are you sure you want to approve?',
-        () => onConfirmApprove(courtId), // Pass courtId here
+        () => onConfirmApprove(courtId, activeTab), // Pass courtId here
         onCancelApprove,
         'Approve',
         'Cancel'
@@ -55,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'confirm',
         'Reject Court Owner',
         'Are you sure you want to reject?',
-        () => onConfirmReject(courtId), // Pass courtId here
+        () => onConfirmReject(courtId, activeTab), // Pass courtId here
         onCancelReject,
         'Reject',
         'Cancel'
@@ -67,24 +89,38 @@ document.addEventListener('DOMContentLoaded', () => {
     log('Superadmin canceled reject.');
   }
 
-  async function onConfirmReject(courtId) {
+  async function onConfirmReject(courtId, activeTab) {
     log('Superadmin confirmed reject.');
+    log(`Superadmin confirmed reject in tab: ${activeTab}.`);
     await handleAction(courtId, 'reject');
-    fetchCourtData('/superadmin/courts?status=pending', courtOwnersTableBody);
+
+    // fetch data conditionally based on the active tab
+    if (activeTab === 'court-list') {
+      fetchApprovedAndDenied('/superadmin/courts?status=approved', approvedTableBody, 'approve');
+      fetchApprovedAndDenied('/superadmin/courts?status=rejected', deniedTableBody, 'deny');
+    } else {
+      fetchCourtData('/superadmin/courts?status=pending', courtOwnersTableBody);
+    }
   }
 
   function onCancelApprove() {
     log('Superadmin canceled approve.');
   }
 
-  async function onConfirmApprove(courtId) {
+  async function onConfirmApprove(courtId, activeTab) {
     log('Superadmin confirmed approve.');
-    // Call handleAction to approve the court
+    log(`Superadmin confirmed approve in tab: ${activeTab}.`);
     await handleAction(courtId, 'approve');
-    fetchCourtData('/superadmin/courts?status=pending', courtOwnersTableBody);
+
+    // fetch data conditionally based on the active tab
+    if (activeTab === 'court-list') {
+      fetchApprovedAndDenied('/superadmin/courts?status=approved', approvedTableBody, 'approve');
+      fetchApprovedAndDenied('/superadmin/courts?status=rejected', deniedTableBody, 'deny');
+    } else {
+      fetchCourtData('/superadmin/courts?status=pending', courtOwnersTableBody);
+    }
   }
 
-  // function to show the View Details modal and set data
   const showViewDetailsModal = async (courtId) => {
     // Fetch court details by courtId
     const response = await fetch(`/superadmin/court-details/${courtId}`);
@@ -93,67 +129,68 @@ document.addEventListener('DOMContentLoaded', () => {
     if (result.success) {
       const court = result.data;
 
-      // Set the content dynamically using innerHTML
+      // Generate the modal content
       const modalContent = `
-      <span class="close">&times;</span>
-      <h2>Details</h2>
+    <span class="close">&times;</span>
+    <h2>Details</h2>
 
-      <!-- Logo -->
-      <div class="modal-logo-container">
-        <img id="logoImage" src="${court.business_logo}" alt="Logo" />
-      </div>
+    <!-- Logo -->
+    <div class="modal-logo-container">
+      <img id="logoImage" src="${court.business_logo}" alt="Logo" />
+    </div>
 
-      <!-- Modal Body -->
-      <div class="modal-body">
-        <div class="column">
-          <label>Business Name:</label>
-          <input type="text" id="businessName" value="${court.business_name}" readonly />
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <div class="column">
+        <label>Business Name:</label>
+        <input type="text" id="businessName" value="${court.business_name}" readonly />
 
-          <label>Operating Hours:</label>
-          <input type="text" id="operatingHours" value="From: ${court.operating_hours.from} To: ${
+        <label>Operating Hours:</label>
+        <input type="text" id="operatingHours" value="From: ${court.operating_hours.from} To: ${
         court.operating_hours.to
       }" readonly />
 
-          <label>Rate:</label>
-          <input type="text" id="rate" value="₱${court.hourly_rate}" readonly />
-        </div>
-
-        <div class="column">
-          <label>Location:</label>
-          <input type="text" id="location" value="${court.address}" readonly />
-
-          <label>Total Courts:</label>
-          <input type="text" id="availableCourts" value="${court.totalCourts}" readonly />
-        </div>
+        <label>Rate:</label>
+        <input type="text" id="rate" value="₱${court.hourly_rate}" readonly />
       </div>
 
-<!-- Uploaded Files -->
-<div class="file-uploads">
-  <label>Uploaded Files:</label>
-  <div class="file-areas">
-    <!-- Dynamically loop through files -->
-    ${Object.values(court.documents)
-      .map((fileArray, index) =>
-        fileArray
-          .map(
-            (file, fileIndex) => `
-        <div class="file-area" id="file${index * 7 + fileIndex + 1}">
-          <a href="${file}" download>Download File ${index * 7 + fileIndex + 1}</a>
-        </div>
-      `
-          )
-          .join('')
-      )
-      .join('')}
+      <div class="column">
+        <label>Location:</label>
+        <input type="text" id="location" value="${court.address}" readonly />
 
+        <label>Total Courts:</label>
+        <input type="text" id="availableCourts" value="${court.totalCourts}" readonly />
+      </div>
+    </div>
+
+      <!-- Uploaded Files -->
+      <div class="file-uploads">
+        <label>Uploaded Files:</label>
+        <div class="file-areas">
+          <!-- Dynamically loop through documents -->
+          ${Object.keys(court.documents)
+            .map(
+              (docKey) =>
+                `<div class="file-area" id="${docKey}">
+                  <a href="${court.documents[docKey][0]}" target="_blank" download>${docKey
+                  .replace(/_/g, ' ')
+                  .toUpperCase()}</a>
+                </div>`
+            )
+            .join('')}
+        </div>
+      </div>
     `;
 
+      // Insert modal content into the modal container
       const modalContentContainer = get('.modal-content');
       modalContentContainer.innerHTML = modalContent;
 
+      // Show the modal
       const viewDetailsModal = getById('viewDetailsModal');
       viewDetailsModal.style.display = 'block';
 
+      // Close the modal when the close button is clicked
       const closeModalBtn = modalContentContainer.querySelector('.close');
       closeModalBtn.addEventListener('click', () => {
         viewDetailsModal.style.display = 'none';
@@ -162,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error fetching court details:', result.message);
     }
   };
+  fetchDataForTab('approval-page');
 });
 
 const handleAction = async (courtId, action) => {
@@ -178,6 +216,71 @@ const handleAction = async (courtId, action) => {
     error('Error processing action:', err);
   }
 };
+
+function fetchApprovedAndDenied(apiUrl, tableBody, type) {
+  fetch(apiUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        // Clear the existing table content before adding new rows
+        tableBody.innerHTML = '';
+
+        // check if data is empty
+        if (data.data.length === 0) {
+          // Add a row indicating no data available
+          const noDataRow = document.createElement('tr');
+          const noDataMessage =
+            type === 'approve' ? 'No approvals found' : type === 'deny' ? 'No denials found' : 'No data available';
+          noDataRow.innerHTML = `
+            <td colspan="7" style="text-align: center;">${noDataMessage}</td>
+          `;
+          tableBody.appendChild(noDataRow);
+          return;
+        }
+
+        // Populate the table with court data
+        data.data.forEach(async (court, index) => {
+          const row = document.createElement('tr');
+
+          // Log the court object for debugging
+          console.log(court);
+
+          // Access the necessary data from the court object
+          const courtOwnerName = `${court.user.first_name} ${court.user.middle_name} ${court.user.last_name}`;
+          const address = court.address;
+          const courtEmail = court.user.email;
+          const courtContact = court.user.contact_number;
+          const registrationDate = new Date(court.user.createdAt).toLocaleDateString();
+
+          // determine action buttons based on the type
+          const actionButton =
+            type === 'approve'
+              ? `<button class="btn btn-reject" data-id="${court._id}">Reject</button>`
+              : `<button class="btn btn-approve" data-id="${court._id}">Approve</button>`;
+
+          // Create the row HTML
+          row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${courtOwnerName}</td>
+            <td>${address}</td>
+            <td>${courtEmail}</td>
+            <td>${courtContact}</td>
+            <td>${registrationDate}</td>
+            <td>
+              <button class="btn btn-view" data-id="${court._id}">View Details</button>
+              ${actionButton}
+            </td>
+          `;
+
+          // append the row to the table body
+          tableBody.appendChild(row);
+        });
+      } else {
+        console.error('Failed to load court data');
+      }
+    })
+    .catch((error) => console.error('Error fetching court data:', error));
+}
 
 function fetchCourtData(apiUrl, tableBody) {
   fetch(apiUrl)
@@ -239,5 +342,37 @@ function fetchCourtData(apiUrl, tableBody) {
     .catch((error) => console.error('Error fetching court data:', error));
 }
 
-const courtOwnersTableBody = get('#courtOwnersTable tbody');
-fetchCourtData('/superadmin/courts?status=pending', courtOwnersTableBody);
+function fetchUserData(apiUrl, tableBody) {
+  fetch(apiUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        tableBody.innerHTML = '';
+
+        if (data.data.length === 0) {
+          const noDataRow = document.createElement('tr');
+          noDataRow.innerHTML = `<td colspan="8" style="text-align: center;">No data available</td>`;
+          tableBody.appendChild(noDataRow);
+          return;
+        }
+
+        data.data.forEach((user, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${user.first_name} ${user.middle_name} ${user.last_name}</td>
+              <td>${user.municipality}</td>
+              <td>${user.contact_number}</td>
+              <td>${user.email}</td>
+              <td>${user.gender}</td>
+              <td>${user.role}</td>
+              <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+            `;
+          tableBody.appendChild(row);
+        });
+      } else {
+        console.error('Failed to load user data');
+      }
+    })
+    .catch((error) => console.error('Error fetching user data:', error));
+}
