@@ -3,6 +3,7 @@ const serveFile = require('../utils/fileUtils');
 const User = require('../models/User');
 const Court = require('../models/Court');
 const { log, error } = console;
+const { getAddressFromCoordinates } = require('../utils/addressUtils');
 
 exports.getSuperadminDashboard = (req, res, next) => {
   const filePath = path.resolve(__dirname, '../../build/superadmindashboard.html');
@@ -111,10 +112,27 @@ exports.getCourtOwners = async (req, res) => {
     const query = status ? { status } : {};
     const courts = await Court.find(query).populate('user');
 
+    const courtsWithAddresses = await Promise.all(
+      courts.map(async (court) => {
+        // if coordinates are available, fetch the address
+        if (court.location && court.location.coordinates) {
+          try {
+            const address = await getAddressFromCoordinates(court.location.coordinates);
+            console.log(address);
+            return { ...court.toObject(), address }; // destructure and add the address
+          } catch (error) {
+            return { ...court.toObject(), address: 'Address not found' }; // return with fallback address
+          }
+        }
+        // if no coordinates, return the court object without an address
+        return { ...court.toObject(), address: 'No coordinates provided' };
+      })
+    );
+
     return res.status(200).json({
       success: true,
       code: 200,
-      data: courts
+      data: courtsWithAddresses
     });
   } catch (err) {
     console.error('Error fetching court owners:', err);
@@ -142,10 +160,24 @@ exports.getCourtById = async (req, res) => {
       });
     }
 
+    const { location, ...courtData } = court.toObject();
+
+    let address = 'No coordinates provided';
+
+    // if coordinates are available, fetch the address
+    if (location && location.coordinates) {
+      try {
+        address = await getAddressFromCoordinates(location.coordinates);
+        log(address);
+      } catch (error) {
+        address = 'Address not found'; // fallback if address can't be fetched
+      }
+    }
+
     return res.status(200).json({
       success: true,
       code: 200,
-      data: court
+      data: { ...courtData, address }
     });
   } catch (err) {
     console.error('Error fetching court details:', err);
