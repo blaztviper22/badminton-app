@@ -148,6 +148,9 @@ const sendLoginRequest = async (username, password, role) => {
       } else if (response.status === 409 && result.message === 'Your court registration has been rejected.') {
         loginError.innerText = 'Your court registration has been rejected.';
         loginError.classList.add('show');
+      } else if (result.message && result.message === 'Invalid email or password for admin') {
+        loginError.innerText = 'Invalid email or password for admin';
+        loginError.classList.add('show');
       } else {
         loginError.innerText = 'An error occurred while logging in.';
         loginError.classList.add('show');
