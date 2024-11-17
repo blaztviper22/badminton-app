@@ -31,7 +31,7 @@
 
     <section id="court-list" class="tab-content">
       <h4>Approved Court Owners</h4>
-      <table id="courtListTable">
+      <table id="approvedTable">
         <thead>
           <tr>
             <th>No.</th>
@@ -43,23 +43,13 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>John Doe</td>
-            <td>123 Main St, Cityville</td>
-            <td>johndoe@email.com</td>
-            <td>+1234567890</td>
-            <td>2024-11-06</td>
-            <td>
-              <button class="btn btn-view" data-name="John Doe">View Details</button>
-            </td>
-          </tr>
+        <tbody id="approvedTableBody">
+          <!-- content will be injected here dynamically -->
         </tbody>
       </table>
 
       <h4>Denied Court Owners</h4>
-      <table id="courtListTable">
+      <table id="deniedTable">
         <thead>
           <tr>
             <th>No.</th>
@@ -71,48 +61,15 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>John Doe</td>
-            <td>123 Main St, Cityville</td>
-            <td>johndoe@email.com</td>
-            <td>+1234567890</td>
-            <td>2024-11-06</td>
-            <td>
-              <button class="btn btn-view" data-name="John Doe">View Details</button>
-            </td>
-          </tr>
+        <tbody id="deniedTableBody">
+          <!-- content will be injected here dynamically -->
         </tbody>
       </table>
     </section>
 
     <section id="user-list" class="tab-content">
       <table id="userListTable">
-        <thead>
-          <tr>
-            <th>No.</th>
-            <th>Name</th>
-            <th>Address</th>
-            <th>Contact Number</th>
-            <th>Email</th>
-            <th>Gender</th>
-            <th>User Type</th>
-            <th>Registration Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>John Doe</td>
-            <td>123 Main St, Cityville</td>
-            <td>+1234567890</td>
-            <td>johndoe@email.com</td>
-            <td>Male</td>
-            <td>Court Owner</td>
-            <td>2024-11-06</td>
-          </tr>
-        </tbody>
+        <!-- content will be injected here dynamically -->
       </table>
     </section>
   </div>
