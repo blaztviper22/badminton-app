@@ -353,3 +353,43 @@ function convertTo24Hour(time) {
   }
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
+
+document.getElementById('print-button').addEventListener('click', printTable);
+
+function printTable() {
+  const table = document.querySelector('table'); // Select the table element
+  if (table) {
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    printWindow.document.open();
+    printWindow.document.write(`
+      <html>
+      <head>
+        <title>Print Schedule</title>
+        <style>
+          /* Include any necessary styles here */
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+          }
+          th {
+            background-color: #f2f2f2;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Schedule</h1>
+        ${table.outerHTML} <!-- Include the table content -->
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  } else {
+    console.error('Table not found for printing.');
+  }
+}

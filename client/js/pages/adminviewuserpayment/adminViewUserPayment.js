@@ -184,6 +184,7 @@ function addEditStatusListeners() {
           <select>
             <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
             <option value="Paid" ${currentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
+            <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
             <option value="Cancelled" ${currentStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
           </select>
         `;
@@ -293,3 +294,66 @@ function debounce(func, delay) {
     }, delay);
   };
 }
+
+get('.filter-button').addEventListener('click', () => {
+  // Create a new window for printing
+  const printWindow = window.open('', '_blank');
+
+  // Clone the table to include hidden columns
+  const tableClone = document.querySelector('#paymentTable').cloneNode(true);
+
+  // Remove the action column
+  tableClone.querySelectorAll('th:last-child, td:last-child').forEach((cell) => cell.remove());
+
+  // Make hidden columns visible in the cloned table
+  tableClone.querySelectorAll('.hide-column').forEach((column) => {
+    column.style.display = 'table-cell';
+  });
+
+  // Prepare the print content
+  const printContent = `
+    <html>
+    <head>
+      <title>Print Payment</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 20px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 8px;
+          text-align: left;
+        }
+        th {
+          background-color: #f2f2f2;
+        }
+        @page {
+          size: landscape;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Payment Details</h1>
+      ${tableClone.outerHTML}
+    </body>
+    </html>
+  `;
+
+  // Write the content to the new window
+  printWindow.document.open();
+  printWindow.document.write(printContent);
+  printWindow.document.close();
+
+  // Trigger the print function
+  printWindow.focus();
+  printWindow.print();
+
+  // Close the print window after printing
+  printWindow.onafterprint = () => printWindow.close();
+});
