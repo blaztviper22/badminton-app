@@ -374,6 +374,10 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
+  router.get('/help', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/help.html');
+    serveFile(filePath, res, next);
+  });
 
   app.use('/user', router);
 };

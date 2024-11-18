@@ -21,6 +21,10 @@ body {
   top: 0;
 }
 
+a {
+  text-decoration: none;
+}
+
 .logo-container img {
   width: 45px;
   height: auto;
