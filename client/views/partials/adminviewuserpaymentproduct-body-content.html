@@ -26,23 +26,16 @@
       <table>
         <thead>
           <tr>
-            <th>
-              Name
-              <i class="sort-icon fas fa-sort"></i>
-            </th>
+            <th>Name</th>
             <th>Account Number</th>
-            <th>
-              Date Paid
-              <i class="sort-icon fas fa-sort"></i>
-            </th>
+            <th>Date Paid</th>
             <th>Reservation Fee</th>
             <th>Reference Number</th>
-            <th class="hide-column">Product Name</th>
+            <th class="expandable hide-column">Product Name</th>
+            <th class="expandable hide-column">Quantity</th>
+            <th class="expandable hide-column">Pick-up Date</th>
             <th>Total Bill</th>
-            <th>
-              Bill Status
-              <i class="sort-icon fas fa-sort"></i>
-            </th>
+            <th>Bill Status</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -53,54 +46,20 @@
             <td>2024-10-05</td>
             <td>$150.00</td>
             <td>REF654321</td>
-            <td class="hide-column">Product A</td>
+            <td class="expandable hide-column">Product A</td>
+            <td class="expandable hide-column">2</td>
+            <td class="expandable hide-column">2024-10-10</td>
             <td>$150.00</td>
-            <td>Paid</td>
-            <td>
-              <div class="action-buttons">
-                <button class="icon-button view-schedule" title="View Schedule">
-                  <i class="fas fa-calendar-alt"></i>
-                </button>
-                <button class="icon-button edit-status" title="Edit Status">
-                  <i class="fas fa-edit"></i>
-                </button>
-              </div>
+            <td class="bill-status">
+              <span class="status-text">Paid</span>
+              <select class="status-dropdown hide">
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
             </td>
-          </tr>
-          <tr>
-            <td>Lucy Van Pelt</td>
-            <td>1234567890</td>
-            <td>2024-10-08</td>
-            <td>$200.00</td>
-            <td>REF123456</td>
-            <td class="hide-column">Product B</td>
-            <td>$200.00</td>
-            <td>Unpaid</td>
             <td>
               <div class="action-buttons">
-                <button class="icon-button view-schedule" title="View Schedule">
-                  <i class="fas fa-calendar-alt"></i>
-                </button>
-                <button class="icon-button edit-status" title="Edit Status">
-                  <i class="fas fa-edit"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>KC Cruz</td>
-            <td>1234553790</td>
-            <td>2024-11-08</td>
-            <td>$175.00</td>
-            <td>REF123435</td>
-            <td class="hide-column">Product C</td>
-            <td>$175.00</td>
-            <td>Paid</td>
-            <td>
-              <div class="action-buttons">
-                <button class="icon-button view-schedule" title="View Schedule">
-                  <i class="fas fa-calendar-alt"></i>
-                </button>
                 <button class="icon-button edit-status" title="Edit Status">
                   <i class="fas fa-edit"></i>
                 </button>

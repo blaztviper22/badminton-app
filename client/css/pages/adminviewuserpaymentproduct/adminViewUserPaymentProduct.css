@@ -241,3 +241,18 @@ th:hover .sort-icon {
   margin-left: 5px;
   transform: rotate(180deg);
 }
+
+/* Hide the dropdown by default */
+.status-dropdown {
+  display: none;
+}
+
+/* Show the dropdown when it's not hidden */
+.status-dropdown:not(.hide) {
+  display: block;
+}
+
+/* Hide the text when dropdown is visible */
+.status-text.hide {
+  display: none;
+}
