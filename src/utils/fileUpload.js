@@ -1,7 +1,7 @@
 const fileType = require('file-type-cjs'); // Assuming you are using file-type to get MIME types
 const { uploadToR2 } = require('../services/r2Service');
 const File = require('../models/File');
-const { assignFileToAdmin } = require('./userFileAccess');
+const { assignFileToAdmin, assignFileToUser } = require('./userFileAccess');
 const User = require('../models/User');
 
 const MAX_SIZE = 80 * 1024 * 1024; // 20MB file size limit
