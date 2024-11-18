@@ -1,0 +1,92 @@
+<body>
+    <section class="home-section">
+        <h1>Manage Products</h1>    
+        <div class="product-list-container">
+            <div class="left-panel">
+                <h2>Add New Product</h2>
+                <div class="product-form">
+                    <label for="product-image">Product Image</label>
+                    <input type="file" id="product-image" accept="image/*">
+
+                    <label for="product-name">Product Name</label>
+                    <input type="text" id="product-name" placeholder="Enter product name">
+
+                    <label for="product-price">Product Price</label>
+                    <input type="number" id="product-price" placeholder="Enter product price">
+
+                    <label for="product-category">Category</label>
+                    <select id="product-category">
+                        <option value="shoes">Shoes</option>
+                        <option value="racket">Racket</option>
+                        <option value="apparel">Apparel</option>
+                    </select>
+
+                    <button id="add-product-btn">Add Product</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h2>Product List</h2>
+                <div class="product-list-wrapper" id="product-list">
+                    <!-- Product cards will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="order-panel">
+            <h2>User Orders</h2>
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>User Name</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Total Price</th>
+                        <th>Reservation Fee</th> <!-- New Column -->
+                    </tr>
+                </thead>
+                <tbody id="order-list">
+                    <tr>
+                        <td>John Doe</td>
+                        <td>Product 1</td>
+                        <td>2</td>
+                        <td>₱500</td>
+                        <td>₱50</td> <!-- Example reservation fee -->
+                    </tr>
+                    <tr>
+                        <td>Jane Smith</td>
+                        <td>Product 2</td>
+                        <td>1</td>
+                        <td>₱250</td>
+                        <td>₱25</td> <!-- Example reservation fee -->
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Edit Product Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="close-edit-modal">&times;</span>
+                <h2>Edit Product</h2>
+                <label for="edit-product-image">Product Image</label>
+                <input type="file" id="edit-product-image" accept="image/*">
+
+                <label for="edit-product-name">Product Name</label>
+                <input type="text" id="edit-product-name" placeholder="Enter product name">
+
+                <label for="edit-product-price">Product Price</label>
+                <input type="number" id="edit-product-price" placeholder="Enter product price">
+
+                <label for="edit-product-category">Category</label>
+                <select id="edit-product-category">
+                    <option value="shoes">Shoes</option>
+                    <option value="racket">Racket</option>
+                    <option value="apparel">Apparel</option>
+                </select>
+
+                <button id="update-product-btn">Update Product</button>
+            </div>
+        </div>
+    </section>
+</body>

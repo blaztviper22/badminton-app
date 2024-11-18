@@ -42,7 +42,8 @@ const pageTitles = {
   community: 'Community',
   userviewmembership:'card',
   adminviewmembership: 'Membership',
-  superadmindashboard: 'Admin'
+  superadmindashboard: 'Admin',
+  adminviewproduct: 'Manage Product'
 };
 
 // Page-specific stylesheets and scripts
@@ -301,7 +302,16 @@ const pageAssets = {
     ],
     hasNavbar: false,
     hasSidebar: false
-  }
+  },
+  adminviewproduct: {
+    styles: [
+      'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+      'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
+    ],
+    scripts: [],
+    hasNavbar: false,
+    hasSidebar: true
+  },
 
 };
 
@@ -376,6 +386,7 @@ module.exports = () => {
       adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js',
       userviewmembership: './client/js/pages/userviewmembership/userViewMembership.js',
       superadmindashboard: './client/js/pages/superadmindashboard/superAdminDashboard.js',
+      adminviewproduct: './client/js/pages/adminviewproduct/adminViewProduct.js',
     },
     output: {
       filename: '[name].[contenthash].js',
