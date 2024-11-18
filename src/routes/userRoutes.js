@@ -346,7 +346,7 @@ let routes = (app, io) => {
 
   // Membership Routes for Admin
 // Get all membership cards (View)
-router.get('/admin/membership', verifyToken, roleChecker(['admin']), (req, res, next) => {
+router.get('/admin/adminviewmembership', verifyToken, roleChecker(['admin']), (req, res, next) => {
   const filePath = path.resolve(__dirname, '../../build/adminviewmembership.html');
   serveFile(filePath, res, next);
 });
