@@ -54,12 +54,14 @@ body {
 /* Styling for the cart */
 .cart {
   position: fixed;
-  top: 0;
+  top: 50px;
   right: -100%;
-  width: 300px;
-  height: 100%;
-  background-color: #142850;
-  color: white;
+  width: 450px;
+  height: 90%;
+  background-color: #fff;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
+  border: 1px solid #ddd;
+  color: black;
   padding: 20px;
   transition: right 0.3s ease;
   display: flex;
@@ -91,60 +93,8 @@ a {
     right: 0;
 }
 .cart h2 {
-    margin-top: 50px;
-    color: #f1f1f1;
-}
-.cart .items {
-    margin-top: 20px;
-    max-height: 300px;
-    overflow-y: auto;
-    flex-grow: 1;
-}
-.cart .items .item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-.cart .items .item img {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-.cart .items .item .info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-left: 10px;
-}
-.cart .items .item .quantity {
-    display: flex;
-    align-items: center;
-}
-.cart .buttons {
-    margin-top: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.cart .buttons button {
-    background-color: #2e4a6b;
-    color: white;
-    border: none;
-    padding: 15px;
-    font-size: 18px;
-    cursor: pointer;
-    border-radius: 5px;
-    width: 100%;
     margin-top: 10px;
-}
-.cart .buttons button:hover {
-    background-color: #397cf7;
-}
-.cart .total-price {
-    font-size: 18px;
-    margin-top: 20px;
-    font-weight: bold;
+    color: #000;
 }
 .close-btn {
     position: absolute;
@@ -222,19 +172,18 @@ a {
     padding: 10px;
     font-size: 16px;
     width: 60%;
+    height: 32px;
     border-radius: 5px;
-    border: 1px solid #ccc;
+    border: 1px solid #f1f4fb;
+    background-color: #f1f4fb;
+
 }
 .search-bar select {
     padding: 10px;
     font-size: 16px;
     margin-left: 10px;
     border-radius: 5px;
-    border: 1px solid #ccc;
-}
-header div {
-display: flex;
-gap: 20px;
+    border: 1px solid #000;
 }
 
 .cart-icon, .order-list-icon {
@@ -329,4 +278,123 @@ font-size: 16px;
 margin-left: 10px;
 border-radius: 5px;
 border: 1px solid #ccc;
+}
+
+.cart-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+}
+
+.cart-items {
+    width: 75%;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.summary-section {
+    width: 25%;
+    background-color: #f1f4fb;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.cart-header {
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.cart-item-row {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    gap: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.cart-item-radio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-item img {
+    width: 80px;
+    height: 80px;
+    margin-left: 5px;
+}
+
+.cart-item-details {
+    flex: 2;
+    margin-left: 20px;
+}
+
+.cart-item-name {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.cart-item-price {
+    text-align: right;
+    font-size: 14px;
+}
+
+.cart-item-price div:first-child {
+    font-weight: bold;
+}
+
+.cart-item-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.variant {
+    font-size: 14px;
+}
+
+.court {
+    font-size: 14px;
+    margin-top: 2px;
+}
+
+.cart-item-quantity input {
+    width: 50px;
+    padding: 5px;
+    text-align: center;
+}
+
+.remove-button {
+    background-color: white;
+    color: #d9534f;
+    border: 1px solid #d9534f;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.remove-button:hover {
+    background-color: #f2dede;
+}
+
+.buttons button {
+    background-color: #142850;
+    color: white;
+    border: none;
+    padding: 15px;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%;
+    margin-top: 10px;
+}
+.buttons button:hover {
+    background-color: #397cf7;
 }
