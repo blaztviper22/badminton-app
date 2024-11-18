@@ -121,6 +121,7 @@ function displayPosts(response) {
       let buttonText = isEvent || isMembership ? 'Join' : 'View More';
 
       postCard.innerHTML = `
+        <i class="fas fa-ellipsis-v three-dots" id="three-dots"></i>
         <div class="popup-menu" id="popup-menu" style="display: none"></div>
         <div class="user-info">
           <img src="${
@@ -131,11 +132,13 @@ function displayPosts(response) {
             <span class="time">${formattedDate}</span>
           </div>
         </div>
+        <hr />
         <h2>${post.heading}</h2>
         <p class="body-text">${post.details}</p>
         <div class="post-images">
           ${imagesHtml}
         </div>
+        <hr />
         <div class="view-more">
           <button class="join-button" data-id="${post._id}" data-reservation-fee="${
         post.reservationFee

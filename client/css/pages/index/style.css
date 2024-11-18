@@ -246,47 +246,15 @@ footer {
   margin-bottom: 0;
 }
 
-.feedback-section,
 .developers-section {
   width: 45%;
-  text-align: left;
+  text-align: center;
 }
 
-.feedback-section h3,
 .developers-section h3 {
   font-size: 16px;
   margin-bottom: 8px;
-  color: #397cf7;
-}
-
-.feedback-form {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.feedback-form textarea {
-  width: 100%;
-  padding: 8px;
-  font-size: 14px;
-  margin-bottom: 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background-color: #fff;
-  resize: none;
-}
-
-.feedback-form button {
-  padding: 6px 12px;
-  background-color: #142850;
-  border: none;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.feedback-form button:hover {
-  background-color: #397cf7;
+  color: #397CF7;
 }
 
 .footer-links {
@@ -308,7 +276,7 @@ footer {
 }
 
 .footer-links li a:hover {
-  color: #397cf7;
+  color: #397CF7;
 }
 
 footer p {
