@@ -95,6 +95,10 @@
     <!-- Sidebar -->
     <%- require('./partials/sideNavAdmin.ejs')() %> <% } %>
 
+    <% if (htmlWebpackPlugin.options.hasFooter) { %>
+      <!-- Footer -->
+    <%- require('./partials/footer.ejs')() %> <% } %>
+  
     <!-- Body content -->
   <%- htmlWebpackPlugin.options.bodyContent.replace(/<body[^>]*>/gi, '<div id="root">').replace(/<\/body>/gi, '</div>') %>
 

@@ -272,7 +272,8 @@ const pageAssets = {
     styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
     scripts: [],
     hasNavbar: true,
-    hasSidebar: false
+    hasSidebar: false,
+    hasFooter: true
   },
   userviewmembership: {
     styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
@@ -312,7 +313,8 @@ const pageAssets = {
     styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
     scripts: [],
     hasNavbar: true,
-    hasSidebar: false
+    hasSidebar: false,
+    hasFooter: true
   },
   usercheckout: {
     styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
