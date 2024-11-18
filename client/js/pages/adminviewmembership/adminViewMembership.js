@@ -26,7 +26,26 @@ document.addEventListener('DOMContentLoaded', () => {
   
   let editingCardIndex = null;
   let revokeDetails = null;
-  const cards = [];
+  let cards = [];
+
+  // Fetch and display all membership cards
+  function fetchCards() {
+    fetch('/admin/membership', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      cards = data.cards || [];
+      renderCards();
+    })
+    .catch(err => {
+      console.error('Error fetching cards:', err);
+      alert('Failed to load cards.');
+    });
+  }
 
   // Render the cards in the container
   function renderCards() {
@@ -60,16 +79,30 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   }
 
-  // Delete a card from the cards array
+  // Delete a card from the database
   function deleteCard(index) {
-    // Confirm with the user before deleting
+    const cardId = cards[index]._id; // Assuming each card has an _id field
+
     const confirmed = confirm("Are you sure you want to delete this card?");
     if (confirmed) {
-      // Remove the card from the array
-      cards.splice(index, 1);
-
-      // Re-render the cards after deletion
-      renderCards();
+      fetch(`/admin/membership/${cardId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      .then(response => {
+        if (response.ok) {
+          cards.splice(index, 1);
+          renderCards();
+        } else {
+          alert('Error deleting the card.');
+        }
+      })
+      .catch(err => {
+        console.error('Error deleting card:', err);
+        alert('Failed to delete card.');
+      });
     }
   }
 
@@ -109,23 +142,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const cardDescription = getById('cardDescription').value;
     const cardPrice = getById('cardPrice').value;
 
-    const newCard = {
-      imageUrl: URL.createObjectURL(imageUrl),
-      cardName,
-      cardDescription,
-      cardPrice,
-      isActive: true,
-      subscribers: [
-        {
-          username: 'sampleUser',
-          dateSubscribed: new Date().toLocaleDateString(),
-        },
-      ],
-    };
+    const formData = new FormData();
+    formData.append('imageUrl', imageUrl);
+    formData.append('cardName', cardName);
+    formData.append('cardDescription', cardDescription);
+    formData.append('cardPrice', cardPrice);
 
-    cards.push(newCard);
-    renderCards();
-    getById('membershipForm').reset();
+    fetch('/admin/membership', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message === 'Membership card created successfully') {
+        fetchCards(); // Re-fetch the list of cards
+      } else {
+        alert('Failed to add card.');
+      }
+    })
+    .catch(err => {
+      console.error('Error adding card:', err);
+      alert('Failed to add card.');
+    });
   });
 
   // Update an existing card
@@ -137,60 +178,94 @@ document.addEventListener('DOMContentLoaded', () => {
     const cardPrice = getById('editCardPrice').value;
     const imageUrl = getById('editImageUrl').files[0];
 
-    cards[editingCardIndex] = {
-      imageUrl: imageUrl ? URL.createObjectURL(imageUrl) : cards[editingCardIndex].imageUrl,
+    const updatedCard = {
       cardName,
       cardDescription,
       cardPrice,
-      isActive: cards[editingCardIndex].isActive,
-      subscribers: cards[editingCardIndex].subscribers,
+      imageUrl: imageUrl ? URL.createObjectURL(imageUrl) : undefined
     };
 
-    renderCards();
-    closeModal(editModal);
-  });
+    const cardId = cards[editingCardIndex]._id;
 
-  // Event listener to close the edit modal
-  closeEditModal.addEventListener('click', () => closeModal(editModal));
+    fetch(`/admin/membership/${cardId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updatedCard),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message === 'Membership card updated successfully') {
+        fetchCards(); // Re-fetch the list of cards
+        closeModal(editModal);
+      } else {
+        alert('Failed to update card.');
+      }
+    })
+    .catch(err => {
+      console.error('Error updating card:', err);
+      alert('Failed to update card.');
+    });
+  });
 
   // View subscribers for a card
   function viewSubscribers(cardIndex) {
     const card = cards[cardIndex];
-    subscriberTableBody.innerHTML = '';
-    card.subscribers.forEach((subscriber, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${subscriber.username}</td>
-        <td>${subscriber.dateSubscribed}</td>
-        <td><button class="revoke-btn" data-card-index="${cardIndex}" data-subscriber-index="${index}">Revoke</button></td>
-      `;
-      subscriberTableBody.appendChild(row);
-    });
+    const cardId = card._id;
 
-    openModal(subscribersModal);
+    fetch(`/admin/membership/${cardId}/subscribers`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      const subscribers = data.subscribers || [];
+      subscriberTableBody.innerHTML = '';
+      subscribers.forEach((subscriber, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${subscriber.username}</td>
+          <td>${subscriber.dateSubscribed}</td>
+          <td><button class="revoke-btn" data-card-index="${cardIndex}" data-subscriber-index="${index}">Revoke</button></td>
+        `;
+        subscriberTableBody.appendChild(row);
+      });
+
+      openModal(subscribersModal);
+    })
+    .catch(err => {
+      console.error('Error fetching subscribers:', err);
+      alert('Failed to fetch subscribers.');
+    });
   }
 
   // Revoke a subscriber's subscription
   function revokeSubscription(cardIndex, subscriberIndex) {
-    const card = cards[cardIndex];
-    card.subscribers.splice(subscriberIndex, 1); // Remove the subscriber
-    renderCards();
-    updateSubscriberList(cardIndex); // Update the subscriber list in modal
-    closeModal(confirmationModal);
-  }
+    const cardId = cards[cardIndex]._id;
+    const subscriberId = cards[cardIndex].subscribers[subscriberIndex]._id;
 
-  // Update the subscriber list after revoking
-  function updateSubscriberList(cardIndex) {
-    const card = cards[cardIndex];
-    subscriberTableBody.innerHTML = '';
-    card.subscribers.forEach((subscriber, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = ` 
-        <td>${subscriber.username}</td>
-        <td>${subscriber.dateSubscribed}</td>
-        <td><button class="revoke-btn" data-card-index="${cardIndex}" data-subscriber-index="${index}">Revoke</button></td>
-      `;
-      subscriberTableBody.appendChild(row);
+    fetch(`/admin/membership/${cardId}/subscribers/${subscriberId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    .then(response => {
+      if (response.ok) {
+        cards[cardIndex].subscribers.splice(subscriberIndex, 1); // Remove the subscriber
+        renderCards();
+        closeModal(confirmationModal);
+      } else {
+        alert('Error revoking subscriber.');
+      }
+    })
+    .catch(err => {
+      console.error('Error revoking subscriber:', err);
+      alert('Failed to revoke subscriber.');
     });
   }
 
@@ -221,5 +296,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Close subscribers modal
   closeSubscribersModal.addEventListener('click', () => closeModal(subscribersModal));
 
-  renderCards();
+  // Initial fetch to load all cards
+  fetchCards();
 });
