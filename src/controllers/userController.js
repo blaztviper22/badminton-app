@@ -2586,3 +2586,120 @@ exports.createOrder = async (req, res) => {
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };
+exports.handleMembershipOperations = async (req, res) => {
+  const { id } = req.params; // Membership ID for PUT/DELETE operations
+  const userId = req.user?.id; // User ID from the session or JWT token
+  const { cardName, cardDescription, cardPrice, courtId, imageUrl } = req.body;
+
+  try {
+    // Create Membership (POST /memberships)
+    if (req.method === 'POST') {
+      // Validation for required fields
+      if (!cardDescription || !cardPrice || !courtId) {
+        return res.status(400).json({ status: 'error', message: 'Description, price, and court are required.' });
+      }
+
+      if (!req.files || !req.files.imageUrl) {
+        return res.status(400).json({ status: 'error', message: 'Membership image is required.' });
+      }
+
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']; // Allowed image formats
+      const image = await handleFileUpload(req.files.imageUrl, userId, 'membershipImages', allowedTypes);
+
+      // Create new Membership document
+      const newMembership = new Membership({
+        user: userId,
+        court: courtId,
+        image,
+        description: cardDescription,
+        membershipFee: cardPrice
+      });
+
+      // Save the new membership to the database
+      await newMembership.save();
+      return res.status(201).json({ status: 'success', data: newMembership });
+    }
+
+    // Get Memberships (GET /memberships)
+    if (req.method === 'GET') {
+      const memberships = await Membership.find({ user: userId }).populate('court');
+      return res.status(200).json(memberships);
+    }
+
+    // Update Membership (PUT /memberships/:id)
+    if (req.method === 'PUT') {
+      // Update the membership fields
+      const updatedData = {
+        description: cardDescription,
+        membershipFee: cardPrice,
+        court: courtId
+      };
+
+      if (req.files && req.files.imageUrl) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        updatedData.image = await handleFileUpload(req.files.imageUrl, userId, 'membershipImages', allowedTypes);
+      }
+
+      // Find the membership by ID and update it
+      const updatedMembership = await Membership.findByIdAndUpdate(id, updatedData, { new: true }).populate('court');
+      if (!updatedMembership) {
+        return res.status(404).json({ status: 'error', message: 'Membership not found' });
+      }
+
+      return res.status(200).json({ status: 'success', data: updatedMembership });
+    }
+
+    // Delete Membership (DELETE /memberships/:id)
+    if (req.method === 'DELETE') {
+      const membership = await Membership.findByIdAndDelete(id);
+      if (!membership) {
+        return res.status(404).json({ status: 'error', message: 'Membership not found' });
+      }
+      return res.status(200).json({ status: 'success', message: 'Membership deleted successfully' });
+    }
+  } catch (err) {
+    console.error('Error handling membership operation:', err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+// Handle subscriber operations (view, revoke) - Assuming you are managing subscriptions in a similar way
+exports.handleSubscribersOperations = async (req, res) => {
+  const { membershipId, subscriberId } = req.params;
+
+  try {
+    // Get Subscribers (GET /memberships/:membershipId/subscribers/:subscriberId)
+    if (req.method === 'GET') {
+      const membership = await Membership.findById(membershipId).populate('subscribers');
+      if (!membership) {
+        return res.status(404).json({ status: 'error', message: 'Membership not found' });
+      }
+
+      const subscriber = membership.subscribers.find((sub) => sub._id.toString() === subscriberId);
+      if (!subscriber) {
+        return res.status(404).json({ status: 'error', message: 'Subscriber not found' });
+      }
+      return res.status(200).json({ status: 'success', data: subscriber });
+    }
+
+    // Revoke Subscriber (DELETE /memberships/:membershipId/subscribers/:subscriberId)
+    if (req.method === 'DELETE') {
+      const membership = await Membership.findById(membershipId);
+      if (!membership) {
+        return res.status(404).json({ status: 'error', message: 'Membership not found' });
+      }
+
+      const subscriberIndex = membership.subscribers.indexOf(subscriberId);
+      if (subscriberIndex === -1) {
+        return res.status(404).json({ status: 'error', message: 'Subscriber not found' });
+      }
+
+      membership.subscribers.splice(subscriberIndex, 1);
+      await membership.save();
+      return res.status(200).json({ status: 'success', message: 'Subscriber revoked' });
+    }
+  } catch (err) {
+    console.error('Error handling subscriber operation:', err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};

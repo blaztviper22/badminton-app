@@ -1,4 +1,3 @@
-// Import necessary modules and CSS
 import { io } from 'socket.io-client';
 import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
@@ -18,45 +17,47 @@ const doc = document;
 
 // Function to open and close the subscription list modal
 function openModalList() {
-  doc.getElementById('listModal').style.display = 'flex';
+  const modal = doc.getElementById('listModal');
+  modal.style.display = 'flex';  // Open modal when list icon is clicked
 }
 
 function closeModalList() {
-  doc.getElementById('listModal').style.display = 'none';
+  const modal = doc.getElementById('listModal');
+  modal.style.display = 'none';  // Close modal when close button is clicked
 }
 
 // Open and close the confirmation modal with details for canceling a specific membership
 function openConfirmationModal(membershipName, rowId) {
   membershipToCancel = membershipName;
   rowToRemove = rowId;
-  doc.getElementById('confirmationModal').style.display = 'flex';
+  const confirmationModal = doc.getElementById('confirmationModal');
+  confirmationModal.style.display = 'flex';  // Open the confirmation modal
 }
 
 function closeConfirmationModal() {
-  doc.getElementById('confirmationModal').style.display = 'none';
+  const confirmationModal = doc.getElementById('confirmationModal');
+  confirmationModal.style.display = 'none';  // Close the confirmation modal
 }
 
 // Handle the cancel confirmation by removing the specified row
 doc.getElementById('confirmCancelBtn').addEventListener('click', function() {
   if (rowToRemove) {
-    doc.getElementById(rowToRemove).remove();  // Remove the row from the table
+    const row = doc.getElementById(rowToRemove);
+    if (row) {
+      row.remove();  // Remove the row from the table
+    }
   }
   closeConfirmationModal();  // Close the confirmation modal
 });
 
-// Add event listeners to the list and close buttons
-doc.getElementById('openListBtn').addEventListener('click', openModalList);
-
-// Close the list modal
-doc.getElementById('cancelListBtn').addEventListener('click', closeModalList);
-
-// Add event listeners to cancel buttons in each row of the membership table
+// Add event listeners to the cancel buttons in each row of the membership table
 const cancelButtons = doc.querySelectorAll('.cancel-btn');
 cancelButtons.forEach(button => {
   button.addEventListener('click', function(event) {
     const row = event.target.closest('tr');  // Get the parent row of the clicked cancel button
     const membershipName = row.querySelector('td:first-child').innerText;  // Get the membership name
-    openConfirmationModal(membershipName, row.id);  // Open the confirmation modal
+    const rowId = row.id;
+    openConfirmationModal(membershipName, rowId);  // Open the confirmation modal
   });
 });
 
@@ -66,7 +67,12 @@ cancelConfirmationBtn.addEventListener('click', function() {
   closeConfirmationModal();  // Close the confirmation modal
 });
 
-// Function to fetch and display the updated list of membership cards
+// Real-time listener for new membership card events from the admin
+socket.on('newMembershipCard', (newCard) => {
+  fetchMembershipCards();  // Refetch and display the updated list of membership cards
+});
+
+// Initial fetch of membership cards on page load
 async function fetchMembershipCards() {
   try {
     const response = await fetch('/user/memberships');  // Fetch existing memberships
@@ -94,10 +100,9 @@ function displayMembershipCards(memberships) {
   });
 }
 
-// Real-time listener for new membership card events from the admin
-socket.on('newMembershipCard', (newCard) => {
-  fetchMembershipCards();  // Refetch and display the updated list
-});
+// Initial call to fetch and display membership cards on page load
+fetchMembershipCards();
 
-// Initial fetch of membership cards on page load
-fetchMembershipCards();  
+// Add event listeners to the list icon and close buttons
+doc.querySelector(".list-icon").addEventListener('click', openModalList);  // Open modal on list icon click
+doc.querySelector(".close-btn").addEventListener('click', closeModalList);  // Close modal on close button click
