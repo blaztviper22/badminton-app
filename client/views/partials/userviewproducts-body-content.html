@@ -1,7 +1,20 @@
 <body>
   <div class="main-content">
-    <h1>Browse Products</h1>  
-    <div class="search-bar">
+    <div class="browse-products">
+      <h1>Browse Products</h1>
+      <div class="icon-container">
+        <span class="cart-icon" id="cart-icon">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="badge" id="cart-item-count">0</span>
+        </span>
+        <a href="orderlist.html">
+            <span class="order-list-icon" id="order-list-icon">
+                <i class="fas fa-list"></i>
+            </span>
+        </a>
+      </div>
+    </div>
+        <div class="search-bar">
         <div class="search-input-container">
             <input type="text" id="search-bar" placeholder="Search products...">
             <button id="clear-search">
