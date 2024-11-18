@@ -117,7 +117,7 @@ label {
   margin: 5px 0;
 }
 
-.container {
+.container { 
   display: flex;
   width: 100%;
   gap: 20px;
@@ -128,11 +128,11 @@ label {
   box-sizing: border-box;
 }
 .box2 {
-  flex-grow: 1;
   box-sizing: border-box;
   overflow-y: auto;
   max-height: 600px;
   position: relative;
+  width: 70%;
 }
 .box2::-webkit-scrollbar {
   display: none;

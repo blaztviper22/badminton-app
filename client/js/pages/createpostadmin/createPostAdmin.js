@@ -187,7 +187,6 @@ function showPopupMenu(event, postCard) {
 
   popupMenu.innerHTML = `
     <ul>
-      <li id="editPost">Edit</li>
       <li id="deletePost" data-post-id="${postId}">Delete</li>
     </ul>
   `;
@@ -359,15 +358,10 @@ function displayPosts(response) {
             <span class="time">${formattedDate}</span> <!-- Displaying the formatted date -->
           </div>
         </div>
-        <hr />
         <h2>${post.heading}</h2>
         <p class="body-text">${post.details}</p>
         <div class="post-images">
           ${imagesHtml} <!-- Dynamically adding images -->
-        </div>
-        <hr />
-        <div class="view-more">
-          <button>View More</button>
         </div>
       `;
 
@@ -445,3 +439,28 @@ function confirmDelete(postId) {
     deletePost(postId);
   }
 }
+
+submitButton.addEventListener('click', async () => {
+  await submitForm();
+  closeModal(); // Close the modal after posting
+});
+
+// Add a function for filtering posts
+function filterPosts(criteria) {
+  const postCards = getAll('.post-card');
+  postCards.forEach((postCard) => {
+    const postCategory = postCard.getAttribute('data-category'); // Assuming each post card has a `data-category` attribute
+    if (criteria === 'all' || postCategory === criteria) {
+      postCard.style.display = 'block';
+    } else {
+      postCard.style.display = 'none';
+    }
+  });
+}
+
+// Add event listener for filter dropdown or buttons
+const filterSelect = getById('filterSelect'); // Replace with your filter element ID
+filterSelect.addEventListener('change', () => {
+  const selectedFilter = filterSelect.value;
+  filterPosts(selectedFilter);
+});
