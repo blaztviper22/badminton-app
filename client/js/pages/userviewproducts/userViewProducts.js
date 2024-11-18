@@ -67,7 +67,7 @@ updateCart();
 // Checkout
 checkoutBtn.addEventListener('click', () => {
 if (cart.length > 0) {
-window.location.href = 'checkout.html';
+window.location.href = '/user/usercheckout';
 } else {
 alert("Your cart is empty!");
 }

@@ -91,7 +91,7 @@ a {
     right: 0;
 }
 .cart h2 {
-    margin-top: 0;
+    margin-top: 50px;
     color: #f1f1f1;
 }
 .cart .items {
@@ -128,7 +128,7 @@ a {
     gap: 10px;
 }
 .cart .buttons button {
-    background-color: #142850;
+    background-color: #2e4a6b;
     color: white;
     border: none;
     padding: 15px;
@@ -139,7 +139,7 @@ a {
     margin-top: 10px;
 }
 .cart .buttons button:hover {
-    background-color: #2e4a6b;
+    background-color: #397cf7;
 }
 .cart .total-price {
     font-size: 18px;
@@ -148,7 +148,7 @@ a {
 }
 .close-btn {
     position: absolute;
-    top: 20px;
+    top: 70px;
     right: 20px;
     font-size: 24px;
     cursor: pointer;
@@ -168,6 +168,8 @@ a {
     border-radius: 8px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+
     margin-bottom: 20px;
     width: 240px;
 }
@@ -272,6 +274,8 @@ color: white;
 padding: 20px;
 border-radius: 8px;
 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+border: 1px solid #ddd;
+
 opacity: 0;
 visibility: hidden;
 transition: opacity 0.5s ease, visibility 0.5s;
