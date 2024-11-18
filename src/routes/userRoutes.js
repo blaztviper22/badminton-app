@@ -344,15 +344,72 @@ let routes = (app, io) => {
 
   router.get('/community/posts/:hashtag', verifyToken, roleChecker(['player', 'coach']), getPostsByHashtag);
 
-  router.get('/userviewmembership', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
-    const filePath = path.resolve(__dirname, '../../build/userviewmembership.html');
-    serveFile(filePath, res, next);
-  });
+  // Membership Routes for Admin
+// Get all membership cards (View)
+router.get('/admin/membership', verifyToken, roleChecker(['admin']), (req, res, next) => {
+  const filePath = path.resolve(__dirname, '../../build/adminviewmembership.html');
+  serveFile(filePath, res, next);
+});
 
-  router.get('/admin/adminviewmembership', verifyToken, roleChecker(['admin']), (req, res, next) => {
-    const filePath = path.resolve(__dirname, '../../build/adminviewmembership.html');
-    serveFile(filePath, res, next);
-  });
+// Add new membership card (Admin functionality)
+router.post('/admin/membership', verifyToken, roleChecker(['admin']), (req, res, next) => {
+  const { cardName, cardDescription, cardPrice, imageUrl } = req.body; // Make sure the body contains these fields
+  const newCard = {
+    imageUrl: imageUrl || 'default-image-url', // Placeholder image URL or handle file upload
+    cardName,
+    cardDescription,
+    cardPrice,
+    isActive: true,
+    subscribers: [],
+  };
+  
+  // Assume you have a model or database function that saves the card
+  saveCardToDatabase(newCard)
+    .then(() => res.status(201).send({ message: 'Membership card created successfully' }))
+    .catch((err) => res.status(500).send({ message: 'Error creating membership card', error: err }));
+});
+
+// Edit existing membership card (Admin functionality)
+router.put('/admin/membership/:id', verifyToken, roleChecker(['admin']), (req, res, next) => {
+  const { id } = req.params;
+  const { cardName, cardDescription, cardPrice, imageUrl } = req.body;
+
+  // Update the card with the given ID (assuming a database or model)
+  updateCardInDatabase(id, { cardName, cardDescription, cardPrice, imageUrl })
+    .then(() => res.status(200).send({ message: 'Membership card updated successfully' }))
+    .catch((err) => res.status(500).send({ message: 'Error updating membership card', error: err }));
+});
+
+// Delete a membership card (Admin functionality)
+router.delete('/admin/membership/:id', verifyToken, roleChecker(['admin']), (req, res, next) => {
+  const { id } = req.params;
+
+  // Delete the card with the given ID (assuming a database or model)
+  deleteCardFromDatabase(id)
+    .then(() => res.status(200).send({ message: 'Membership card deleted successfully' }))
+    .catch((err) => res.status(500).send({ message: 'Error deleting membership card', error: err }));
+});
+
+// Get subscribers of a specific membership card
+router.get('/admin/membership/:membershipId/subscribers', verifyToken, roleChecker(['admin']), (req, res, next) => {
+  const { membershipId } = req.params;
+
+  // Retrieve subscribers from the database for the specific membership
+  getSubscribersForCard(membershipId)
+    .then((subscribers) => res.status(200).json({ subscribers }))
+    .catch((err) => res.status(500).send({ message: 'Error retrieving subscribers', error: err }));
+});
+
+// Revoke a subscriber from a membership card
+router.delete('/admin/membership/:membershipId/subscribers/:subscriberId', verifyToken, roleChecker(['admin']), (req, res, next) => {
+  const { membershipId, subscriberId } = req.params;
+
+  // Revoke the subscriber (remove from the subscribers list)
+  revokeSubscriberFromCard(membershipId, subscriberId)
+    .then(() => res.status(200).send({ message: 'Subscriber revoked successfully' }))
+    .catch((err) => res.status(500).send({ message: 'Error revoking subscriber', error: err }));
+});
+
 
   router.get('/admin/adminviewproduct', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/adminviewproduct.html');
