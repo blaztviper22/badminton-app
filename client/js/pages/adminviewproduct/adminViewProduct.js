@@ -4,113 +4,224 @@ import '../../../css/pages/adminviewproduct/adminviewProduct.css';
 import { startSessionChecks } from '../../../utils/sessionUtils.js';
 import '../../components/sideNavAdmin.js';
 
-const addProductButton = document.getElementById("add-product-btn");
-const productList = document.getElementById("product-list");
+// start session checks on page load
+startSessionChecks();
 
-// Modal setup
-const modal = document.getElementById("editModal");
-const closeButton = document.getElementById("close-edit-modal");
-const closeModal = document.querySelector(".close");
-const updateProductButton = document.getElementById("update-product-btn");
+const doc = document;
+const { log, error } = console;
 
-let currentProductCard = null;
+const getById = (id) => doc.getElementById(id);
+const getAll = (selector) => doc.querySelectorAll(selector);
+const get = (selector) => doc.querySelector(selector);
 
-addProductButton.addEventListener("click", function() {
-    const productName = document.getElementById("product-name").value;
-    const productPrice = document.getElementById("product-price").value;
-    const productCategory = document.getElementById("product-category").value;
-    const productImage = document.getElementById("product-image").files[0];
+// Fetch products from the server
+async function fetchProducts() {
+  try {
+    const response = await fetch('/user/get-products', {
+      method: 'GET',
+      credentials: 'include'
+    });
 
-    if (!productName || !productPrice || !productImage) {
-        alert("Please fill all the fields.");
-        return;
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
     }
 
-    const productCard = document.createElement("div");
-    const reader = new FileReader();
+    const data = await response.json();
+    const productList = data.data;
 
-    reader.onload = function(event) {
-        const productCardContent = `
-            <div class="product-card">
-                <img src="${event.target.result}" alt="${productName}">
-                <h3>${productName} - ${productCategory}</h3>
-                <div class="price">₱${productPrice}</div>
-                <div class="action-buttons">
-                    <button class="edit-btn"><i class="fas fa-edit"></i></button>
-                    <button class="delete-btn"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-        `;
-        productCard.innerHTML = productCardContent;
-        productList.appendChild(productCard);
-
-        const deleteButton = productCard.querySelector(".delete-btn");
-        deleteButton.addEventListener("click", function() {
-            productCard.remove();
-        });
-
-        const editButton = productCard.querySelector(".edit-btn");
-        editButton.addEventListener("click", function() {
-            currentProductCard = productCard; // Set the current card to edit
-            openEditModal(productName, productPrice, productCategory, event.target.result);
-        });
+    if (productList && productList.length > 0) {
+      productList.forEach((product) => {
+        renderProductCard(product);
+      });
     }
-
-    reader.readAsDataURL(productImage);
-});
-
-function openEditModal(name, price, category, imageSrc) {
-    document.getElementById("edit-product-name").value = name;
-    document.getElementById("edit-product-price").value = price;
-    document.getElementById("edit-product-category").value = category;
-    document.getElementById("edit-product-image").value = ""; // Reset image field
-
-    modal.style.display = "block"; // Show the modal
+  } catch (error) {
+    console.error('Error:', error);
+  }
 }
 
-closeModal.onclick = function() {
-    modal.style.display = "none"; // Close the modal
+// Render a product card
+function renderProductCard(product) {
+  const productList = document.getElementById('product-list');
+  const productCard = document.createElement('div');
+  const productCardContent = `
+    <div class="product-card" data-product-id="${product._id}">
+      <img src="${product.image}" alt="${product.name}">
+      <h3>${product.name} - ${product.category}</h3>
+      <div class="price">₱${product.price}</div>
+      <div class="action-buttons">
+        <button class="edit-btn"><i class="fas fa-edit"></i></button>
+        <button class="delete-btn"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `;
+
+  productCard.innerHTML = productCardContent;
+  productList.appendChild(productCard);
+
+  // Delete product handler
+  const deleteButton = productCard.querySelector('.delete-btn');
+  deleteButton.addEventListener('click', async function () {
+    await deleteProduct(product._id);
+    productCard.remove();
+  });
+
+  // Edit product handler
+  const editButton = productCard.querySelector('.edit-btn');
+  editButton.addEventListener('click', function () {
+    openEditModal(product);
+  });
+}
+
+// Fetch and display products on page load
+document.addEventListener('DOMContentLoaded', function () {
+  fetchProducts();
+});
+
+// Modal setup
+const modal = document.getElementById('editModal');
+const closeButton = document.getElementById('close-edit-modal');
+const closeModal = document.querySelector('.close');
+const updateProductButton = document.getElementById('update-product-btn');
+
+let currentProduct;
+
+// Open the edit modal with pre-filled product data
+function openEditModal(product) {
+  document.getElementById('edit-product-name').value = product.name;
+  document.getElementById('edit-product-price').value = product.price;
+  document.getElementById('edit-product-category').value = product.category;
+  document.getElementById('edit-product-image').value = ''; // Reset image field
+
+  modal.style.display = 'block'; // Show the modal
+  currentProduct = product; // Set the current product to edit
+}
+
+closeModal.onclick = function () {
+  modal.style.display = 'none'; // Close the modal
 };
 
-window.onclick = function(event) {
-    if (event.target == modal) {
-        modal.style.display = "none"; // Close the modal when clicking outside
-    }
+window.onclick = function (event) {
+  if (event.target == modal) {
+    modal.style.display = 'none'; // Close the modal when clicking outside
+  }
 };
 
-updateProductButton.addEventListener("click", function() {
-    const updatedName = document.getElementById("edit-product-name").value;
-    const updatedPrice = document.getElementById("edit-product-price").value;
-    const updatedCategory = document.getElementById("edit-product-category").value;
-    const updatedImage = document.getElementById("edit-product-image").files[0];
+// Update product
+updateProductButton.addEventListener('click', async function () {
+  const updatedName = document.getElementById('edit-product-name').value;
+  const updatedPrice = document.getElementById('edit-product-price').value;
+  const updatedCategory = document.getElementById('edit-product-category').value;
+  const updatedImage = document.getElementById('edit-product-image').files[0];
 
-    if (currentProductCard && updatedName && updatedPrice && updatedCategory) {
-        // Update the product card with new details
-        currentProductCard.querySelector("h3").innerText = `${updatedName} - ${updatedCategory}`;
-        currentProductCard.querySelector(".price").innerText = `₱${updatedPrice}`;
-
-        // Update image if changed
-        if (updatedImage) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                currentProductCard.querySelector("img").src = event.target.result;
-            };
-            reader.readAsDataURL(updatedImage);
-        }
-
-        modal.style.display = "none"; // Close the modal
-    }
-                closeModal.onclick = function() {
-        modal.style.display = "none"; // Close the modal
+  if (currentProduct && updatedName && updatedPrice && updatedCategory) {
+    const updatedProduct = {
+      name: updatedName,
+      price: updatedPrice,
+      category: updatedCategory,
+      image: updatedImage ? updatedImage : currentProduct.image // Upload image only if provided
     };
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none"; // Close the modal when clicking outside
-        }
-    };
-    closeButton.onclick = function() {
-modal.style.display = "none";
-};
 
+    // Call API to update product
+    await updateProduct(currentProduct._id, updatedProduct);
 
+    // Update UI
+    currentProduct.name = updatedName;
+    currentProduct.price = updatedPrice;
+    currentProduct.category = updatedCategory;
+    if (updatedImage) {
+      // Assuming the server returns a new image URL
+      currentProduct.image = updatedProduct.image;
+    }
+
+    // Update product card UI
+    const productCard = document.querySelector(`[data-product-id="${currentProduct._id}"]`);
+    productCard.querySelector('h3').innerText = `${updatedName} - ${updatedCategory}`;
+    productCard.querySelector('.price').innerText = `₱${updatedPrice}`;
+    if (updatedImage) {
+      productCard.querySelector('img').src = URL.createObjectURL(updatedImage); // Create URL for the uploaded image
+    }
+
+    modal.style.display = 'none'; // Close the modal
+  }
+});
+
+// Function to update product on server
+async function updateProduct(productId, updatedProduct) {
+  try {
+    const formData = new FormData();
+    formData.append('name', updatedProduct.name);
+    formData.append('price', updatedProduct.price);
+    formData.append('category', updatedProduct.category);
+    if (updatedProduct.image) {
+      formData.append('image', updatedProduct.image);
+    }
+
+    const response = await fetch(`/user/products/${productId}`, {
+      method: 'PUT',
+      body: formData,
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update product');
+    }
+
+    const result = await response.json();
+    console.log('Product updated successfully:', result);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Function to delete product from server
+async function deleteProduct(productId) {
+  try {
+    const response = await fetch(`/user/products/${productId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete product');
+    }
+
+    const result = await response.json();
+    console.log('Product deleted successfully:', result);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Handling add new product
+document.getElementById('add-product-form').addEventListener('submit', async function (event) {
+  event.preventDefault(); // Prevents the default form submission behavior
+
+  // Gather form data
+  const formData = new FormData(event.target);
+
+  try {
+    // Send a POST request to the server to add a new product
+    const response = await fetch('/user/products', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to add product');
+    }
+
+    const result = await response.json();
+    console.log('Product added successfully:', result);
+
+    // Optionally, clear the form or update the UI
+    event.target.reset();
+    alert('Product added successfully!');
+
+    // Reload products after adding a new one
+    fetchProducts();
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Failed to add product. Please try again.');
+  }
 });
