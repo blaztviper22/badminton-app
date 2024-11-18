@@ -133,23 +133,19 @@ function populateTable(reservationDates) {
     reservationDates[date].forEach((reservation) => {
       const row = document.createElement('tr');
 
-      // create table cells with dynamic data
       row.innerHTML = `
         <td>${reservation.user.firstName} ${reservation.user.lastName}</td>
+        <td>${reservation.userPayment.transactionId}</td>
         <td>${reservation.userPayment.payerEmail}</td>
         <td>${reservation.userPayment.datePaid}</td>
         <td>&#8369;${reservation.userPayment.reservationFee.toFixed(2)}</td>
-        <td>${reservation.userPayment.transactionId}</td>
         <td class="hide-column">${date}</td>
         <td class="hide-column">${reservation.timeSlot.from} - ${reservation.timeSlot.to}</td>
         <td class="hide-column">Court ${reservation.selectedCourts.map((court) => court + 1).join(', ')}</td>
         <td>&#8369;${reservation.userPayment.totalAmount.toFixed(2)}</td>
-        <td>${reservation.paymentStatus}</td>
+        <td class="status-cell">${reservation.paymentStatus}</td>
         <td>
           <div class="action-buttons">
-            <button class="icon-button view-schedule" title="View Schedule">
-              <i class="fas fa-calendar-alt"></i>
-            </button>
             <button class="icon-button edit-status" title="Edit Status">
               <i class="fas fa-edit"></i>
             </button>
@@ -158,6 +154,45 @@ function populateTable(reservationDates) {
       `;
 
       tbody.appendChild(row);
+    });
+  });
+
+  addEditStatusListeners();
+}
+
+function addEditStatusListeners() {
+  const editButtons = document.querySelectorAll('.edit-status');
+  editButtons.forEach((button) => {
+    button.addEventListener('click', function () {
+      const row = this.closest('tr');
+      const statusCell = row.querySelector('.status-cell');
+      const currentStatus = statusCell.textContent.trim();
+
+      if (this.classList.contains('editing')) {
+        // Save changes
+        const dropdown = statusCell.querySelector('select');
+        const newStatus = dropdown.value;
+        statusCell.textContent = newStatus;
+
+        // Revert icon to edit
+        this.innerHTML = '<i class="fas fa-edit"></i>';
+        this.title = 'Edit Status';
+        this.classList.remove('editing');
+      } else {
+        // Replace status text with dropdown
+        statusCell.innerHTML = `
+          <select>
+            <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+            <option value="Paid" ${currentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
+            <option value="Cancelled" ${currentStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+          </select>
+        `;
+
+        // Change icon to save
+        this.innerHTML = '<i class="fas fa-save"></i>';
+        this.title = 'Save Status';
+        this.classList.add('editing');
+      }
     });
   });
 }

@@ -27,7 +27,7 @@ function calculateTotalAmount() {
 }
 
 function onConfirmAction() {
-  window.location.href = '/user/announcements?tab=schedule-reservation';
+  window.location.href = '/user/view-schedule';
 }
 
 getCurrentUserId().then((userId) => {
