@@ -2436,7 +2436,7 @@ exports.createProduct = async (req, res) => {
     }
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    const imageUrl = await handleFileUpload(req.files.image, userId, 'productsImage', allowedTypes);
+    const imageUrl = await handleFileUpload(req.files.image, userId, 'productImage', allowedTypes);
 
     const product = new Product({
       owner: userId,

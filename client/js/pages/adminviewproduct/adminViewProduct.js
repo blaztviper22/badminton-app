@@ -29,6 +29,9 @@ async function fetchProducts() {
     const data = await response.json();
     const productList = data.data;
 
+    const productListContainer = document.getElementById('product-list');
+    productListContainer.innerHTML = '';
+
     if (productList && productList.length > 0) {
       productList.forEach((product) => {
         renderProductCard(product);
