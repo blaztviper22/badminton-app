@@ -4,108 +4,110 @@
       <h1>Browse Products</h1>
       <div class="icon-container">
         <span class="cart-icon" id="cart-icon">
-            <i class="fas fa-shopping-cart"></i>
-            <span class="badge" id="cart-item-count">0</span>
+          <i class="fas fa-shopping-cart"></i>
+          <span class="badge" id="cart-item-count">0</span>
         </span>
         <a href="/user/userorderlist">
-            <span class="order-list-icon" id="order-list-icon">
-                <i class="fas fa-list"></i>
-            </span>
+          <span class="order-list-icon" id="order-list-icon">
+            <i class="fas fa-list"></i>
+          </span>
         </a>
-      </div> 
+      </div>
     </div>
-        <div class="search-bar">
-        <div class="search-input-container">
-            <input type="text" id="search-bar" placeholder="Search products...">
-            <button id="clear-search">
-                <i class="fas fa-times"></i> <!-- FontAwesome "times" icon -->
-            </button>
-        </div>
-        <select id="category-filter">
-            <option value="">All Categories</option>
-            <option value="shoes">Shoes</option>
-            <option value="racket">Racket</option>
-            <option value="apparel">Apparel</option>
-        </select>
-        <select id="shop-filter">
-            <option value="">All Shops</option>
-            <option value="John's Shop">John's Shop</option>
-            <option value="Jane's Store">Jane's Store</option>
-            <option value="Alex's Market">Alex's Market</option>
-        </select>
+    <div class="search-bar">
+      <div class="search-input-container">
+        <input type="text" id="search-bar" placeholder="Search products..." />
+        <button id="clear-search">
+          <i class="fas fa-times"></i>
+          <!-- FontAwesome "times" icon -->
+        </button>
+      </div>
+      <select id="category-filter">
+        <option value="">All Categories</option>
+        <option value="shoes">Shoes</option>
+        <option value="racket">Racket</option>
+        <option value="apparel">Apparel</option>
+      </select>
+      <select id="shop-filter">
+        <option value="">All Shops</option>
+        <option value="John's Shop">John's Shop</option>
+        <option value="Jane's Store">Jane's Store</option>
+        <option value="Alex's Market">Alex's Market</option>
+      </select>
     </div>
-    
+
     <div class="product-list" id="product-list">
-        <!-- Product Cards -->
-        <div class="product-card" data-name="Product 1" data-category="shoes" data-shop="John's Shop">
-            <img src="Pmana.jpg" alt="Product 1">
-            <h3>Product 1</h3>
-            <div class="category">Category: Shoes</div>
-            <div class="shop-name">Shop: John's Shop</div>
-            <div class="price">₱50</div>
-            <button data-name="Product 1" data-price="50" data-image="Pmana.jpg">Add to Cart</button>
-        </div>
-        <div class="product-card" data-name="Product 2" data-category="racket" data-shop="Jane's Store">
-            <img src="Pmana.jpg" alt="Product 2">
-            <h3>Product 2</h3>
-            <div class="category">Category: Racket</div>
-            <div class="shop-name">Shop: Jane's Store</div>
-            <div class="price">₱100</div>
-            <button data-name="Product 2" data-price="100" data-image="Pmana.jpg">Add to Cart</button>
-        </div>
-        <!-- Add more products as needed -->
+      <!-- Product Cards -->
+      <div class="product-card" data-name="Product 1" data-category="shoes" data-shop="John's Shop">
+        <img src="/assets/images/Pamana.jpg" alt="Product 1" />
+        <h3>Product 1</h3>
+        <div class="category">Category: Shoes</div>
+        <div class="shop-name">Shop: John's Shop</div>
+        <div class="price">₱50</div>
+        <button data-name="Product 1" data-price="50" data-image="Pmana.jpg">Add to Cart</button>
+      </div>
+      <div class="product-card" data-name="Product 2" data-category="racket" data-shop="Jane's Store">
+        <img src="/assets/images/Pamana.jpg" alt="Product 2" />
+        <h3>Product 2</h3>
+        <div class="category">Category: Racket</div>
+        <div class="shop-name">Shop: Jane's Store</div>
+        <div class="price">₱100</div>
+        <button data-name="Product 2" data-price="100" data-image="Pmana.jpg">Add to Cart</button>
+      </div>
+      <!-- Add more products as needed -->
     </div>
 
     <div class="cart" id="cart">
-        <div class="close-btn" id="close-cart">&times;</div>
-        <h2>Your Cart</h2>
-        <div class="items" id="cart-items">
-            <table class="cart-table">
-                <tr class="cart-item-row">
-                    <td class="cart-item-radio"><input type="radio" name="checkout-item"></td>
-                    <td><img src="/assets/images/placeholder_50x50.png" alt="Winter Jacket"></td>
-                    <td class="cart-item-details">
-                        <div class="cart-item-name">Winter jacket for men and lady</div>
-                        <div class="variant">Yellow, Jeans</div>
-                    </td>
-                    <td class="cart-item-actions">
-                        <div class="cart-item-quantity">
-                            <input type="number" value="1" min="1">
-                        </div>
-                    </td>
-                    <td class="cart-item-price">
-                        <div>$1156.00</div>
-                        <div>$460.00 / per item</div>
-                    </td>
-                    <td><button class="remove-button">REMOVE</button></td>
-                </tr>
+      <div class="close-btn" id="close-cart">&times;</div>
+      <h2>Your Cart</h2>
+      <div class="items" id="cart-items">
+        <table class="cart-table">
+          <tr class="cart-item-row">
+            <td class="cart-item-radio"><input type="radio" name="checkout-item" /></td>
+            <td><img src="/assets/images/placeholder_50x50.png" alt="Winter Jacket" /></td>
+            <td class="cart-item-details">
+              <div class="cart-item-name">Winter jacket for men and lady</div>
+              <div class="variant">Yellow, Jeans</div>
+            </td>
+            <td class="cart-item-actions">
+              <div class="cart-item-quantity">
+                <input type="number" value="1" min="1" />
+              </div>
+            </td>
+            <td class="cart-item-price">
+              <div>$1156.00</div>
+              <div>$460.00 / per item</div>
+            </td>
+            <td><button class="remove-button">REMOVE</button></td>
+          </tr>
 
-                <tr class="cart-item-row">
-                    <td class="cart-item-radio"><input type="radio" name="checkout-item"></td>
-                    <td><img src="/assets/images/placeholder_50x50.png" alt="T-shirt for Men"></td>
-                    <td class="cart-item-details">
-                        <div class="cart-item-name">T-shirt for Men</div>
-                        <div class="variant">Yellow, Jeans</div>
-                    </td>
-                    <td class="cart-item-actions">
-                        <div class="cart-item-quantity">
-                            <input type="number" value="1" min="1">
-                        </div>
-                    </td>
-                    <td class="cart-item-price">
-                        <div>$1156.00</div>
-                        <div>$460.00 / per item</div>
-                    </td>
-                    <td><button class="remove-button">REMOVE</button></td>
-                </tr>
-            </table>
-        </div>
-        <div class="total-price" id="total-price">Total: ₱0</div>
-        <div class="buttons">
-            <button id="clear-cart">Clear Cart</button>
-            <button id="checkout">Proceed to Checkout</button>
-            <br><br>
-        </div>
+          <tr class="cart-item-row">
+            <td class="cart-item-radio"><input type="radio" name="checkout-item" /></td>
+            <td><img src="/assets/images/placeholder_50x50.png" alt="T-shirt for Men" /></td>
+            <td class="cart-item-details">
+              <div class="cart-item-name">T-shirt for Men</div>
+              <div class="variant">Yellow, Jeans</div>
+            </td>
+            <td class="cart-item-actions">
+              <div class="cart-item-quantity">
+                <input type="number" value="1" min="1" />
+              </div>
+            </td>
+            <td class="cart-item-price">
+              <div>$1156.00</div>
+              <div>$460.00 / per item</div>
+            </td>
+            <td><button class="remove-button">REMOVE</button></td>
+          </tr>
+        </table>
+      </div>
+      <div class="total-price" id="total-price">Total: ₱0</div>
+      <div class="buttons">
+        <button id="clear-cart">Clear Cart</button>
+        <button id="checkout">Proceed to Checkout</button>
+        <br />
+        <br />
+      </div>
     </div>
   </div>
-</body>  
+</body>
