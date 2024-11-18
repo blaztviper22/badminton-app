@@ -23,6 +23,11 @@ body {
   font-size: 21px;
 }
 
+.main-content h5 {
+  margin-top: -10px;
+  font-weight: unset;
+}
+
 .filter-button {
   position: relative;
   display: inline-block;
@@ -206,11 +211,11 @@ label {
 }
 
 .main-box {
-  flex: 1;
   background-color: #fff;
   border-radius: 8px;
   margin-left: 15px;
   margin-right: 5px;
+  width: 70%; /* Set width explicitly */
 }
 
 .create-post {

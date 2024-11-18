@@ -247,7 +247,6 @@ function renderPosts(posts) {
           <div class="name">${post.userId.username}</div>
           <div class="date">${formatDate(post.createdAt)}</div>
         </div>
-        <div class="options"><i class="fas fa-ellipsis-v"></i></div>
       </div>
       <div class="post-content">${post.content}</div>
       <div class="post-footer">
