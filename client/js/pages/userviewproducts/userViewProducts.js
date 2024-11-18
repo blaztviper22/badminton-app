@@ -94,32 +94,6 @@ function renderProducts(products) {
   addProductToCartListener();
 }
 
-// add item to cart (only once)
-function addProductToCartListener() {
-  productList.addEventListener('click', (e) => {
-    if (e.target.tagName === 'BUTTON') {
-      const productName = e.target.getAttribute('data-name');
-      const productPrice = parseInt(e.target.getAttribute('data-price'));
-      const productImage = e.target.getAttribute('data-image');
-      const productShop = e.target.closest('.product-card').getAttribute('data-shop');
-
-      // check if item already exists in cart
-      const existingItem = cart.find((item) => item.name === productName);
-      if (existingItem) {
-        existingItem.quantity += 1;
-      } else {
-        cart.push({ name: productName, price: productPrice, quantity: 1, image: productImage, shopName: productShop });
-        saveCartToLocalStorage();
-      }
-
-      console.log(cart);
-
-      // show a message after adding to the cart
-      showPopupMessage(`${productName} has been added to the cart!`);
-    }
-  });
-}
-
 function saveCartToLocalStorage() {
   localStorage.setItem('cart', JSON.stringify(cart));
 }
@@ -202,19 +176,153 @@ function showPopupMessage(message) {
   }, 3000);
 }
 
-// add a listener to open the cart
 cartIcon.addEventListener('click', () => {
   cartContainer.classList.toggle('open');
 });
 
-// add a listener to close the cart
 closeCartBtn.addEventListener('click', () => {
-  cartContainer.style.display = 'none';
+  cartContainer.classList.remove('open');
 });
 
-// close the cart if the user clicks outside the cart
-document.addEventListener('click', (e) => {
-  if (!cartContainer.contains(e.target) && e.target !== cartIcon) {
-    cartContainer.style.display = 'none';
+//cart logic
+
+// initial render
+document.addEventListener('DOMContentLoaded', () => {
+  renderCart();
+  addProductToCartListener();
+});
+
+clearCartBtn.addEventListener('click', () => {
+  cart = [];
+  saveCartToLocalStorage();
+  renderCart();
+  updateCartItemCount();
+});
+
+// Add event listener to dynamically generated product cards
+function addProductToCartListener() {
+  productList.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+      const productName = e.target.getAttribute('data-name');
+      const productPrice = parseInt(e.target.getAttribute('data-price'));
+      const productImage = e.target.getAttribute('data-image');
+      const productShop = e.target.closest('.product-card').getAttribute('data-shop');
+
+      // check if item already exists in cart
+      const existingItem = cart.find((item) => item.name === productName);
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        const product = { name: productName, price: productPrice, image: productImage, shopName: productShop };
+        addProductToCart(product);
+        showPopupMessage(`${productName} has been added to the cart!`);
+        saveCartToLocalStorage();
+      }
+    }
+  });
+}
+
+function addProductToCart(product) {
+  const existingItem = cart.find((item) => item.name === product.name);
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    cart.push({ ...product, quantity: 1 });
+  }
+  saveCartToLocalStorage();
+  renderCart();
+  updateCartItemCount();
+}
+
+// Update total price
+function updateTotalPrice() {
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  totalElement.textContent = `Total: ₱${total.toLocaleString()}`;
+}
+
+// Update cart item count in the cart icon
+function updateCartItemCount() {
+  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  cartItemCount.textContent = itemCount;
+}
+
+// Render the cart
+function renderCart() {
+  cartItemsElement.innerHTML = '';
+
+  if (cart.length === 0) {
+    cartContainer.classList.add('empty');
+    cartItemsElement.innerHTML = '<h2>Your cart is empty!</h2>';
+    updateTotalPrice();
+    return;
+  }
+
+  cartContainer.classList.remove('empty');
+
+  cart.forEach((item, index) => {
+    const cartRow = document.createElement('tr');
+    cartRow.classList.add('cart-item-row');
+    cartRow.innerHTML = `
+      <td class="cart-item-radio"><input type="radio" name="checkout-item" /></td>
+      <td><img src="${item.image}" alt="${item.name}" /></td>
+      <td class="cart-item-details">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="shop-name">Shop: ${item.shopName}</div>
+      </td>
+      <td class="cart-item-actions">
+        <div class="cart-item-quantity">
+          <input type="number" value="${item.quantity}" min="1" data-index="${index}" class="quantity-input" />
+        </div>
+      </td>
+      <td class="cart-item-price">₱${(item.price * item.quantity).toLocaleString()}</td>
+      <td><button class="remove-button" data-index="${index}">REMOVE</button></td>
+    `;
+    cartItemsElement.appendChild(cartRow);
+  });
+  attachCartListeners();
+  updateTotalPrice();
+  updateCartItemCount();
+}
+
+// Add event listeners for cart quantity changes and item removal
+function attachCartListeners() {
+  const quantityInputs = document.querySelectorAll('.quantity-input');
+  quantityInputs.forEach((input) => {
+    input.addEventListener('change', (e) => {
+      const index = e.target.dataset.index;
+      const newQuantity = parseInt(e.target.value);
+      if (newQuantity > 0) {
+        cart[index].quantity = newQuantity;
+        saveCartToLocalStorage();
+        renderCart();
+      }
+    });
+  });
+
+  const removeButtons = document.querySelectorAll('.remove-button');
+  const radioButtons = document.querySelectorAll('.cart-item-radio input[type="radio"]');
+
+  removeButtons.forEach((button) => {
+    button.addEventListener('click', (e) => {
+      const index = e.target.dataset.index;
+
+      // check if the corresponding radio button is selected
+      if (radioButtons[index].checked) {
+        cart.splice(index, 1); // Remove the selected item
+        saveCartToLocalStorage();
+        renderCart();
+        updateCartItemCount();
+      } else {
+        // show a warning message if no item is selected for deletion
+      }
+    });
+  });
+}
+
+checkoutBtn.addEventListener('click', () => {
+  if (cart.length > 0) {
+    window.location.href = '/user/usercheckout';
+  } else {
+    showPopupMessage('Your cart is empty!');
   }
 });
