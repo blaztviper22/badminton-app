@@ -1,0 +1,30 @@
+<body>
+    <div class="main-content">
+        <h1>Checkout</h1>
+        <div class="back-button-container">
+            <button class="back-button" id="back-to-shop">Back to Shop</button>
+        </div>
+    
+        <div class="container">
+            <div class="cart-items-section">
+                <h2>Your Cart</h2>
+                <div id="cart-items"></div>
+            </div>
+    
+            <div class="checkout-section">
+                <h2>Pickup Details</h2>
+                <div class="price-details">
+                    <form id="checkout-form">
+                        <label for="pickup-date">Select Pickup Date:</label>
+                        <input type="text" id="pickup-date" name="pickup-date" required>
+                        <br><br><br><br><br>
+                        <div id="total-price">Total Price: ₱0</div>
+                        <div id="reservation-percent">Reservation Percentage: 30%</div>
+                        <div id="total-reservation">Total Reservation Fee: ₱0</div>
+                        <button type="submit">Confirm Pickup</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>    

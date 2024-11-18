@@ -43,7 +43,8 @@ const pageTitles = {
   userviewmembership:'card',
   adminviewmembership: 'Membership',
   superadmindashboard: 'Admin',
-  adminviewproduct: 'Manage Product'
+  adminviewproduct: 'Manage Product',
+  usercheckout: 'Place your Order'
 };
 
 // Page-specific stylesheets and scripts
@@ -266,12 +267,6 @@ const pageAssets = {
     hasNavbar: false,
     hasSidebar: true
   },
-  userviewproducts: {
-    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
-    scripts: [],
-    hasNavbar: true,
-    hasSidebar: false
-  },
   community: {
     styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
     scripts: [],
@@ -312,6 +307,19 @@ const pageAssets = {
     hasNavbar: false,
     hasSidebar: true
   },
+  userviewproducts: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
+  },
+  usercheckout: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
+  },
+
 
 };
 
@@ -380,13 +388,14 @@ module.exports = () => {
       pinpointprofile: './client/js/pages/pinpointprofile/pinpointProfile.js',
       businessprofile: './client/js/pages/businessprofile/businessProfile.js',
       adminsettings: './client/js/pages/adminsettings/adminSettings.js',
-      viewproduct: './client/js/pages/viewproduct/viewProduct.js',
-      userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js',
       community: './client/js/pages/community/community.js',
       adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js',
       userviewmembership: './client/js/pages/userviewmembership/userViewMembership.js',
       superadmindashboard: './client/js/pages/superadmindashboard/superAdminDashboard.js',
       adminviewproduct: './client/js/pages/adminviewproduct/adminViewProduct.js',
+      userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js',
+      usercheckout: './client/js/pages/usercheckout/userCheckout.js',
+
     },
     output: {
       filename: '[name].[contenthash].js',
