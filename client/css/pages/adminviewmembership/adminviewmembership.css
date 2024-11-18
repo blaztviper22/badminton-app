@@ -1,27 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600&display=swap');
-  body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
+@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #fff;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.home-section {
+    position: relative;
+    background: #fff;
+    top: 0;
+    left: 78px;
+    width: calc(100% - 78px);
+    transition: all 0.5s ease;
+    min-height: unset;
+    display: flex;
+    flex-direction: column;
     padding: 20px;
-    color: #333;
+    box-sizing: border-box;
   }
 
   body.no-scroll {
     overflow: hidden; /* Prevents scrolling on the main page when modal is open */
   }
 
-  h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #007bff;
-    font-size: 2.5em;
-    letter-spacing: 2px;
-  }
-
   .admin-container {
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 800px;
     padding: 30px;
   }
 
@@ -30,13 +38,13 @@
     padding: 25px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
     margin-bottom: 40px;
   }
 
   .card-form label {
     display: block;
     margin-bottom: 8px;
-    font-weight: bold;
   }
 
   .card-form input,
@@ -57,7 +65,7 @@
   }
 
   .card-form button {
-    background-color: #007bff;
+    background-color: #142850;
     color: white;
     padding: 12px 20px;
     border: none;
@@ -68,18 +76,19 @@
   }
 
   .card-form button:hover {
-    background-color: #0056b3;
+    background-color: #397cf7;
   }
 
   .card-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start; /* Aligns the cards to the left */
     gap: 20px;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
   }
+  
 
   .membership-card {
 width: 300px;

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
 body {
   margin: 0;
   padding: 0;
@@ -21,10 +22,10 @@ body {
   .card-container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: left;
     gap: 20px;
     width: 100%;
-    max-width: 960px;
+    max-width: 1300px;
   }
   .membership-card {
     width: 300px;
