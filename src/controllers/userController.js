@@ -35,6 +35,7 @@ const Category = require('../models/Category');
 const Membership = require('../models/Membership');
 const sanitizeHtml = require('sanitize-html');
 const Hashtag = require('../models/Hashtag');
+const Product = require('../models/Product');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -2406,5 +2407,182 @@ exports.getPostsByHashtag = async (req, res) => {
       status: 'error',
       message: 'Internal Server Error'
     });
+  }
+};
+
+exports.createProduct = async (req, res) => {
+  try {
+    const { name, price, stock, category } = req.body;
+
+    // check if the user is authenticated
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    // check for required fields
+    if (!name || !price || !stock || !category) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Name, price, stock, and category  are required.'
+      });
+    }
+
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Product image is required.'
+      });
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const imageUrl = await handleFileUpload(req.files.image, userId, 'productsImage', allowedTypes);
+
+    const product = new Product({
+      owner: userId,
+      name,
+      price,
+      stock,
+      category,
+      image: imageUrl
+    });
+
+    await product.save();
+
+    return res.status(201).json({ status: 'success', data: product });
+  } catch (err) {
+    error('An error occurred while processing the product:', err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.getAllProducts = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
+    log(userRole);
+
+    // if the user is an admin, show all products
+    let products;
+    if (userRole === 'admin') {
+      products = await Product.find({ owner: userId }).populate('owner', 'name email');
+    } else {
+      // otherwise, show only the products owned by the user
+      products = await Product.find().populate('owner', 'name email');
+    }
+
+    return res.status(200).json({ status: 'success', data: products });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
+    // fetch the product by its ID
+    const product = await Product.findById(id).populate('owner', 'name email');
+
+    if (!product) {
+      return res.status(404).json({ status: 'error', message: 'Product not found' });
+    }
+
+    // if the user is not an admin, ensure they can only access their own product
+    if (userRole !== 'admin' && product.owner.toString() !== userId) {
+      return res.status(403).json({ status: 'error', message: 'You are not authorized to view this product' });
+    }
+
+    return res.status(200).json({ status: 'success', data: product });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.removeProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+
+    // check if the product exists
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({ status: 'error', message: 'Product not found' });
+    }
+
+    // ensure the user is the owner of the product or an admin
+    if (product.owner.toString() !== userId && req.user?.role !== 'admin') {
+      return res.status(403).json({ status: 'error', message: 'You are not authorized to delete this product' });
+    }
+
+    // delete the product using findByIdAndDelete
+    await Product.findByIdAndDelete(id);
+
+    return res.status(200).json({ status: 'success', message: 'Product deleted successfully' });
+  } catch (err) {
+    error('Error deleting product by ID:', err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.createOrder = async (req, res) => {
+  try {
+    const { products, pickupSchedule, courtOwner } = req.body;
+
+    // validate required fields
+    if (!products || products.length === 0) {
+      return res.status(400).json({ status: 'error', message: 'Products are required.' });
+    }
+    if (!pickupSchedule || !courtOwner) {
+      return res.status(400).json({ status: 'error', message: 'Pickup schedule and court owner are required.' });
+    }
+
+    // calculate total price
+    let totalPrice = 0;
+    for (const item of products) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res.status(404).json({ status: 'error', message: `Product with ID ${item.product} not found.` });
+      }
+      totalPrice += product.price * item.quantity;
+    }
+
+    // create the order
+    const newOrder = new Order({
+      user: req.user.id,
+      products: products.map((item) => ({
+        product: item.product,
+        quantity: item.quantity,
+        price: item.price
+      })),
+      totalPrice,
+      pickupStatus: 'pending',
+      pickupSchedule,
+      courtOwner
+    });
+
+    await newOrder.save();
+
+    // proceed with payment (example using PayPal)
+    const returnUrl = 'https://your-app.com/success';
+    const cancelUrl = 'https://your-app.com/cancel';
+    const payment = await createPayPalPayment(totalPrice, null, null, null, returnUrl, cancelUrl);
+    const approvalUrl = payment.links.find((link) => link.rel === 'payer-action').href;
+
+    // send the approval URL for payment
+    return res.status(201).json({
+      status: 'success',
+      message: 'Order created successfully.',
+      approvalUrl
+    });
+  } catch (err) {
+    error(err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };
