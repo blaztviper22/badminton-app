@@ -7,6 +7,8 @@ import { setupLogoutListener } from '../../global/logout.js';
 
 startSessionChecks();
 
+setupLogoutListener();
+
 let cart = [];
 let totalPrice = 0;
 
