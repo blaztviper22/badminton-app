@@ -1,7 +1,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-image: url('/assets/images/vbg.jpg'); /* Ensure the correct relative path */
+  background-image: url(/assets/images/vbg.jpg);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -11,7 +11,6 @@ body {
   align-items: center;
   height: 100vh;
 }
-
 
 .container {
   background-color: #ffffff;

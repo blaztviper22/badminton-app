@@ -45,8 +45,7 @@
 }
 
 .leaflet-popup-content-wrapper {
-  min-width: 350px !important;
-  max-width: 400px !important;
+  width: 400px !important;
   overflow: hidden;
 }
 
@@ -252,6 +251,7 @@
   margin-right: auto;
 }
 
+
 .hourly-rate {
   text-align: left;
   margin-top: 10px;
@@ -271,5 +271,5 @@
 }
 
 .reserve-btn:hover {
-  background-color: #0d193d;
+  background-color: #397CF7;
 }
