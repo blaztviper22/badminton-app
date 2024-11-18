@@ -96,9 +96,9 @@ body {
 .box {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  justify-content: left;
   gap: 20px;
-  width: 100%;
+  width: 80%;
 }
 
 .post-card {
@@ -108,7 +108,10 @@ body {
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
+  overflow: hidden; /* Ensures the image doesn't overflow the card */
 }
+
+
 
 .post-card h2 {
   font-size: 1.2em;
@@ -138,8 +141,10 @@ body {
   margin-bottom: 8px;
 }
 .post-images img {
-  width: 400px;
-  height: 400px;
+  width: 100%; /* Makes the image span the entire width of the card */
+  height: 100%; /* Ensures the image fills the height of the card */
+  object-fit: cover; /* Scales the image to fill the card, cropping if necessary */
+  border-radius: 8px; /* Matches the card's border radius */
 }
 .view-more button {
   width: 105px;
@@ -218,6 +223,7 @@ body {
 
 h2 {
   margin-bottom: 15px;
+  margin-top: 10px;
 }
 
 label {
