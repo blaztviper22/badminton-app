@@ -44,6 +44,7 @@ const checkFilePermissions = async (req, res, next) => {
     if (file.accessibleRoles.includes(userRole)) {
       return next(); // Access granted
     }
+    console.log(file);
 
     // If none of the conditions are met, deny access
     return next(createError(403, 'Access denied')); // Deny access with a custom error
