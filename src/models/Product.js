@@ -4,40 +4,42 @@ const productSchema = new mongoose.Schema(
   {
     owner: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', 
-      required: true,
+      ref: 'User',
+      required: true
     },
     name: {
       type: String,
-      required: true,
+      required: true
     },
     description: {
       type: String,
-      required: true,
+      required: true
     },
     price: {
       type: Number,
-      required: true,
+      required: true
     },
     image: {
-      type: String, 
-      required: true,
+      type: String,
+      required: true
     },
     stock: {
       type: Number,
-      required: true,
+      required: true
+    },
+    salesCount: {
+      type: Number,
+      default: 0
     },
     category: {
-      type: String, 
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+      type: String,
+      enum: ['Shoes', 'Racket', 'Apparel', 'Bag', 'Shuttlecock'],
+      required: true
+    }
   },
   {
     timestamps: true,
-    strict: 'throw',
+    strict: 'throw'
   }
 );
 

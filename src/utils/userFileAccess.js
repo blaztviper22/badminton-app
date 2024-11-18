@@ -35,6 +35,10 @@ const assignFileToAdmin = async (file, adminId, category) => {
       roleBasedAccess = ['superadmin'];
       file.isPublic = false;
       break;
+    case 'productImage':
+      roleBasedAccess = ['admin', 'coach', 'player', 'superadmin'];
+      file.isPublic = false;
+      break;
     default:
       roleBasedAccess = []; // No specific roles
       file.isPublic = false;

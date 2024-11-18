@@ -4,52 +4,52 @@ const orderSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // User who placed the order
-      required: true,
+      ref: 'User',
+      required: true
     },
     products: [
       {
         product: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: 'Product', // The product in the order
-          required: true,
+          ref: 'Product',
+          required: true
         },
         quantity: {
           type: Number,
-          required: true,
+          required: true
         },
         price: {
           type: Number,
-          required: true,
-        },
-      },
+          required: true
+        }
+      }
     ],
     totalPrice: {
       type: Number,
-      required: true,
+      required: true
     },
     pickupStatus: {
       type: String,
-      enum: ['pending', 'completed', 'cancelled'], 
-      default: 'pending',
+      enum: ['pending', 'completed', 'cancelled'],
+      default: 'pending'
     },
     pickupSchedule: {
-      type: Date, 
-      required: true,
+      type: Date,
+      required: true
     },
     courtOwner: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'CourtOwner', // Court owner who posted the product
-      required: true,
+      ref: 'Court',
+      required: true
     },
     createdAt: {
       type: Date,
-      default: Date.now,
-    },
+      default: Date.now
+    }
   },
   {
     timestamps: true,
-    strict: 'throw',
+    strict: 'throw'
   }
 );
 

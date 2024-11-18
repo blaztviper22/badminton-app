@@ -2458,18 +2458,47 @@ exports.createProduct = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
   try {
+    const { category, shopName, search } = req.query;
     const userId = req.user?.id;
     const userRole = req.user?.role;
 
-    log(userRole);
+    // initialize filter object
+    const filter = {};
 
-    // if the user is an admin, show all products
+    // filter by category if provided
+    if (category) {
+      filter.category = category;
+    }
+
+    // search logic: filter by product name if search is provided
+    if (search) {
+      const regexSearch = new RegExp(search, 'i');
+      filter.name = regexSearch;
+    }
+
     let products;
+
     if (userRole === 'admin') {
-      products = await Product.find({ owner: userId }).populate('owner', 'name email');
+      // admin or court owner: can view their own products
+      filter.owner = userId;
+      products = await Product.find({ owner: userId }).populate('owner', 'username email court');
+      log(products);
     } else {
-      // otherwise, show only the products owned by the user
-      products = await Product.find().populate('owner', 'name email');
+      // ordinary user: can view all products
+      products = await Product.find(filter).populate({
+        path: 'owner',
+        select: 'username email court',
+        populate: {
+          path: 'court',
+          select: 'business_name'
+        }
+      });
+
+      // if shopName is provided, filter by owner's court's business_name
+      if (shopName) {
+        const regexShopName = new RegExp(shopName, 'i'); // Case-insensitive search
+        products = products.filter((product) => product.owner?.court?.business_name?.match(regexShopName));
+      }
     }
 
     return res.status(200).json({ status: 'success', data: products });
@@ -2486,7 +2515,7 @@ exports.getProductById = async (req, res) => {
     const userRole = req.user?.role;
 
     // fetch the product by its ID
-    const product = await Product.findById(id).populate('owner', 'name email');
+    const product = await Product.findById(id).populate('owner', 'username email');
 
     if (!product) {
       return res.status(404).json({ status: 'error', message: 'Product not found' });
@@ -2527,6 +2556,59 @@ exports.removeProductById = async (req, res) => {
     return res.status(200).json({ status: 'success', message: 'Product deleted successfully' });
   } catch (err) {
     error('Error deleting product by ID:', err);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, price, stock, category } = req.body;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
+    // check if the product exists
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ status: 'error', message: 'Product not found' });
+    }
+
+    // ensure the user is the owner of the product or has admin privileges
+    if (product.owner.toString() !== userId && userRole !== 'admin') {
+      return res.status(403).json({ status: 'error', message: 'You are not authorized to update this product' });
+    }
+
+    // validate required fields if they are included in the request body
+    if (name !== undefined && !name.trim()) {
+      return res.status(400).json({ status: 'error', message: 'Product name cannot be empty' });
+    }
+    if (price !== undefined && price <= 0) {
+      return res.status(400).json({ status: 'error', message: 'Price must be greater than zero' });
+    }
+    if (stock !== undefined && stock < 0) {
+      return res.status(400).json({ status: 'error', message: 'Stock cannot be negative' });
+    }
+
+    // handle image upload if a new image is provided
+    let imageUrl = product.image;
+    if (req.files && req.files.image) {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      imageUrl = await handleFileUpload(req.files.image, userId, 'productsImage', allowedTypes);
+    }
+
+    // update product fields
+    if (name !== undefined) product.name = name;
+    if (price !== undefined) product.price = price;
+    if (stock !== undefined) product.stock = stock;
+    if (category !== undefined) product.category = category;
+    if (imageUrl !== product.image) product.image = imageUrl;
+
+    // save the updated product to the database
+    await product.save();
+
+    return res.status(200).json({ status: 'success', data: product });
+  } catch (err) {
+    console.error('Error updating product:', err);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 };
