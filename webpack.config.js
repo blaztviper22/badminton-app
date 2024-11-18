@@ -45,7 +45,8 @@ const pageTitles = {
   superadmindashboard: 'Admin',
   adminviewproduct: 'Manage Product',
   usercheckout: 'Place your Order',
-  help: 'Help'
+  help: 'Help',
+  userorderlist: 'My Orders'
 };
 
 // Page-specific stylesheets and scripts
@@ -328,6 +329,12 @@ const pageAssets = {
     hasNavbar: true,
     hasSidebar: false
   },
+  userorderlist: {
+    styles: ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'],
+    scripts: [],
+    hasNavbar: true,
+    hasSidebar: false
+  },
 
 };
 
@@ -404,7 +411,7 @@ module.exports = () => {
       userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js',
       usercheckout: './client/js/pages/usercheckout/userCheckout.js',
       help: './client/js/pages/help/help.js',
-
+      userorderlist: './client/js/pages/userorderlist/userOrderList.js',
 
     },
     output: {

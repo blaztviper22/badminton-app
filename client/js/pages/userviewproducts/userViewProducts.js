@@ -73,31 +73,6 @@ alert("Your cart is empty!");
 }
 });
 
-// Update Cart UI
-function updateCart() {
-cartItemsElement.innerHTML = '';
-cart.forEach(item => {
-const cartItem = document.createElement('div');
-cartItem.classList.add('item');
-cartItem.innerHTML = `
-    <img src="${item.image}" alt="${item.name}">
-    <div class="info">
-        <span>${item.name}</span>
-        <span>₱${item.price}</span>
-    </div>
-    <div class="quantity">
-        <button class="decrease-btn" data-name="${item.name}">-</button>
-        <span>${item.quantity}</span>
-        <button class="increase-btn" data-name="${item.name}">+</button>
-    </div>
-`;
-cartItemsElement.appendChild(cartItem);
-});
-
-totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-totalElement.innerText = `Total: ₱${totalPrice}`;
-cartItemCount.innerText = cart.length;
-}
 
 // Save Cart to LocalStorage
 function saveCartToLocalStorage() {

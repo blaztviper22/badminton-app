@@ -207,9 +207,12 @@ label {
   margin-bottom: 8px;
 }
 .post-images img {
-  width: 190px;
-  height: 160px;
+  width: 100%; /* Makes the image span the entire width of the card */
+  height: 100%; /* Ensures the image fills the height of the card */
+  object-fit: cover; /* Scales the image to fill the card, cropping if necessary */
+  border-radius: 8px; /* Matches the card's border radius */
 }
+
 .view-more button {
   width: 100px;
   padding: 10px;

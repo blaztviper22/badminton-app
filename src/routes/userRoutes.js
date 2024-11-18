@@ -436,6 +436,12 @@ router.delete('/admin/membership/:membershipId/subscribers/:subscriberId', verif
     serveFile(filePath, res, next);
   });
 
+  router.get('/userorderlist', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+    const filePath = path.resolve(__dirname, '../../build/userorderlist.html');
+    serveFile(filePath, res, next);
+  });
+
+
   app.use('/user', router);
 };
 
