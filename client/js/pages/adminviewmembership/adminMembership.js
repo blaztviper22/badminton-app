@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeEditModal = getById('closeEditModal');
   const closeSubscribersModal = getById('closeSubscribersModal');
   const closeConfirmationModal = getById('closeConfirmationModal');
-  
+
   let editingCardIndex = null;
   let revokeDetails = null;
   let cards = [];
@@ -33,18 +33,18 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('/admin/membership', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        Authorization: `Bearer ${localStorage.getItem('token')}`
       }
     })
-    .then(response => response.json())
-    .then(data => {
-      cards = data.cards || [];
-      renderCards();
-    })
-    .catch(err => {
-      console.error('Error fetching cards:', err);
-      alert('Failed to load cards.');
-    });
+      .then((response) => response.json())
+      .then((data) => {
+        cards = data.cards || [];
+        renderCards();
+      })
+      .catch((err) => {
+        console.error('Error fetching cards:', err);
+        alert('Failed to load cards.');
+      });
   }
 
   // Render the cards in the container
@@ -68,12 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Add event listeners to buttons
-    getAll('.delete-icon').forEach((btn) =>
-      btn.addEventListener('click', (e) => deleteCard(e.target.dataset.index))
-    );
-    getAll('.edit-btn').forEach((btn) =>
-      btn.addEventListener('click', (e) => editCard(e.target.dataset.index))
-    );
+    getAll('.delete-icon').forEach((btn) => btn.addEventListener('click', (e) => deleteCard(e.target.dataset.index)));
+    getAll('.edit-btn').forEach((btn) => btn.addEventListener('click', (e) => editCard(e.target.dataset.index)));
     getAll('.subscriber-btn').forEach((btn) =>
       btn.addEventListener('click', (e) => viewSubscribers(e.target.dataset.index))
     );
@@ -83,26 +79,26 @@ document.addEventListener('DOMContentLoaded', () => {
   function deleteCard(index) {
     const cardId = cards[index]._id; // Assuming each card has an _id field
 
-    const confirmed = confirm("Are you sure you want to delete this card?");
+    const confirmed = confirm('Are you sure you want to delete this card?');
     if (confirmed) {
       fetch(`/admin/membership/${cardId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       })
-      .then(response => {
-        if (response.ok) {
-          cards.splice(index, 1);
-          renderCards();
-        } else {
-          alert('Error deleting the card.');
-        }
-      })
-      .catch(err => {
-        console.error('Error deleting card:', err);
-        alert('Failed to delete card.');
-      });
+        .then((response) => {
+          if (response.ok) {
+            cards.splice(index, 1);
+            renderCards();
+          } else {
+            alert('Error deleting the card.');
+          }
+        })
+        .catch((err) => {
+          console.error('Error deleting card:', err);
+          alert('Failed to delete card.');
+        });
     }
   }
 
@@ -151,22 +147,22 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('/admin/membership', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        Authorization: `Bearer ${localStorage.getItem('token')}`
       },
-      body: formData,
+      body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.message === 'Membership card created successfully') {
-        fetchCards(); // Re-fetch the list of cards
-      } else {
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === 'Membership card created successfully') {
+          fetchCards(); // Re-fetch the list of cards
+        } else {
+          alert('Failed to add card.');
+        }
+      })
+      .catch((err) => {
+        console.error('Error adding card:', err);
         alert('Failed to add card.');
-      }
-    })
-    .catch(err => {
-      console.error('Error adding card:', err);
-      alert('Failed to add card.');
-    });
+      });
   });
 
   // Update an existing card
@@ -190,24 +186,24 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(`/admin/membership/${cardId}`, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(updatedCard),
+      body: JSON.stringify(updatedCard)
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.message === 'Membership card updated successfully') {
-        fetchCards(); // Re-fetch the list of cards
-        closeModal(editModal);
-      } else {
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === 'Membership card updated successfully') {
+          fetchCards(); // Re-fetch the list of cards
+          closeModal(editModal);
+        } else {
+          alert('Failed to update card.');
+        }
+      })
+      .catch((err) => {
+        console.error('Error updating card:', err);
         alert('Failed to update card.');
-      }
-    })
-    .catch(err => {
-      console.error('Error updating card:', err);
-      alert('Failed to update card.');
-    });
+      });
   });
 
   // View subscribers for a card
@@ -218,29 +214,29 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(`/admin/membership/${cardId}/subscribers`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        Authorization: `Bearer ${localStorage.getItem('token')}`
       }
     })
-    .then(response => response.json())
-    .then(data => {
-      const subscribers = data.subscribers || [];
-      subscriberTableBody.innerHTML = '';
-      subscribers.forEach((subscriber, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
+      .then((response) => response.json())
+      .then((data) => {
+        const subscribers = data.subscribers || [];
+        subscriberTableBody.innerHTML = '';
+        subscribers.forEach((subscriber, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
           <td>${subscriber.username}</td>
           <td>${subscriber.dateSubscribed}</td>
           <td><button class="revoke-btn" data-card-index="${cardIndex}" data-subscriber-index="${index}">Revoke</button></td>
         `;
-        subscriberTableBody.appendChild(row);
-      });
+          subscriberTableBody.appendChild(row);
+        });
 
-      openModal(subscribersModal);
-    })
-    .catch(err => {
-      console.error('Error fetching subscribers:', err);
-      alert('Failed to fetch subscribers.');
-    });
+        openModal(subscribersModal);
+      })
+      .catch((err) => {
+        console.error('Error fetching subscribers:', err);
+        alert('Failed to fetch subscribers.');
+      });
   }
 
   // Revoke a subscriber's subscription
@@ -251,22 +247,22 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(`/admin/membership/${cardId}/subscribers/${subscriberId}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        Authorization: `Bearer ${localStorage.getItem('token')}`
       }
     })
-    .then(response => {
-      if (response.ok) {
-        cards[cardIndex].subscribers.splice(subscriberIndex, 1); // Remove the subscriber
-        renderCards();
-        closeModal(confirmationModal);
-      } else {
-        alert('Error revoking subscriber.');
-      }
-    })
-    .catch(err => {
-      console.error('Error revoking subscriber:', err);
-      alert('Failed to revoke subscriber.');
-    });
+      .then((response) => {
+        if (response.ok) {
+          cards[cardIndex].subscribers.splice(subscriberIndex, 1); // Remove the subscriber
+          renderCards();
+          closeModal(confirmationModal);
+        } else {
+          alert('Error revoking subscriber.');
+        }
+      })
+      .catch((err) => {
+        console.error('Error revoking subscriber:', err);
+        alert('Failed to revoke subscriber.');
+      });
   }
 
   // Handle revoke confirmation

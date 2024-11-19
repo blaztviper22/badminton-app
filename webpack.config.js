@@ -40,7 +40,7 @@ const pageTitles = {
   viewproduct: 'Product',
   userviewproducts: 'Products',
   community: 'Community',
-  userviewmembership:'card',
+  userviewmembership: 'card',
   adminviewmembership: 'Membership',
   superadmindashboard: 'Admin',
   adminviewproduct: 'Manage Product',
@@ -296,8 +296,7 @@ const pageAssets = {
       'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
       'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'
     ],
-    scripts: ['https://kit.fontawesome.com/a076d05399.js'
-    ],
+    scripts: ['https://kit.fontawesome.com/a076d05399.js'],
     hasNavbar: false,
     hasSidebar: false
   },
@@ -334,8 +333,7 @@ const pageAssets = {
     scripts: [],
     hasNavbar: true,
     hasSidebar: false
-  },
-
+  }
 };
 
 const pages = Object.keys(pageTitles);
@@ -404,15 +402,14 @@ module.exports = () => {
       businessprofile: './client/js/pages/businessprofile/businessProfile.js',
       adminsettings: './client/js/pages/adminsettings/adminSettings.js',
       community: './client/js/pages/community/community.js',
-      adminviewmembership: './client/js/pages/adminviewmembership/adminViewMembership.js',
+      adminviewmembership: './client/js/pages/adminviewmembership/adminMembership.js',
       userviewmembership: './client/js/pages/userviewmembership/userViewMembership.js',
       superadmindashboard: './client/js/pages/superadmindashboard/superAdminDashboard.js',
       adminviewproduct: './client/js/pages/adminviewproduct/adminViewProduct.js',
       userviewproducts: './client/js/pages/userviewproducts/userViewProducts.js',
       usercheckout: './client/js/pages/usercheckout/userCheckout.js',
       help: './client/js/pages/help/help.js',
-      userorderlist: './client/js/pages/userorderlist/userOrderList.js',
-
+      userorderlist: './client/js/pages/userorderlist/userOrderList.js'
     },
     output: {
       filename: '[name].[contenthash].js',
