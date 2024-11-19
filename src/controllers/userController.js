@@ -1787,7 +1787,7 @@ exports.confirmEventPayment = async (req, res, next) => {
       // });
 
       // Redirect to the specified URL
-      return res.redirect(`/user/tournaments?tab=my-feed`);
+      return res.redirect(`/user/announcements?tab=my-feed`);
     }
 
     // If no token, return an error indicating a token is required
