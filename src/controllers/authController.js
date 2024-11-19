@@ -11,7 +11,7 @@ const { sendOTP, sendForgotPasswordEmail } = require('../services/emailService')
 const { deleteUserFilesAndProfilePhoto } = require('../utils/fileCleanup');
 const Reservation = require('../models/Reservation');
 const { getUserSocket } = require('../utils/userSocketManager');
-const Superadmin = require('../models/Superadmin');
+const Superadmin = require('../models/SuperAdmin');
 
 exports.loginUser = async (req, res, next) => {
   try {
