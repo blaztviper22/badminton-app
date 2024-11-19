@@ -1098,6 +1098,7 @@ exports.getAdminReservations = async (req, res) => {
         reservationId: reservation._id,
         courtId: reservation.court._id,
         selectedCourts: reservation.selectedCourt,
+        billStatus: reservation.billStatus,
         totalCourts: reservation.court.totalCourts,
         operatingHours: reservation.court.operating_hours,
         user: {
@@ -2783,5 +2784,68 @@ exports.handleSubscribersOperations = async (req, res) => {
   } catch (err) {
     console.error('Error handling subscriber operation:', err);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+};
+
+exports.updateBillStatus = async (req, res) => {
+  try {
+    const reservationId = req.params.id;
+    const { billStatus } = req.body;
+
+    // ensure billStatus is valid
+    if (!['unpaid', 'paid'].includes(billStatus)) {
+      return res.status(400).json({
+        status: 'error',
+        code: 400,
+        message: 'Invalid bill status, must be either "unpaid" or "paid"'
+      });
+    }
+
+    // get the reservation to update
+    const reservation = await Reservation.findById(reservationId);
+    if (!reservation) {
+      return res.status(404).json({
+        status: 'error',
+        code: 404,
+        message: 'Reservation not found'
+      });
+    }
+
+    // find the court admin (owner) associated with this reservation's court
+    const courtAdmin = await User.findOne({ court: reservation.court, role: 'admin' });
+    if (!courtAdmin) {
+      return res.status(404).json({
+        status: 'error',
+        code: 404,
+        message: 'Court owner not found'
+      });
+    }
+
+    // check if the user making the request is the court admin
+    if (req.user.id !== courtAdmin._id.toString()) {
+      return res.status(403).json({
+        status: 'error',
+        code: 403,
+        message: 'You do not have permission to update the bill status of this reservation'
+      });
+    }
+
+    // update the billStatus of the reservation
+    reservation.billStatus = billStatus;
+    await reservation.save();
+
+    return res.status(200).json({
+      status: 'success',
+      code: 200,
+      message: `Bill status updated to ${billStatus}`,
+      reservation
+    });
+  } catch (err) {
+    console.error('Error while updating bill status:', err);
+    return res.status(500).json({
+      status: 'error',
+      code: 500,
+      message: 'Internal Server Error'
+    });
   }
 };
