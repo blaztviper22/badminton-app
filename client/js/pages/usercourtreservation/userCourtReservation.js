@@ -10,6 +10,7 @@ import {
   startSessionChecks,
   validateSessionAndNavigate
 } from '../../../utils/sessionUtils.js';
+import '../../components/navBarUser.js';
 import { setupLogoutListener } from '../../global/logout.js';
 
 let selectedCourts = [];

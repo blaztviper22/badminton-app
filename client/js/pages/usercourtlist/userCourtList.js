@@ -2,6 +2,7 @@ import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
 import '../../../css/pages/usercourtlist/userCourtList.css';
 import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
+import '../../components/navBarUser.js';
 import { setupLogoutListener } from '../../global/logout.js';
 
 const doc = document;
