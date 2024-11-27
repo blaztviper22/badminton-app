@@ -3,7 +3,7 @@ const User = require('../models/User');
 const createError = require('http-errors');
 const config = require('config');
 const { isTokenBlacklisted } = require('../utils/blackListUtils');
-const Superadmin = require('../models/Superadmin');
+const Superadmin = require('../models/SuperAdmin');
 
 const verifyToken = async (req, res, next) => {
   try {

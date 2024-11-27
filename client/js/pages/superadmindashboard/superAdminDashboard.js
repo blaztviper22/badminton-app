@@ -2,6 +2,7 @@ import '../../../css/components/preloader.css';
 import '../../../css/pages/superadmindashboard/superAdminDashboard.css';
 import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
 import { openModal } from '../../components/modal.js';
+import '../../components/navBarUser.js';
 import { setupLogoutListener } from '../../global/logout.js';
 
 startSessionChecks();

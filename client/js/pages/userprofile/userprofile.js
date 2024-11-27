@@ -2,6 +2,7 @@ import '../../../css/components/navBarUser.css';
 import '../../../css/components/preloader.css';
 import '../../../css/pages/userprofile/userProfile.css';
 import { startSessionChecks, validateSessionAndNavigate } from '../../../utils/sessionUtils.js';
+import '../../components/navBarUser.js';
 import { setupLogoutListener } from '../../global/logout.js';
 
 setupLogoutListener();
@@ -15,7 +16,7 @@ const get = (selector) => doc.querySelector(selector);
 
 // Start session checks on page load
 startSessionChecks();
-   
+
 // Initialize input fields and store them in a variable
 const userProfileFields = {
   username: getById('username'),

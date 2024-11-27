@@ -1,7 +1,9 @@
+import '../../../css/components/modal.css';
 import '../../../css/components/preloader.css';
 import '../../../css/components/sideNavAdmin.css';
 import '../../../css/pages/adminviewuserpayment/adminViewUserPayment.css';
 import { startSessionChecks } from '../../../utils/sessionUtils.js';
+import { openModal } from '../../components/modal.js';
 import '../../components/sideNavAdmin.js';
 
 startSessionChecks();
@@ -132,6 +134,7 @@ function populateTable(reservationDates) {
   Object.keys(reservationDates).forEach((date) => {
     reservationDates[date].forEach((reservation) => {
       const row = document.createElement('tr');
+      row.dataset.id = reservation.reservationId;
 
       row.innerHTML = `
         <td>${reservation.user.firstName} ${reservation.user.lastName}</td>
@@ -143,7 +146,7 @@ function populateTable(reservationDates) {
         <td class="hide-column">${reservation.timeSlot.from} - ${reservation.timeSlot.to}</td>
         <td class="hide-column">Court ${reservation.selectedCourts.map((court) => court + 1).join(', ')}</td>
         <td>&#8369;${reservation.userPayment.totalAmount.toFixed(2)}</td>
-        <td class="status-cell">${reservation.paymentStatus}</td>
+        <td class="status-cell">${reservation.billStatus}</td>
         <td>
           <div class="action-buttons">
             <button class="icon-button edit-status" title="Edit Status">
@@ -167,12 +170,16 @@ function addEditStatusListeners() {
       const row = this.closest('tr');
       const statusCell = row.querySelector('.status-cell');
       const currentStatus = statusCell.textContent.trim();
+      const reservationId = row.dataset.id; // Access the reservation ID from the data-id attribute
 
       if (this.classList.contains('editing')) {
         // Save changes
         const dropdown = statusCell.querySelector('select');
         const newStatus = dropdown.value;
         statusCell.textContent = newStatus;
+
+        // Update the bill status by making an API call
+        updateBillStatus(reservationId, newStatus);
 
         // Revert icon to edit
         this.innerHTML = '<i class="fas fa-edit"></i>';
@@ -182,10 +189,8 @@ function addEditStatusListeners() {
         // Replace status text with dropdown
         statusCell.innerHTML = `
           <select>
-            <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
-            <option value="Paid" ${currentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
-            <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
-            <option value="Cancelled" ${currentStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+            <option value="unpaid" ${currentStatus === 'Unpaid' ? 'selected' : ''}>Unpaid</option>
+            <option value="paid" ${currentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
           </select>
         `;
 
@@ -197,6 +202,79 @@ function addEditStatusListeners() {
     });
   });
 }
+
+async function updateBillStatus(reservationId, newStatus) {
+  try {
+    const response = await fetch(`/user/admin/reservations/${reservationId}/bill-status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ billStatus: newStatus })
+    });
+
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      openModal(
+        'info', // Modal type: info (can be success or error)
+        'Bill Status Updated',
+        `Bill status for reservation ${reservationId} updated to ${newStatus}.`,
+        null, // No onConfirm action needed
+        null, // No onCancel action needed
+        'OK' // Button text
+      );
+      fetchReservationData();
+    } else {
+      openModal(
+        'error', // Modal type: error
+        'Error Updating Bill Status',
+        `Error updating bill status: ${data.message}`,
+        null, // No onConfirm action needed
+        null, // No onCancel action needed
+        'OK' // Button text
+      );
+    }
+  } catch (error) {
+    console.error('Error during API call:', error);
+  }
+}
+
+// function addEditStatusListeners() {
+//   const editButtons = document.querySelectorAll('.edit-status');
+//   editButtons.forEach((button) => {
+//     button.addEventListener('click', function () {
+//       const row = this.closest('tr');
+//       const statusCell = row.querySelector('.status-cell');
+//       const currentStatus = statusCell.textContent.trim();
+
+//       if (this.classList.contains('editing')) {
+//         // Save changes
+//         const dropdown = statusCell.querySelector('select');
+//         const newStatus = dropdown.value;
+//         statusCell.textContent = newStatus;
+
+//         // Revert icon to edit
+//         this.innerHTML = '<i class="fas fa-edit"></i>';
+//         this.title = 'Edit Status';
+//         this.classList.remove('editing');
+//       } else {
+//         // Replace status text with dropdown
+//         statusCell.innerHTML = `
+//           <select>
+//             <option value="Unpaid" ${currentStatus === 'Unpaid' ? 'selected' : ''}>Upaid</option>
+//             <option value="Paid" ${currentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
+//           </select>
+//         `;
+
+//         // Change icon to save
+//         this.innerHTML = '<i class="fas fa-save"></i>';
+//         this.title = 'Save Status';
+//         this.classList.add('editing');
+//       }
+//     });
+//   });
+// }
 
 fetchReservationData();
 

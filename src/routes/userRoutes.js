@@ -46,7 +46,8 @@ const {
   getAllProducts,
   getProductById,
   removeProductById,
-  updateProduct
+  updateProduct,
+  updateBillStatus
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -359,7 +360,6 @@ let routes = (app, io) => {
     serveFile(filePath, res, next);
   });
 
-
   router.get('/admin/adminviewproduct', verifyToken, roleChecker(['admin']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/adminviewproduct.html');
     serveFile(filePath, res, next);
@@ -393,6 +393,8 @@ let routes = (app, io) => {
     const filePath = path.resolve(__dirname, '../../build/help.html');
     serveFile(filePath, res, next);
   });
+
+  router.patch('/admin/reservations/:id/bill-status', verifyToken, roleChecker(['admin']), updateBillStatus);
 
   router.get('/userorderlist', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/userorderlist.html');
