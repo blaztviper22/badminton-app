@@ -892,7 +892,7 @@ exports.registerCourt = async (req, res) => {
       business_email,
       hourly_rate,
       paypal_email,
-      description,
+      dti_number,
       court_latitude,
       court_longitude
     } = req.body;
@@ -905,7 +905,7 @@ exports.registerCourt = async (req, res) => {
     log(req.body);
 
     // Validate required fields
-    if (!business_name || !contact_number || !business_email || !hourly_rate || !paypal_email || !description) {
+    if (!business_name || !contact_number || !business_email || !hourly_rate || !paypal_email || !dti_number || !description) {
       return res.status(400).json({
         success: false,
         code: 400,
@@ -1056,6 +1056,7 @@ exports.registerCourt = async (req, res) => {
       operating_hours,
       hourly_rate,
       paypal_email,
+      dti_number,
       description,
       location: {
         type: 'Point',
