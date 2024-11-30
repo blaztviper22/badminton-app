@@ -129,6 +129,7 @@ const sendLoginRequest = async (username, password, role) => {
       } else if (result.action === 'redirect') {
         // redirect to the role-specific page
         window.location.href = result.redirectUrl;
+        console.log(window.location.href = result.redirectUrl)
       }
       loginBtn.disabled = false;
     } else {
