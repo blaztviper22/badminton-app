@@ -891,6 +891,7 @@ exports.registerCourt = async (req, res) => {
       contact_number,
       business_email,
       hourly_rate,
+      description,
       paypal_email,
       dti_number,
       court_latitude,

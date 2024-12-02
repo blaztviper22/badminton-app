@@ -107,7 +107,11 @@ function addMarkersToMap(courts) {
         </div>
         <div class="hourly-rate">
           <label><strong>Hourly Rate:</strong></label>
-        <input type="text" value="${court.hourly_rate ? `₱${court.hourly_rate.toFixed(2)}` : 'N/A'}" readonly />
+          <input type="text" value="${court.hourly_rate ? `₱${court.hourly_rate.toFixed(2)}` : 'N/A'}" readonly />
+        </div>
+        <div class="dti-number">
+          <label><strong>DTI Registration:</strong></label>
+          <input type="text" value="${court.dti_number || 'N/A'}" readonly />
         </div>
       </div>
       <div class="right-section">

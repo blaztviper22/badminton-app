@@ -165,7 +165,7 @@ exports.updateUserInfo = async (req, res) => {
       // upload the new file to Cloudflare R2
       const uploadResult = await uploadToR2(profile_photo.data, profile_photo.name);
       const fileName = uploadResult.fileName;
-      fileUrl = `/sdata/${fileName}`;
+      fileUrl = `user/data/${fileName}`;
 
       // assign access permissions for the new profile photo
       const accessibleUsers = [userId]; // User who uploaded should have access

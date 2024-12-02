@@ -15,6 +15,20 @@ const getById = (id) => doc.getElementById(id);
 const getAll = (selector) => doc.querySelectorAll(selector);
 const get = (selector) => doc.querySelector(selector);
 
+function formatAddress(fullAddress) {
+  if(!fullAddress) return 'Address not availble';
+
+  //Split the address by commas
+  const addressParts =  fullAddress.split(',');
+
+  //Take only the firts two parts (baranggay and city)
+  //and trin whitespace
+  const formattedParts = addressParts.slice(0,2).map(part => part.trim());
+
+  //Join them back with a comma 
+  return formattedParts.join(', ');x
+}
+
 doc.addEventListener('DOMContentLoaded', () => {
   const tabs = getAll('.nav-link');
   const tabContents = getAll('.tab-content');
@@ -130,6 +144,9 @@ doc.addEventListener('DOMContentLoaded', () => {
     if (result.success) {
       const court = result.data;
 
+      // Format address for the modal 
+      const formattedAddress = formatAddress(court.address);
+
       // Generate the modal content
       const modalContent = `
     <span class="close">&times;</span>
@@ -157,7 +174,7 @@ doc.addEventListener('DOMContentLoaded', () => {
 
       <div class="column">
         <label>Location:</label>
-        <input type="text" id="location" value="${court.address}" readonly />
+        <input type="text" id="location" value="${formattedAddress}" readonly />
 
         <label>Total Courts:</label>
         <input type="text" id="availableCourts" value="${court.totalCourts}" readonly />
@@ -248,7 +265,7 @@ function fetchApprovedAndDenied(apiUrl, tableBody, type) {
 
           // Access the necessary data from the court object
           const courtOwnerName = `${court.user.first_name} ${court.user.middle_name} ${court.user.last_name}`;
-          const address = court.address;
+          const formattedAddress = formatAddress(court.address);
           const courtEmail = court.user.email;
           const courtContact = court.user.contact_number;
           const registrationDate = new Date(court.user.createdAt).toLocaleDateString();
@@ -263,7 +280,7 @@ function fetchApprovedAndDenied(apiUrl, tableBody, type) {
           row.innerHTML = `
             <td>${index + 1}</td>
             <td>${courtOwnerName}</td>
-            <td>${address}</td>
+            <td>${formattedAddress}</td>
             <td>${courtEmail}</td>
             <td>${courtContact}</td>
             <td>${registrationDate}</td>
@@ -312,7 +329,7 @@ function fetchCourtData(apiUrl, tableBody) {
           // Access the necessary data from the court object
           const courtOwnerName = `${court.user.first_name} ${court.user.middle_name} ${court.user.last_name}`;
           const businessName = court.business_name;
-          const address = court.address;
+          const formattedAddress = formatAddress(court.address);
           const courtEmail = court.user.email;
           const courtContact = court.user.contact_number;
           const registrationDate = new Date(court.user.createdAt).toLocaleDateString();
@@ -322,7 +339,7 @@ function fetchCourtData(apiUrl, tableBody) {
             <td>${index + 1}</td>
             <td>${courtOwnerName}</td>
             <td>${businessName}</td>
-            <td>${address}</td>
+            <td>${formattedAddress}</td>
             <td>${courtEmail}</td>
             <td>${courtContact}</td>
             <td>${registrationDate}</td>

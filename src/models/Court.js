@@ -72,6 +72,12 @@ const courtRegistrationSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    dti_number: {
+      type: String,
+      default: function () {
+        return this.role === 'admin' ? null : undefined;
+      },
+    },
     status: {
       type: String,
       enum: ['approved', 'rejected', 'pending'],

@@ -113,6 +113,16 @@ const courtRegistrationSchema = Joi.object({
       return value;
     })
     .required(),
+  dti_number: Joi.string()
+    .trim()
+    .pattern(/^[0-9]{7,15}$/)  // Adjust the pattern based on your DTI number format
+    .required()
+    .messages({
+      'string.base': 'DTI registration number must be a string.',
+      'string.empty': 'DTI registration number is required.',
+      'string.pattern.base': 'Please enter a valid DTI registration number.',
+      'any.required': 'DTI registration number is required.'
+    }),
   'documents[business_permit]': Joi.object().unknown(true),
   'documents[dti]': Joi.object().unknown(true),
   'documents[bir]': Joi.object().unknown(true),

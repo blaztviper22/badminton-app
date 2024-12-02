@@ -61,6 +61,27 @@
   gap: 10px;
 }
 
+.dti-number {
+  text-align: left;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.dti-number label {
+  font-size: 14px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.dti-number input {
+  background-color: #f1f4fb;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 14px;
+  width: 65%;
+}
+
 .left-section {
   display: flex;
   flex-direction: column;
@@ -96,6 +117,7 @@
 .popup-header .right-section {
   flex-grow: 1;
 }
+
 
 .popup-container .popup-header h1 {
   font-size: 1.5em;

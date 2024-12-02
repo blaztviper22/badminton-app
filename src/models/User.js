@@ -73,19 +73,6 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Municipality is required'],
       trim: true
     },
-    dti_number: {
-      type: String,
-      required: [true, 'DTI registration number is required'],
-      trim: true,
-      validate: {
-        validator: function(value) {
-          // DTI numbers typically follow a specific format
-          // This is a basic validation - adjust the regex pattern based on actual DTI number format
-          return /^\d{4}-\d{2}-\d{6}$/.test(value);
-        },
-        message: 'Please enter a valid DTI registration number (Format: YYYY-DD-XXXXXX)'
-      }
-    },
     contact_number: {
       type: String,
       required: [true, 'Contact number is required'],
