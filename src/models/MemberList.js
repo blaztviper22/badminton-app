@@ -4,30 +4,30 @@ const joinedMembershipSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', 
-      required: true,
+      ref: 'User',
+      required: true
     },
     membership: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Membership', 
-      required: true,
+      ref: 'Membership',
+      required: true
     },
     joinDate: {
       type: Date,
-      default: Date.now,
+      default: Date.now
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'paid', 'failed'], 
-      default: 'pending',
-    },
+      enum: ['pending', 'paid', 'failed'],
+      default: 'pending'
+    }
   },
   {
-    timestamps: true, 
-    strict: 'throw',
+    timestamps: true,
+    strict: 'throw'
   }
 );
 
-const MemberList = mongoose.model('MemberList', memberListSchema);
+const MemberList = mongoose.model('MemberList', joinedMembershipSchema);
 
 module.exports = MemberList;
