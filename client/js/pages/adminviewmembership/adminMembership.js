@@ -92,32 +92,49 @@ function previewImage(event, isEdit = false) {
   reader.readAsDataURL(file);
 }
 
-document.getElementById('membershipForm').addEventListener('submit', function(e) {
+document.getElementById('membershipForm').addEventListener('submit', async function(e) {
   e.preventDefault();
 
-  const imageUrl = document.getElementById('imageUrl').files[0];
-  const cardName = document.getElementById('cardName').value;
-  const cardDescription = document.getElementById('cardDescription').value;
-  const cardPrice = document.getElementById('cardPrice').value;
+  const formData = new FormData();
+  formData.append('imageUrl', document.getElementById('imageUrl').files[0]);
+  formData.append('cardName', document.getElementById('cardName').value);
+  formData.append('cardDescription', document.getElementById('cardDescription').value);
+  formData.append('cardPrice', document.getElementById('cardPrice').value);
 
-  cards.push({
-    imageUrl: URL.createObjectURL(imageUrl),
-    cardName,
-    cardDescription,
-    cardPrice,
-    isActive: true,
-    subscribers: [
-      { username: 'SampleUser1', date: '2024-10-01' },
-      { username: 'SampleUser2', date: '2024-10-02' },
-      { username: 'SampleUser3', date: '2024-10-03' },
-      { username: 'SampleUser4', date: '2024-10-04' },
-      { username: 'SampleUser5', date: '2024-10-05' },
-      { username: 'SampleUser6', date: '2024-10-06' }
-    ]
-  });
+  console.log(formData);
 
-  renderCards();
-  document.getElementById('membershipForm').reset();
+  try {
+    const response = await fetch('/user/create', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await response.json();
+    console.log(data);
+
+    if (response.ok) {
+      // Add the new card to the display
+      const card = {
+        imageUrl: data.data.imageUrl,
+        cardName: data.data.cardName,
+        cardDescription: data.data.cardDescription,
+        cardPrice: data.data.cardPrice,
+        _id: data.data._id,
+        subscribers: []
+      };
+      cards.push(card);
+      renderCards();
+      
+      // Reset form
+      document.getElementById('membershipForm').reset();
+      document.getElementById('newImagePreview').style.display = 'none';
+    } else {
+      alert(data.message || 'Error creating membership card');
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    alert('Error creating membership card');
+  }
 });
 
 document.getElementById('editForm').addEventListener('submit', function(e) {
@@ -178,11 +195,12 @@ function closeConfirmationModal() {
 }
 
 // When the user confirms revocation, remove the subscriber
-document.getElementById('confirmRevokeBtn').addEventListener('click', function() {
+document.getElementById('confirmRevokeBtn').addEventListener('click', async function() {
   if (revokeDetails.cardIndex !== undefined && revokeDetails.subscriberIndex !== undefined) {
-    const { cardIndex, subscriberIndex } = revokeDetails;
-    cards[cardIndex].subscribers.splice(subscriberIndex, 1);  // Remove the subscriber from the array
-    renderSubscribers(cardIndex);  // Re-render the subscriber list after removal
+    const card = cards[revokeDetails.cardIndex];
+    const subscriber = card.subscribers[revokeDetails.subscriberIndex];
+    
+    await revokeSubscription(card._id, subscriber._id);
   }
 
   closeConfirmationModal();  // Close the confirmation modal after action is taken
@@ -205,6 +223,38 @@ function renderSubscribers(index) {
     subscriberTableBody.appendChild(row);
   });
 }
+
+// Update the confirmation modal handler
+async function revokeSubscription(membershipId, subscriberId) {
+  try {
+    const response = await fetch(`/user/${membershipId}/revoke/${subscriberId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Update the UI to reflect the revoked subscription
+      const cardIndex = cards.findIndex(card => card._id === membershipId);
+      if (cardIndex !== -1) {
+        const subscriberIndex = cards[cardIndex].subscribers.findIndex(sub => sub._id === subscriberId);
+        if (subscriberIndex !== -1) {
+          cards[cardIndex].subscribers.splice(subscriberIndex, 1);
+          renderSubscribers(cardIndex);
+        }
+      }
+    } else {
+      alert(data.message || 'Error revoking subscription');
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    alert('Error revoking subscription');
+  }
+}
+
 
 // Close the subscriber modal
 function closeSubscribersModal() {

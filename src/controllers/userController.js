@@ -36,6 +36,7 @@ const Membership = require('../models/Membership');
 const sanitizeHtml = require('sanitize-html');
 const Hashtag = require('../models/Hashtag');
 const Product = require('../models/Product');
+const MembershipSubscription = require('../models/MembershipSubscription');
 
 exports.getCurrentUser = async (req, res) => {
   try {
@@ -2729,6 +2730,176 @@ exports.updateBillStatus = async (req, res) => {
       status: 'error',
       code: 500,
       message: 'Internal Server Error'
+    });
+  }
+};
+
+exports.createMembership = async (req,res) => {
+  try {
+    const userId = req.user.id;
+    const courtId = req.user.court;
+
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Only admins can create membership cards'
+      });
+    }
+
+    // Validate required fields
+    const { cardName, cardDescription, cardPrice } = req.body;
+    if (!cardName || !cardDescription || !cardPrice) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'All fields are required'
+      });
+    }
+
+    // Handle image upload
+    if (!req.files || !req.files.imageUrl) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Image is required'
+      });
+    }
+
+    // Upload image to R2
+    const image = req.files.imageUrl;
+    const uploadResult = await uploadToR2(image.data, image.name);
+    const imageUrl = `user/data/${uploadResult.fileName}`;
+
+    // Create new membership
+    const membershipStorage = new MembershipSubscription({
+      cardName,
+      cardDescription,
+      cardPrice,
+      imageUrl,
+      court: courtId,
+      postedBy: userId
+    });
+
+    await membershipStorage.save();
+
+    res.status(201).json({
+      status: 'success',
+      data: membershipStorage
+    });
+  } catch (err) {
+    console.error('Error creating membership:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error'
+    });
+  }
+};
+
+exports.subscribeMembership = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { membershipId } = req.params;
+
+    // Find membership
+    const MembershipSubscription = await MembershipSubscription.findById(membershipId);
+    if (!MembershipSubscription) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Membership not found'
+      });
+    }
+
+    // Check if user is already subscribed
+    const existingSubscription = MembershipSubscription.subscribers.find(
+      sub => sub.userId.toString() === userId && sub.status === 'active'
+    );
+
+    if (existingSubscription) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'User is already subscribed to this membership'
+      });
+    }
+
+    // Add subscriber
+    MembershipSubscription.subscribers.push({
+      userId,
+      dateSubscribed: new Date(),
+      status: 'active'
+    });
+
+    await MembershipSubscription.save();
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Successfully subscribed to membership'
+    });
+
+  } catch (err) {
+    console.error('Error subscribing to membership:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error'
+    });
+  }
+};
+
+exports.revokeSubscription = async (req, res) => {
+  try {
+    const { membershipId, subscriberId } = req.params;
+
+    // Check if user is admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Only admins can revoke subscriptions'
+      });
+    }
+
+    // Find and update the subscription status
+    const MembershipSubscription = await MembershipSubscription.findById(membershipId);
+    if (!MembershipSubscription) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Membership not found'
+      });
+    }
+
+    const subscription = MembershipSubscription.subscribers.id(subscriberId);
+    if (!subscription) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Subscription not found'
+      });
+    }
+
+    MembershipSubscription.status = 'revoked';
+    await membership.save();
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Subscription revoked successfully'
+    });
+
+  } catch (err) {
+    console.error('Error revoking subscription:', err);
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error'
+    });
+  }
+};
+
+exports.getMembership = async (req, res) => {
+  try {
+    const memberships = await MembershipSubscription.find();
+    res.status(200).json({
+      status: 'success',
+      data: memberships
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Internal server error'
     });
   }
 };

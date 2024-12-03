@@ -1,328 +1,280 @@
 @import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
 
-*{
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* Main Layout */
+.home-section {
+  margin-left: 250px;
+  padding: 20px 40px;
+  background: #f5f5f5;
+  min-height: 100vh;
 }
 
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f9;
-  padding: 20px;
-  color: #333;
-}
-
-body.no-scroll {
-  overflow: hidden; /* Prevents scrolling on the main page when modal is open */
-}
-
-h1 {
-  text-align: center;
+.home-section h1 {
+  font-size: 28px;
+  color: #142850;
   margin-bottom: 30px;
-  color: #007bff;
-  font-size: 2.5em;
-  letter-spacing: 2px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #142850;
 }
 
 .admin-container {
-  width: 100%;
-  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 30px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 30px;
 }
 
+/* Card Form Styling */
 .card-form {
-  background-color: #fff;
+  background: white;
   padding: 25px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 40px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.card-form h4 {
+  color: #142850;
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
+.card-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .card-form label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 5px;
 }
 
-.card-form input,
+.card-form input[type="text"],
+.card-form input[type="number"],
 .card-form textarea {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
   border-radius: 5px;
-  border: 1px solid #ccc;
+  font-size: 14px;
+  transition: border-color 0.3s;
 }
 
-/* Fixed height, non-resizable description textarea */
-.card-form textarea,
-.modal-content textarea {
-  height: 120px;
-  overflow-y: auto;
-  resize: none; /* Prevent resizing */
+.card-form input[type="file"] {
+  padding: 8px;
+  border: 1px dashed #ddd;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
-.card-form button {
-  background-color: #007bff;
+.card-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-btn {
+  background: #142850;
   color: white;
-  padding: 12px 20px;
+  padding: 12px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 1em;
-  width: 100%;
+  font-weight: 500;
+  transition: background-color 0.3s;
 }
 
-.card-form button:hover {
-  background-color: #0056b3;
+.form-btn:hover {
+  background: #1e3a6d;
 }
 
+/* Card Container Styling */
 .card-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  padding: 10px;
 }
 
 .membership-card {
-width: 300px;
-min-height: 550px; /* Increased minimum height */
-background-color: #fff;
-border-radius: 8px;
-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-overflow: hidden;
-display: flex;
-flex-direction: column;
-align-items: center;
-padding: 20px;
-position: relative;
-transition: transform 0.3s ease;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.3s;
 }
 
 .membership-card:hover {
-  transform: translateY(-10px);
+  transform: translateY(-5px);
 }
 
 .membership-card img {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
+  width: 100%;
+  height: 180px;
   object-fit: cover;
-  margin-bottom: 20px;
 }
 
 .card-content {
-  text-align: center;
-  width: 100%;
+  padding: 20px;
 }
 
 .card-name {
-  font-size: 1.5em;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 15px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #142850;
+  margin-bottom: 10px;
 }
 
 .card-description {
-  font-size: 1em;
-  color: #333; /* Dark color for text readability */
-  padding: 10px;
-  height: 150px; /* Fixed height for vertical scroll */
-  overflow-y: auto; /* Enables vertical scrolling only */
-  overflow-x: hidden; /* Prevents horizontal scrolling */
-  text-align: justify;
-  background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white background */
-  border-radius: 8px; /* Rounded corners */
-  word-wrap: break-word; /* Ensures long words break to fit within the box */
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 15px;
+  line-height: 1.5;
 }
 
 .price {
-  font-size: 1.3em;
-  font-weight: bold;
-  color: #007bff;
+  font-size: 20px;
+  font-weight: 600;
+  color: #142850;
   margin-bottom: 15px;
-}
-
-.status-btn {
-  width: 100%;
-  padding: 12px;
-  font-size: 1em;
-  cursor: pointer;
-  margin-bottom: 15px;
-}
-
-.active-btn {
-  background-color: #28a745;
-  color: white;
-}
-
-.inactive-btn {
-  background-color: #dc3545;
-  color: white;
-}
-
-.edit-btn {
-  background-color: #ffc107;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  width: 100%;
-} 
-
-.edit-btn:hover {
-  background-color: #e0a800;
-}
-
-.subscriber-btn {
-  background-color: #6488EA;
-  color: white;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  width: 100%;
-}
-.subscriber-btn:hover {
-  background-color: #384B82;
 }
 
 .delete-icon {
   position: absolute;
   top: 10px;
   right: 10px;
-  font-size: 1.5em;
-  color: #dc3545;
+  color: #fff;
+  background: rgba(255, 0, 0, 0.7);
+  padding: 8px;
+  border-radius: 50%;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .delete-icon:hover {
-  color: #bd2130;
+  background: rgba(255, 0, 0, 0.9);
 }
 
+/* Modal Styling */
 .modal {
   display: none;
-  position: fixed; /* Keep modal fixed on the screen */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
-  z-index: 9999; /* Ensure modal appears above all content */
+  z-index: 1000;
 }
 
 .modal-content {
-  background-color: #fff;
+  background: white;
   padding: 30px;
-  border-radius: 8px;
-  width: 400px;
-  max-width: 90%;
-  position: relative;
-  max-height: 600px; /* Adjusted max height */
-  overflow-y: auto; /* Adds scrolling if content exceeds height */
-  z-index: 10000; /* Ensures the content appears above other layers */
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-.modal-content input,
-.modal-content textarea {
+.modal h2 {
+  color: #142850;
+  margin-bottom: 20px;
+}
+
+.modal table {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  border-collapse: collapse;
+  margin-bottom: 20px;
 }
 
-.modal-content button {
-  background-color: #007bff;
-  color: white;
+.modal th,
+.modal td {
   padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.modal th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.revoke-btn {
+  background: #ff4444;
+  color: white;
+  padding: 6px 12px;
   border: none;
-  border-radius: 5px;
-  width: 100%;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.modal-content button:hover {
-  background-color: #0056b3;
+.modal-btn-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
 }
 
+.modal-btn,
 .close-btn {
-  background-color: #dc3545;
-  color: white;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-top: 10px;
-  width: 100%;
+  font-weight: 500;
+  transition: background-color 0.3s;
 }
 
-.table-container {
-  max-height: 300px; /* Adjust height to show rows comfortably */
-  overflow-y: auto; /* Enables scrolling */
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #fafafa;
+.modal-btn {
+  background: #142850;
+  color: white;
 }
 
-/* Make the table header fixed */
-thead th {
-  position: sticky;
-  top: 0;
-  background-color: #f2f2f2;
-  z-index: 2;
+.close-btn {
+  background: #ddd;
+  color: #333;
 }
-  .table-container {
-    max-height: 300px; /* Adjust height for the scrolling area */
-    overflow-y: auto; /* Enables vertical scrolling */
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fafafa;
-  }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th, td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-  th {
-    background-color: #f2f2f2;
-  }
+.modal-btn:hover {
+  background: #1e3a6d;
+}
 
+.close-btn:hover {
+  background: #ccc;
+}
+
+/* Image Preview */
 .image-preview {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
+  max-width: 100%;
+  height: 150px;
   object-fit: cover;
-  margin-left: 10px;
-  display: none;
+  border-radius: 5px;
+  margin: 10px 0;
 }
 
-.modal-content .upload-container {
-  display: flex;
-  align-items: center;
-}
-.revoke-btn {
-background-color: #dc3545;
-color: white;
-padding: 5px 10px;
-border: none;
-border-radius: 5px;
-cursor: pointer;
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .admin-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .card-form {
+    position: static;
+  }
 }
 
-.revoke-btn:hover {
-background-color: #bd2130;
+@media (max-width: 768px) {
+  .home-section {
+    margin-left: 0;
+    padding: 20px;
+  }
+  
+  .card-container {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
 }

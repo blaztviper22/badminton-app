@@ -37,7 +37,7 @@
               <td>Basic Membership</td>
               <td>₱200</td>
               <td>
-                <button class="cancel-btn" onclick="openConfirmationModal('Basic Membership', 'basicMembershipRow')">
+                <button class="cancel-btn">
                   Cancel
                 </button>
               </td>
@@ -48,7 +48,7 @@
               <td>
                 <button
                   class="cancel-btn"
-                  onclick="openConfirmationModal('Standard Membership', 'standardMembershipRow')">
+                >
                   Cancel
                 </button>
               </td>
@@ -57,7 +57,7 @@
         </table>
         <br />
         <br />
-        <button class="close-btn" onclick="closeModalList()">Close</button>
+        <button class="close-btn">Close</button>
       </div>
     </div>
 
@@ -67,7 +67,7 @@
         <p>Do you really want to cancel your subscription?</p>
         <div class="confirmation-buttons">
           <button class="confirm-btn" id="confirmCancelBtn">Yes, Cancel</button>
-          <button class="cancel-btn" onclick="closeConfirmationModal()">No, Keep</button>
+          <button class="cancel-btn">No, Keep</button>
         </div>
       </div>
     </div>

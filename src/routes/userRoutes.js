@@ -47,7 +47,11 @@ const {
   getProductById,
   removeProductById,
   updateProduct,
-  updateBillStatus
+  updateBillStatus,
+  createMembership,
+  subscribeMembership,
+  revokeSubscription,
+  getMembership
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -400,6 +404,17 @@ let routes = (app, io) => {
     const filePath = path.resolve(__dirname, '../../build/userorderlist.html');
     serveFile(filePath, res, next);
   });
+  
+  // Create new membership card (admin only)
+  router.post('/create', verifyToken, roleChecker(['admin']), createMembership);
+
+  // Subscribe to membership
+  router.post('/memberships/subscribe/:subscriberId', verifyToken, roleChecker(['player', 'coach']), subscribeMembership);
+
+  // Revoke subscription (admin only)
+  router.post('/memberships/revoke/:subscriberId', verifyToken, roleChecker(['admin']), revokeSubscription);
+
+  router.get('/get-memberships', verifyToken, roleChecker(['player', 'coach']), getMembership);
 
   app.use('/user', router);
 };
