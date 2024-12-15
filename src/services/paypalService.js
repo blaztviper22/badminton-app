@@ -44,9 +44,8 @@ const capturePayPalPayment = async (orderId) => {
   return captureData;
 };
 
-async function createPayPalPayment(totalAmount, payerId, courtId, reservationId, returnUrl, cancelUrl) {
+async function createPayPalPayment(totalAmount, payerId, courtId, membershipId, returnUrl, cancelUrl) {
   const accessToken = await getAccessToken();
-  const unsignedToken = createUnsignedJWT('badminton-app', payerId);
 
   const orderResponse = await fetch(`${config.get('paypal').apiBaseUrl}/v2/checkout/orders`, {
     method: 'POST',
@@ -54,7 +53,6 @@ async function createPayPalPayment(totalAmount, payerId, courtId, reservationId,
       Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
       'PayPal-Request-Id': uuidv4()
-      // 'PayPal-Auth-Assertion': unsignedToken
     },
     body: JSON.stringify({
       intent: 'CAPTURE',
@@ -76,14 +74,12 @@ async function createPayPalPayment(totalAmount, payerId, courtId, reservationId,
         paypal: {
           experience_context: {
             payment_method_preference: 'IMMEDIATE_PAYMENT_REQUIRED',
-            brand_name: 'BATAAN BADMINTON',
+            brand_name: 'BATAAN BADMINTONn',
             locale: 'en-US',
             shipping_preference: 'NO_SHIPPING',
             user_action: 'PAY_NOW',
-            return_url:
-              returnUrl ||
-              `${config.get('frontendUrl')}/user/court-reservation?id=${courtId}&reservationId=${reservationId}`,
-            cancel_url: cancelUrl || `${config.get('frontendUrl')}/user/court-reservation?id=${courtId}`
+            return_url: returnUrl,
+            cancel_url: cancelUrl  // Add a custom parameter
           }
         }
       }

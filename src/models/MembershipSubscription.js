@@ -17,6 +17,7 @@ const membershipSubscriptionSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Add to the subscribers array schema
   subscribers: [{
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,7 +31,14 @@ const membershipSubscriptionSchema = new mongoose.Schema({
       type: String,
       enum: ['active', 'revoked'],
       default: 'active'
-    }
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['paid', 'unpaid'],
+      default: 'unpaid'
+    },
+    transactionId: String,
+    payerEmail: String
   }],
   court: {
     type: mongoose.Schema.Types.ObjectId,

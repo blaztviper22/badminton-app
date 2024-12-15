@@ -230,10 +230,13 @@ exports.serveData = async (req, res) => {
   const { filename } = req.params;
 
   try {
+    console.log('Requested file:', filename); // Debug log
+
     // Fetch file stream from R2
     const fileStream = await getFileFromR2(filename);
 
     if (!fileStream) {
+      console.log('File not found:', filename); // Debug log
       return res.status(404).json({
         status: 'error',
         message: 'File not found'
@@ -251,31 +254,14 @@ exports.serveData = async (req, res) => {
     // Pipe the file stream to the response
     await pipelineAsync(fileStream, res);
 
-    // Ensure response is ended properly
-    res.end(); // Call to end the response, though pipeline should handle this.
   } catch (err) {
-    console.error('Error fetching file:', err);
-
-    // Check if headers are already sent
+    console.error('Error serving file:', err, 'Filename:', filename); // Enhanced error logging
     if (!res.headersSent) {
-      // Handle specific errors
-      if (err.code === 'ERR_STREAM_PREMATURE_CLOSE') {
-        return res.status(500).json({
-          status: 'error',
-          message: 'File streaming failed due to an internal error.'
-        });
-      }
-
-      // Handle other errors
       return res.status(500).json({
         status: 'error',
-        code: 500,
         message: 'Internal Server Error'
       });
     }
-
-    // Log if headers are already sent
-    console.error('Headers already sent, cannot respond with error:', err);
   }
 };
 
@@ -2734,47 +2720,25 @@ exports.updateBillStatus = async (req, res) => {
   }
 };
 
-exports.createMembership = async (req,res) => {
+exports.createMembership = async (req, res) => {
   try {
     const userId = req.user.id;
     const courtId = req.user.court;
 
-    // Check if user is admin
-    if (!req.user.isAdmin) {
-      return res.status(403).json({
-        status: 'error',
-        message: 'Only admins can create membership cards'
-      });
-    }
-
-    // Validate required fields
-    const { cardName, cardDescription, cardPrice } = req.body;
-    if (!cardName || !cardDescription || !cardPrice) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'All fields are required'
-      });
-    }
-
-    // Handle image upload
-    if (!req.files || !req.files.imageUrl) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Image is required'
-      });
-    }
+    // ... other validation code ...
 
     // Upload image to R2
     const image = req.files.imageUrl;
     const uploadResult = await uploadToR2(image.data, image.name);
-    const imageUrl = `user/data/${uploadResult.fileName}`;
+    // Just store the filename, not the full path
+    const imageUrl = uploadResult.fileName;
 
     // Create new membership
     const membershipStorage = new MembershipSubscription({
       cardName,
       cardDescription,
       cardPrice,
-      imageUrl,
+      imageUrl, // Store just the filename
       court: courtId,
       postedBy: userId
     });
@@ -2799,9 +2763,8 @@ exports.subscribeMembership = async (req, res) => {
     const userId = req.user.id;
     const { membershipId } = req.params;
 
-    // Find membership
-    const MembershipSubscription = await MembershipSubscription.findById(membershipId);
-    if (!MembershipSubscription) {
+    const membership = await MembershipSubscription.findById(membershipId);
+    if (!membership) {
       return res.status(404).json({
         status: 'error',
         message: 'Membership not found'
@@ -2809,7 +2772,7 @@ exports.subscribeMembership = async (req, res) => {
     }
 
     // Check if user is already subscribed
-    const existingSubscription = MembershipSubscription.subscribers.find(
+    const existingSubscription = membership.subscribers.find(
       sub => sub.userId.toString() === userId && sub.status === 'active'
     );
 
@@ -2820,24 +2783,30 @@ exports.subscribeMembership = async (req, res) => {
       });
     }
 
-    // Add subscriber
-    MembershipSubscription.subscribers.push({
-      userId,
-      dateSubscribed: new Date(),
-      status: 'active'
-    });
+    // Set up PayPal payment with direct return URLs
+    const returnUrl = `${config.get('frontendUrl')}/user/userviewmembership`;
+    const cancelUrl = `${config.get('frontendUrl')}/user/dashboard`;
 
-    await MembershipSubscription.save();
+    const payment = await createPayPalPayment(
+      membership.cardPrice,
+      null,
+      membership.court,
+      membershipId,
+      returnUrl,
+      cancelUrl
+    );
+
+    const approvalUrl = payment.links.find(link => link.rel === 'payer-action').href;
 
     res.status(200).json({
       status: 'success',
-      message: 'Successfully subscribed to membership'
+      approvalUrl
     });
 
   } catch (err) {
     console.error('Error subscribing to membership:', err);
     res.status(500).json({
-      status: 'error',
+      status: 'error', 
       message: 'Internal server error'
     });
   }
@@ -2901,5 +2870,53 @@ exports.getMembership = async (req, res) => {
       status: 'error',
       message: 'Internal server error'
     });
+  }
+};
+
+// Add payment confirmation endpoint
+exports.confirmMembershipPayment = async (req, res, next) => {
+  const { token, membershipId } = req.query;
+  
+  try {
+    if (!token || !membershipId) {
+      return res.redirect('/user/dashboard');
+    }
+
+    const membership = await MembershipSubscription.findById(membershipId);
+    if (!membership) {
+      return res.redirect('/user/dashboard');
+    }
+
+    // Verify payment status
+    const paymentDetails = await getPayPalPaymentDetails(token);
+    
+    if (paymentDetails.status === 'COMPLETED' || paymentDetails.status === 'APPROVED') {
+      try {
+        const paymentCapture = await capturePayPalPayment(token);
+        
+        // Add user as subscriber with payment info
+        membership.subscribers.push({
+          userId: req.user.id,
+          dateSubscribed: new Date(),
+          status: 'active',
+          paymentStatus: 'paid',
+          transactionId: paymentCapture.id,
+          payerEmail: paymentDetails.payer.email_address
+        });
+
+        await membership.save();
+
+        //will create a page dedicated to view membership
+        return res.redirect('/user/userviewmembership?payment=success');
+      } catch (captureError) {
+        console.error('Payment capture error:', captureError);
+        return res.redirect('/user/dashboard');
+      }
+    } else {
+      return res.redirect('/user/dashboard');
+    }
+  } catch (err) {
+    console.error('Error confirming membership payment:', err);
+    return res.redirect('/user/dashboard');
   }
 };

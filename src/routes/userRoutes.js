@@ -51,7 +51,8 @@ const {
   createMembership,
   subscribeMembership,
   revokeSubscription,
-  getMembership
+  getMembership,
+  confirmMembershipPayment
 } = require('../controllers/userController');
 const serveFile = require('../utils/fileUtils');
 const {
@@ -267,10 +268,17 @@ let routes = (app, io) => {
 
   router.get('/availability', verifyToken, roleChecker(['player', 'coach']), getAvailability);
 
-  router.get('/dashboard', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
-    const filePath = path.resolve(__dirname, '../../build/userdash.html');
-    serveFile(filePath, res, next);
-  });
+  // Add this to your routes file
+router.get('/dashboard', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
+  // If there's a PayPal token, redirect without it
+  if (req.query.token && req.query.redirect === 'true') {
+    return router.get('/user/dashboard');
+  }
+  
+  // Otherwise continue normal dashboard rendering
+  const filePath = path.resolve(__dirname, '../../build/userdash.html');
+  serveFile(filePath, res, next);
+});
 
   router.get('/view-schedule', verifyToken, roleChecker(['player', 'coach']), (req, res, next) => {
     const filePath = path.resolve(__dirname, '../../build/viewusercourtreservationsched.html');
@@ -409,12 +417,26 @@ let routes = (app, io) => {
   router.post('/create', verifyToken, roleChecker(['admin']), createMembership);
 
   // Subscribe to membership
-  router.post('/memberships/subscribe/:subscriberId', verifyToken, roleChecker(['player', 'coach']), subscribeMembership);
+  router.post('/memberships/subscribe/:membershipId', verifyToken, roleChecker(['player', 'coach']), subscribeMembership);
 
   // Revoke subscription (admin only)
   router.post('/memberships/revoke/:subscriberId', verifyToken, roleChecker(['admin']), revokeSubscription);
 
   router.get('/get-memberships', verifyToken, roleChecker(['player', 'coach']), getMembership);
+
+  router.get('/memberships/confirm-payment/:membershipId', verifyToken, roleChecker(['player', 'coach']), confirmMembershipPayment);
+
+// Add this route to handle PayPal returns for memberships
+router.get('/memberships/return', verifyToken, roleChecker(['player', 'coach']), (req, res) => {
+  // Redirect to userviewmembership with success status
+  res.redirect('/user/userviewmembership?status=success');
+});
+
+// Add this route to handle PayPal cancellations for memberships 
+router.get('/memberships/cancel', verifyToken, roleChecker(['player', 'coach']), (req, res) => {
+  // Redirect to userviewmembership with cancelled status
+  res.redirect('/user/userviewmembership?status=cancelled');
+});
 
   app.use('/user', router);
 };
